@@ -1,0 +1,41 @@
+package resolver
+
+{{ template "imports.tmpl" .Imports }}
+
+{{ define ResolverMapping }}
+	{{ if .IsList }}
+		resolvers := make([]*{{ .ResolverName }}, 0, len(obj)
+		for _, o := range obj {
+			resolvers = append(resolvers, &{{ .ResolverName }} {t.aggregator,  &o}
+		}
+		return resolvers
+	{{ else }}
+		return &{{ .ResolverName }}{t.aggregator,  obj}
+	{{ end }}
+{{ end }}
+
+
+// import aggregator
+// import context
+// import errors
+
+type Resolver struct {
+	aggregator Aggregator
+}
+
+{{ range $q := .Queries }}
+func (t *Resolver) {{ $q.Name }}(ctx context.Context 
+{{ if  $q.Args }}
+args struct{
+{{- range $a := $q.Args }}
+$a.Name $a.Type
+{{ end }}
+}) ($q.Return, error) {
+	{{ $q.Name }}, err := t.aggregator.{{ $m.Aggregator }}(ctx context.Context)
+	if err != nil {
+		return nil, err
+	}
+
+	{{ template "ResolverMapping" $q }}	
+}
+{{ end }}

@@ -1,0 +1,46 @@
+schema {
+	query: Query
+}
+
+type Query {
+	rewardAsset (id: ID!): RewardAsset!
+	rewardAssets: [RewardAsset]!
+	campaign (id: ID!): Campaign
+	campaigns (active: Boolean!): [Campaign]!
+	node(id: ID!): Node
+}
+
+interface Node {
+	id: ID!
+}
+
+type Campaign implements Node {
+	id: ID!
+	name: String!
+	active: Boolean!
+	rewardAssets(first: Int, after: ID): RewardAssetConnection!
+} 
+
+type RewardAsset implements Node {
+	id: ID!
+	active: Boolean!
+	campaignId: String!
+	campaign: Campaign!
+}
+
+type RewardAssetConnection {
+	totalCount: Int!
+	edges: [RewardAssetEdge]
+	pageInfo: PageInfo!
+}
+
+type RewardAssetEdge {
+	cursor: ID!
+	node: RewardAsset!
+}
+
+type PageInfo {
+	startCursor: ID
+	endCursor: ID
+	hasNextPage: Boolean!
+}
