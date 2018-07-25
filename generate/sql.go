@@ -1,4 +1,4 @@
-package generators
+package generate
 
 import (
 	"github.com/graph-gophers/graphql-go/introspection"
