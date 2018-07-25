@@ -1,8 +1,8 @@
 package resolver
 
-{{ template "imports.tmpl" .Imports }}
+{{/* template "imports" .Imports 
 
-{{ define ResolverMapping }}
+{{ define "ResolverMapping" }}
 	{{ if .IsList }}
 		resolvers := make([]*{{ .ResolverName }}, 0, len(obj)
 		for _, o := range obj {
@@ -14,6 +14,7 @@ package resolver
 	{{ end }}
 {{ end }}
 
+*/}}
 
 // import aggregator
 // import context
@@ -31,11 +32,28 @@ args struct{
 $a.Name $a.Type
 {{ end }}
 }) ($q.Return, error) {
-	{{ $q.Name }}, err := t.aggregator.{{ $m.Aggregator }}(ctx context.Context)
+	{{ $q.Name }}, err := t.aggregator.{{ $q.Aggregator }}(ctx context.Context)
 	if err != nil {
 		return nil, err
 	}
 
-	{{ template "ResolverMapping" $q }}	
+	{{/* template "ResolverMapping" $q */}}	
 }
 {{ end }}
+{{ end }}
+
+{{ range $m := .Models }}
+{{ $m.Description }}
+type {{ $m.Name }}Resolver struct {
+{{ range $f := $m.Fields }}
+	{{ if $f.Description }}// {{ $f.Description }}{{ end }}
+	{{ $f.Name -}}
+	{{- if $f.Args -}}(
+
+	){{- end -}}
+	{{ $f.ReturnType }}
+{{ end }}
+}
+{{ end }}
+
+

@@ -30,11 +30,12 @@ func main() {
 	b, err := schema.ToJSON()
 	fmt.Println(string(b))
 
+	resolver := generate.NewResolverGenerator()
+
 	// Generate Aggregator
 	// Generate Resolvers
 	// Library for various functions
-	resolver := generate.NewResolverGenerator()
-	err = resovler.Generator(schema)
+	err = resolver.Generate(schema.Inspect())
 	CheckError(err)
 }
 
