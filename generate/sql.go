@@ -12,9 +12,9 @@ type SQLResolver struct {
 }
 
 func NewSQLResolver() *SQLResolver {
-
+	return &SQLResolver{}
 }
 
 func (t *SQLResolver) Generate(schema *introspection.Schema) error {
-
+	return nil
 }

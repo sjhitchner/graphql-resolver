@@ -20,9 +20,36 @@ package resolver
 // import context
 // import errors
 
+{{ range $enum := .Enums }}
+// {{ $enum.Description }}
+type {{ $enum.Name }} int
+
+const (
+{{ range $i, $v := $enum.Values }}
+	{{ $v.Description }}
+	{{ $v.Name }} {{ if eq $i 0 }}{{ $enum.Name }} = iota{{ end }}
+{{ end }}
+
+{{ end }}
+
 type Resolver struct {
 	aggregator Aggregator
 }
+
+{{ define "ResolverMethod" }}
+{{ if .Field.Description }}// {{ .Field.Description }}{{ end }}
+func (t *{{ .ResolverName }}Resolver) {{ .Field.Name | camel }}(ctx context.Context 
+  {{- if .Field.Args -}}
+    args struct{
+    {{- range $a := .Field.Args }}
+	  {{ $a.Name }} {{ $a.Type }} 
+    {{ end }}
+ }{{ end -}}
+) ({{ .Field.ReturnType }}, error)
+{{- end -}}
+
+
+{{/*
 
 {{ range $q := .Queries }}
 func (t *Resolver) {{ $q.Name }}(ctx context.Context 
@@ -37,23 +64,24 @@ $a.Name $a.Type
 		return nil, err
 	}
 
-	{{/* template "ResolverMapping" $q */}}	
+	{{ template "ResolverMapping" $q }}	
 }
 {{ end }}
 {{ end }}
+*/}}
+
 
 {{ range $m := .Models }}
 {{ $m.Description }}
 type {{ $m.Name }}Resolver struct {
-{{ range $f := $m.Fields }}
-	{{ if $f.Description }}// {{ $f.Description }}{{ end }}
-	{{ $f.Name -}}
-	{{- if $f.Args -}}(
-
-	){{- end -}}
-	{{ $f.ReturnType }}
-{{ end }}
+	aggregator Aggregator
+	obj *{{ $m.Name }}
 }
+
+{{- range $f := $m.Fields -}}
+{{ template "ResolverMethod" args "ResolverName" $m.Name "Field" $f }} {
+}
+{{ end }}
 {{ end }}
 
 
