@@ -11,7 +11,6 @@ import (
 
 type ResolverTemplate struct {
 	Imports   []string
-	Queries   []Query
 	Mutations []string
 	Models    []Model
 	Enums     []Enum

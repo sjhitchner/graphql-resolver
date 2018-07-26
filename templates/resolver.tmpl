@@ -21,14 +21,14 @@ package resolver
 // import errors
 
 {{ range $enum := .Enums }}
-// {{ $enum.Description }}
+{{ comment $enum.Description }}
 type {{ $enum.Name }} int
 
 const (
-{{ range $i, $v := $enum.Values }}
-	{{ $v.Description }}
+{{ range $i, $v := $enum.Values -}}
+	{{ comment $v.Description }}
 	{{ $v.Name }} {{ if eq $i 0 }}{{ $enum.Name }} = iota{{ end }}
-{{ end }}
+{{ end }})
 
 {{ end }}
 
@@ -36,18 +36,30 @@ type Resolver struct {
 	aggregator Aggregator
 }
 
-{{ define "ResolverMethod" }}
-{{ if .Field.Description }}// {{ .Field.Description }}{{ end }}
-func (t *{{ .ResolverName }}Resolver) {{ .Field.Name | camel }}(ctx context.Context 
+{{ define "MethodSignature" }}
+{{ comment .Field.Description }}
+func (t *{{ .Name }}Resolver) {{ .Field.Name | camel }}(ctx context.Context 
   {{- if .Field.Args -}}
-    args struct{
-    {{- range $a := .Field.Args }}
+    , args struct{
+    {{ range $a := .Field.Args -}}
 	  {{ $a.Name }} {{ $a.Type }} 
-    {{ end }}
+    {{- end }}
  }{{ end -}}
-) ({{ .Field.ReturnType }}, error)
+) ({{ .Field.Type.String }}, error)
 {{- end -}}
 
+{{ define "ResolverMethod" }}
+{{ end }}
+
+{{ define "ConnectionMethod" }}
+{{ end }}
+
+{{ define "EdgeMethod" }}
+{{ end }}
+
+{{- define "PageInfoMethod" -}}
+	return t.{{ lcamel .Name }}
+{{- end -}}
 
 {{/*
 
@@ -72,14 +84,33 @@ $a.Name $a.Type
 
 
 {{ range $m := .Models }}
-{{ $m.Description }}
+{{ comment $m.Description }}
 type {{ $m.Name }}Resolver struct {
+	{{- if isResolver $m.Type }}
 	aggregator Aggregator
 	obj *{{ $m.Name }}
+	{{- else if isQuery $m.Type }}
+	aggregator Aggregator
+	{{- else }}
+		{{ range $f := $m.Fields -}}
+			{{ lcamel $f.Name }} {{ $f.Type.String }}
+		{{ end }}
+	{{- end }}
 }
 
-{{- range $f := $m.Fields -}}
-{{ template "ResolverMethod" args "ResolverName" $m.Name "Field" $f }} {
+{{ range $f := $m.Fields -}}
+	{{ template "MethodSignature" args "Name" $m.Name "Field" $f }} {
+	{{- if isResolver $m.Type }}
+		{{ template "ResolverMethod" $f }}
+	{{- else if isQuery $m.Type }}
+		{{ template "ResolverMethod" $f }}
+	{{- else if isConnection $m.Type }}
+		{{ template "ConnectionMethod" $f }}
+	{{- else if isEdge $m.Type }}
+		{{ template "EdgeMethod" $f }}
+	{{- else if isPageInfo $m.Type }}
+		{{ template "PageInfoMethod" $f }}
+	{{- end }}
 }
 {{ end }}
 {{ end }}

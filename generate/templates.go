@@ -6,10 +6,13 @@ import (
 	//"go/parser"
 	//"go/token"
 	"io"
+	"strings"
 	"text/template"
 
 	"github.com/pkg/errors"
 	"github.com/stoewer/go-strcase"
+
+	. "github.com/sjhitchner/graphql-resolver/domain"
 )
 
 var tmpl *template.Template
@@ -51,6 +54,43 @@ func init() {
 						return "", errors.Errorf("Invalud argument '%s'", values[0])
 					}
 					return strcase.UpperCamelCase(strcase.SnakeCase(s)), nil
+				},
+				"lcamel": func(values ...interface{}) (string, error) {
+					s, ok := values[0].(string)
+					if !ok {
+						return "", errors.Errorf("Invalud argument '%s'", values[0])
+					}
+					return strcase.LowerCamelCase(strcase.SnakeCase(s)), nil
+				},
+				"comment": func(values ...interface{}) (string, error) {
+					s, ok := values[0].(string)
+					if !ok {
+						return "", nil
+					}
+					if s == "" {
+						return "", nil
+					}
+					return "// " + strings.Replace(s, "\n", "\n// ", -1), nil
+				},
+				"isQuery": func(values ...interface{}) bool {
+					b, ok := values[0].(ModelType)
+					return ok && b == Query
+				},
+				"isResolver": func(values ...interface{}) bool {
+					b, ok := values[0].(ModelType)
+					return ok && b == Resolver
+				},
+				"isPageInfo": func(values ...interface{}) bool {
+					b, ok := values[0].(ModelType)
+					return ok && b == PageInfo
+				},
+				"isEdge": func(values ...interface{}) bool {
+					b, ok := values[0].(ModelType)
+					return ok && b == Edge
+				},
+				"isConnection": func(values ...interface{}) bool {
+					b, ok := values[0].(ModelType)
+					return ok && b == Connection
 				},
 			},
 		).ParseGlob("templates/*.tmpl"),

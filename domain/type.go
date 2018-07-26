@@ -60,7 +60,7 @@ func nameRecurse(t *introspection.Type) string {
 	case "SCALAR":
 		switch *t.Name() {
 		case "ID":
-			return "string"
+			return "*graphql.ID"
 		case "Int":
 			return "int64"
 		case "Float":
@@ -74,7 +74,7 @@ func nameRecurse(t *introspection.Type) string {
 		}
 
 	case "NON_NULL":
-		return nameRecurse(t.OfType())
+		return "*" + nameRecurse(t.OfType())
 	}
 
 	panic("Invalid Type " + t.Kind())
@@ -140,7 +140,7 @@ func (t Type) String() string {
 	case DateTime:
 		return "time.Time"
 	case ID:
-		return "string"
+		return "*graphql.ID"
 
 	default:
 		panic("Invalid GRAPHQL Type")

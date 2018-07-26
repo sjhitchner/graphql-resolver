@@ -5,6 +5,7 @@ import (
 	//	"github.com/graph-gophers/graphql-go/introspection"
 )
 
+/*
 type Query struct {
 	Name         string
 	Args         []Argument
@@ -19,6 +20,7 @@ func (t Query) Return() string {
 	}
 	return str
 }
+*/
 
 type Enum struct {
 	Name        string
@@ -26,11 +28,22 @@ type Enum struct {
 	Values      []Field
 }
 
+type ModelType int
+
+const (
+	Resolver ModelType = iota
+	PageInfo
+	Edge
+	Connection
+	Query
+)
+
 type Model struct {
-	Name        string
+	Name        string // Constructed model name
 	Description string
 	Implements  string
 	Fields      []Field
+	Type        ModelType
 }
 
 type Field struct {
@@ -38,13 +51,18 @@ type Field struct {
 	Description string
 	Args        []Argument
 	Deprecated  string
-	ReturnType  Type
+	Type        Type
 }
 
 type Argument struct {
-	Name    string
-	Type    Type
-	Default string
+	Name        string
+	Description string
+	Type        Type
+	Default     string
+}
+
+func (t Argument) DefaultType() string {
+	return t.Default
 }
 
 func (t Argument) ToGraphQL() string {

@@ -21,7 +21,7 @@ func Enums(schema *introspection.Schema) []Enum {
 		enums = append(enums, Enum{
 			Name:        t.Name,
 			Values:      EnumValues(typ),
-			Description: Description(typ.Description()),
+			Description: StringRef(typ.Description()),
 		})
 	}
 	return enums
@@ -39,7 +39,7 @@ func EnumValues(t *introspection.Type) []Field {
 	for _, f := range *f {
 		fields = append(fields, Field{
 			Name:        f.Name(),
-			Description: Description(f.Description()),
+			Description: StringRef(f.Description()),
 			Deprecated: func() string {
 				if f.IsDeprecated() {
 					return "DECPRECATED " + StringRef(f.DeprecationReason())
@@ -64,13 +64,31 @@ func Models(schema *introspection.Schema) []Model {
 			continue
 		}
 
+		name, modelType := Name(t.Name)
 		models = append(models, Model{
-			Name:        t.Name,
+			Name:        name,
+			Type:        modelType,
 			Fields:      Fields(typ),
-			Description: Description(typ.Description()),
+			Description: StringRef(typ.Description()),
 		})
 	}
 	return models
+}
+
+func Name(name string) (string, ModelType) {
+	if strings.HasSuffix(name, "Connection") {
+		return name, Connection
+	}
+
+	if strings.HasSuffix(name, "Edge") {
+		return name, Edge
+	}
+
+	if strings.HasSuffix(name, "PageInfo") {
+		return name, PageInfo
+	}
+
+	return name, Resolver
 }
 
 func Fields(t *introspection.Type) []Field {
@@ -85,18 +103,37 @@ func Fields(t *introspection.Type) []Field {
 	for _, f := range *f {
 		fields = append(fields, Field{
 			Name:        f.Name(),
-			Description: Description(f.Description()),
+			Description: StringRef(f.Description()),
 			Deprecated: func() string {
 				if f.IsDeprecated() {
 					return "DECPRECATED " + StringRef(f.DeprecationReason())
 				}
 				return ""
 			}(),
-			ReturnType: ToType(f.Type()),
+			Args: Args(f),
+			Type: ToType(f.Type()),
 		})
 	}
 
 	return fields
+}
+
+func Args(f *introspection.Field) []Argument {
+	fargs := f.Args()
+	if len(fargs) == 0 {
+		return nil
+	}
+
+	args := make([]Argument, 0, len(fargs))
+	for _, a := range fargs {
+		args = append(args, Argument{
+			Name:        a.Name(),
+			Description: StringRef(a.Description()),
+			Type:        ToType(a.Type()),
+			Default:     StringRef(a.DefaultValue()),
+		})
+	}
+	return args
 }
 
 func StringRef(s *string) string {
@@ -104,13 +141,6 @@ func StringRef(s *string) string {
 		return ""
 	}
 	return *s
-}
-
-func Description(s *string) string {
-	if s == nil {
-		return ""
-	}
-	return "// " + strings.Replace(*s, "\n", "\n// ", -1)
 }
 
 /*
