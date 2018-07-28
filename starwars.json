@@ -1997,6 +1997,25 @@
 				]
 			},
 			{
+				"name": "method",
+				"description": null,
+				"locations": [
+					"FIELD_DEFINITION"
+				],
+				"args": [
+					{
+						"name": "name",
+						"description": null,
+						"type": {
+							"kind": "SCALAR",
+							"name": "String",
+							"ofType": null
+						},
+						"defaultValue": null
+					}
+				]
+			},
+			{
 				"name": "skip",
 				"description": "Directs the executor to skip this field or fragment when the `if` argument is true.",
 				"locations": [
@@ -2032,9 +2051,37 @@ package resolver
 // import context
 // import errors
 
-type Resolver struct {
-	aggregator Aggregator
-}
+
+// The episodes in the Star Wars trilogy
+type Episode int
+
+const (
+// Star Wars Episode IV: A New Hope, released in 1977.
+	NEWHOPE Episode = iota
+// Star Wars Episode V: The Empire Strikes Back, released in 1980.
+	EMPIRE 
+// Star Wars Episode VI: Return of the Jedi, released in 1983.
+	JEDI 
+)
+
+
+// Units of height
+type LengthUnit int
+
+const (
+// The standard unit around the world
+	METER LengthUnit = iota
+// Primarily used in the United States
+	FOOT 
+)
+
+
+
+
+
+
+
+
 
 
 
@@ -2044,64 +2091,100 @@ type DroidResolver struct {
 	aggregator Aggregator
 	obj *Droid
 }
-// // The ID of the droid
-func (t *Droid) Id(ctx context.Context) (string, error) {
+
+
+// The ID of the droid
+func (t *DroidResolver) Id(ctx context.Context) (*graphql.ID, error) {
+		return t.obj.Id
 }
 
-// // What others call this droid
-func (t *Droid) Name(ctx context.Context) (user_type, error) {
+// What others call this droid
+func (t *DroidResolver) Name(ctx context.Context) (string, error) {
+		return t.obj.Name
 }
 
-// // This droid's friends, or an empty list if they have none
-func (t *Droid) Friends(ctx context.Context) ([]Character, error) {
+// This droid's friends, or an empty list if they have none
+func (t *DroidResolver) Friends(ctx context.Context) ([]Character, error) {
+		return t.obj.Friends
 }
 
-// // The friends of the droid exposed as a connection with edges
-func (t *Droid) Friendsconnection(ctx context.Context) (, error) {
+// The friends of the droid exposed as a connection with edges
+func (t *DroidResolver) FriendsConnection(ctx context.Context, args struct{
+    first int64after *graphql.ID
+ }) (*FriendsConnection, error) {
+		return t.obj.FriendsConnection
 }
 
-// // The movies this droid appears in
-func (t *Droid) Appearsin(ctx context.Context) ([][]Invalid GRAPHQL Type (11), error) {
+// The movies this droid appears in
+func (t *DroidResolver) AppearsIn(ctx context.Context) (*[]*Episode, error) {
+		return t.obj.AppearsIn
 }
 
-// // This droid's primary function
-func (t *Droid) Primaryfunction(ctx context.Context) (user_type, error) {
+// This droid's primary function
+func (t *DroidResolver) PrimaryFunction(ctx context.Context) (string, error) {
+		return t.obj.PrimaryFunction
 }
 
 
 // A connection object for a character's friends
 type FriendsConnectionResolver struct {
-	aggregator Aggregator
-	obj *FriendsConnection
-}
-// // The total number of friends
-func (t *FriendsConnection) Totalcount(ctx context.Context) (user_type, error) {
-}
-
-// // The edges for each of the character's friends.
-func (t *FriendsConnection) Edges(ctx context.Context) ([]FriendsEdge, error) {
+		totalCount int64
+		edges []FriendsEdge
+		friends []Character
+		pageInfo *PageInfo
+		
 }
 
-// // A list of the friends, as a convenience when edges are not needed.
-func (t *FriendsConnection) Friends(ctx context.Context) ([]Character, error) {
+
+// The total number of friends
+func (t *FriendsConnectionResolver) TotalCount(ctx context.Context) (int64, error) {
+		
+	ConnectionMethod
+
 }
 
-// // Information for paginating this connection
-func (t *FriendsConnection) Pageinfo(ctx context.Context) (, error) {
+// The edges for each of the character's friends.
+func (t *FriendsConnectionResolver) Edges(ctx context.Context) ([]FriendsEdge, error) {
+		
+	ConnectionMethod
+
+}
+
+// A list of the friends, as a convenience when edges are not needed.
+func (t *FriendsConnectionResolver) Friends(ctx context.Context) ([]Character, error) {
+		
+	ConnectionMethod
+
+}
+
+// Information for paginating this connection
+func (t *FriendsConnectionResolver) PageInfo(ctx context.Context) (*PageInfo, error) {
+		
+	ConnectionMethod
+
 }
 
 
 // An edge object for a character's friends
 type FriendsEdgeResolver struct {
-	aggregator Aggregator
-	obj *FriendsEdge
-}
-// // A cursor used for pagination
-func (t *FriendsEdge) Cursor(ctx context.Context) (string, error) {
+		cursor *graphql.ID
+		node Character
+		
 }
 
-// // The character represented by this friendship edge
-func (t *FriendsEdge) Node(ctx context.Context) (Character, error) {
+
+// A cursor used for pagination
+func (t *FriendsEdgeResolver) Cursor(ctx context.Context) (*graphql.ID, error) {
+		
+	EdgeMethod
+
+}
+
+// The character represented by this friendship edge
+func (t *FriendsEdgeResolver) Node(ctx context.Context) (Character, error) {
+		
+	EdgeMethod
+
 }
 
 
@@ -2110,36 +2193,50 @@ type HumanResolver struct {
 	aggregator Aggregator
 	obj *Human
 }
-// // The ID of the human
-func (t *Human) Id(ctx context.Context) (string, error) {
+
+
+// The ID of the human
+func (t *HumanResolver) Id(ctx context.Context) (*graphql.ID, error) {
+		return t.obj.Id
 }
 
-// // What this human calls themselves
-func (t *Human) Name(ctx context.Context) (user_type, error) {
+// What this human calls themselves
+func (t *HumanResolver) Name(ctx context.Context) (string, error) {
+		return t.obj.Name
 }
 
-// // Height in the preferred unit, default is meters
-func (t *Human) Height(ctx context.Context) (user_type, error) {
+// Height in the preferred unit, default is meters
+func (t *HumanResolver) Height(ctx context.Context, args struct{
+    unit LengthUnit
+ }) (float64, error) {
+		return t.obj.Height
 }
 
-// // Mass in kilograms, or null if unknown
-func (t *Human) Mass(ctx context.Context) (user_type, error) {
+// Mass in kilograms, or null if unknown
+func (t *HumanResolver) Mass(ctx context.Context) (float64, error) {
+		return t.obj.Mass
 }
 
-// // This human's friends, or an empty list if they have none
-func (t *Human) Friends(ctx context.Context) ([]Character, error) {
+// This human's friends, or an empty list if they have none
+func (t *HumanResolver) Friends(ctx context.Context) ([]Character, error) {
+		return t.obj.Friends
 }
 
-// // The friends of the human exposed as a connection with edges
-func (t *Human) Friendsconnection(ctx context.Context) (, error) {
+// The friends of the human exposed as a connection with edges
+func (t *HumanResolver) FriendsConnection(ctx context.Context, args struct{
+    first int64after *graphql.ID
+ }) (*FriendsConnection, error) {
+		return t.obj.FriendsConnection
 }
 
-// // The movies this human appears in
-func (t *Human) Appearsin(ctx context.Context) ([][]Invalid GRAPHQL Type (11), error) {
+// The movies this human appears in
+func (t *HumanResolver) AppearsIn(ctx context.Context) (*[]*Episode, error) {
+		return t.obj.AppearsIn
 }
 
-// // A list of starships this person has piloted, or an empty list if none
-func (t *Human) Starships(ctx context.Context) ([]Starship, error) {
+// A list of starships this person has piloted, or an empty list if none
+func (t *HumanResolver) Starships(ctx context.Context) ([]Starship, error) {
+		return t.obj.Starships
 }
 
 
@@ -2149,25 +2246,37 @@ type MutationResolver struct {
 	obj *Mutation
 }
 
-func (t *Mutation) Createreview(ctx context.Context) (Review, error) {
+
+
+func (t *MutationResolver) CreateReview(ctx context.Context, args struct{
+    episode *Episodereview %!v(PANIC=Invalid GRAPHQL Type)
+ }) (Review, error) {
+		return t.obj.CreateReview
 }
 
 
 // Information for paginating this connection
 type PageInfoResolver struct {
-	aggregator Aggregator
-	obj *PageInfo
-}
-
-func (t *PageInfo) Startcursor(ctx context.Context) (string, error) {
-}
-
-
-func (t *PageInfo) Endcursor(ctx context.Context) (string, error) {
+		startCursor *graphql.ID
+		endCursor *graphql.ID
+		hasNextPage bool
+		
 }
 
 
-func (t *PageInfo) Hasnextpage(ctx context.Context) (user_type, error) {
+
+func (t *PageInfoResolver) StartCursor(ctx context.Context) (*graphql.ID, error) {
+		return t.startCursor
+}
+
+
+func (t *PageInfoResolver) EndCursor(ctx context.Context) (*graphql.ID, error) {
+		return t.endCursor
+}
+
+
+func (t *PageInfoResolver) HasNextPage(ctx context.Context) (bool, error) {
+		return t.hasNextPage
 }
 
 
@@ -2177,31 +2286,54 @@ type QueryResolver struct {
 	obj *Query
 }
 
-func (t *Query) Hero(ctx context.Context) (Character, error) {
+
+
+func (t *QueryResolver) Hero(ctx context.Context, args struct{
+    episode Episode
+ }) (Character, error) {
+		return t.obj.Hero
 }
 
 
-func (t *Query) Reviews(ctx context.Context) ([][]Review, error) {
+func (t *QueryResolver) Reviews(ctx context.Context, args struct{
+    episode *Episode
+ }) (*[]Review, error) {
+		return t.obj.Reviews
 }
 
 
-func (t *Query) Search(ctx context.Context) ([][]Invalid GRAPHQL Type (12), error) {
+func (t *QueryResolver) Search(ctx context.Context, args struct{
+    text string
+ }) (*[]SearchResult, error) {
+		return t.obj.Search
 }
 
 
-func (t *Query) Character(ctx context.Context) (Character, error) {
+func (t *QueryResolver) Character(ctx context.Context, args struct{
+    id *graphql.ID
+ }) (Character, error) {
+		return t.obj.Character
 }
 
 
-func (t *Query) Droid(ctx context.Context) (Droid, error) {
+func (t *QueryResolver) Droid(ctx context.Context, args struct{
+    id *graphql.ID
+ }) (Droid, error) {
+		return t.obj.Droid
 }
 
 
-func (t *Query) Human(ctx context.Context) (Human, error) {
+func (t *QueryResolver) Human(ctx context.Context, args struct{
+    id *graphql.ID
+ }) (Human, error) {
+		return t.obj.Human
 }
 
 
-func (t *Query) Starship(ctx context.Context) (Starship, error) {
+func (t *QueryResolver) Starship(ctx context.Context, args struct{
+    id *graphql.ID
+ }) (Starship, error) {
+		return t.obj.Starship
 }
 
 
@@ -2210,12 +2342,16 @@ type ReviewResolver struct {
 	aggregator Aggregator
 	obj *Review
 }
-// // The number of stars this review gave, 1-5
-func (t *Review) Stars(ctx context.Context) (user_type, error) {
+
+
+// The number of stars this review gave, 1-5
+func (t *ReviewResolver) Stars(ctx context.Context) (int64, error) {
+		return t.obj.Stars
 }
 
-// // Comment about the movie
-func (t *Review) Commentary(ctx context.Context) (user_type, error) {
+// Comment about the movie
+func (t *ReviewResolver) Commentary(ctx context.Context) (string, error) {
+		return t.obj.Commentary
 }
 
 
@@ -2224,16 +2360,23 @@ type StarshipResolver struct {
 	aggregator Aggregator
 	obj *Starship
 }
-// // The ID of the starship
-func (t *Starship) Id(ctx context.Context) (string, error) {
+
+
+// The ID of the starship
+func (t *StarshipResolver) Id(ctx context.Context) (*graphql.ID, error) {
+		return t.obj.Id
 }
 
-// // The name of the starship
-func (t *Starship) Name(ctx context.Context) (user_type, error) {
+// The name of the starship
+func (t *StarshipResolver) Name(ctx context.Context) (string, error) {
+		return t.obj.Name
 }
 
-// // Length of the starship, along the longest axis
-func (t *Starship) Length(ctx context.Context) (user_type, error) {
+// Length of the starship, along the longest axis
+func (t *StarshipResolver) Length(ctx context.Context, args struct{
+    unit LengthUnit
+ }) (float64, error) {
+		return t.obj.Length
 }
 
 

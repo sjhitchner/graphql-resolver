@@ -20,21 +20,6 @@ package resolver
 // import context
 // import errors
 
-{{ range $enum := .Enums }}
-{{ comment $enum.Description }}
-type {{ $enum.Name }} int
-
-const (
-{{ range $i, $v := $enum.Values -}}
-	{{ comment $v.Description }}
-	{{ $v.Name }} {{ if eq $i 0 }}{{ $enum.Name }} = iota{{ end }}
-{{ end }})
-
-{{ end }}
-
-type Resolver struct {
-	aggregator Aggregator
-}
 
 {{ define "MethodSignature" }}
 {{ comment .Field.Description }}
@@ -45,16 +30,23 @@ func (t *{{ .Name }}Resolver) {{ .Field.Name | camel }}(ctx context.Context
 	  {{ $a.Name }} {{ $a.Type }} 
     {{- end }}
  }{{ end -}}
-) ({{ .Field.Type.String }}, error)
+) ({{ .Field.Type.Base }}, error)
 {{- end -}}
 
 {{ define "ResolverMethod" }}
+	return t.obj.{{ camel .Name }}
+{{ end }}
+
+{{ define "ResolverConnectionMethod" }}
+	return t.obj.{{ camel .Name }}
 {{ end }}
 
 {{ define "ConnectionMethod" }}
+	ConnectionMethod
 {{ end }}
 
 {{ define "EdgeMethod" }}
+	EdgeMethod
 {{ end }}
 
 {{- define "PageInfoMethod" -}}
@@ -83,7 +75,7 @@ $a.Name $a.Type
 */}}
 
 
-{{ range $m := .Models }}
+{{ with $m := .Model }}
 {{ comment $m.Description }}
 type {{ $m.Name }}Resolver struct {
 	{{- if isResolver $m.Type }}

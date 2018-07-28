@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/graph-gophers/graphql-go/introspection"
@@ -141,6 +142,34 @@ func StringRef(s *string) string {
 		return ""
 	}
 	return *s
+}
+
+type ParsedSchema struct {
+	Models []Model
+	Enums  []Enum
+}
+
+func ParseSchema(schema *introspection.Schema) *ParsedSchema {
+
+	for _, d := range schema.Directives() {
+		fmt.Println("Name:", d.Name())
+		fmt.Println("Description:", StringRef(d.Description()))
+		for _, a := range d.Args() {
+			fmt.Println("\tArg Name:", a.Name())
+			fmt.Println("\tArg Description:", StringRef(a.Description()))
+		}
+		for _, l := range d.Locations() {
+			fmt.Println("Location:", l)
+		}
+	}
+
+	models := Models(schema)
+	enums := Enums(schema)
+
+	return &ParsedSchema{
+		Models: models,
+		Enums:  enums,
+	}
 }
 
 /*

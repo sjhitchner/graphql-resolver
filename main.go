@@ -7,8 +7,8 @@ import (
 
 	"github.com/graph-gophers/graphql-go"
 
+	. "github.com/sjhitchner/graphql-resolver/domain"
 	"github.com/sjhitchner/graphql-resolver/generate"
-	//"io"
 )
 
 var (
@@ -18,7 +18,7 @@ var (
 
 func init() {
 	flag.StringVar(&schemaPath, "schema", "", "Path to schema")
-	flag.StringVar(&outputPath, "path", "", "Path to output directory")
+	flag.StringVar(&outputPath, "path", "generated", "Path to output directory")
 }
 
 func main() {
@@ -30,13 +30,20 @@ func main() {
 	b, err := schema.ToJSON()
 	fmt.Println(string(b))
 
-	resolver := generate.NewResolverGenerator()
+	parsedSchema := ParseSchema(schema.Inspect())
+
+	generators := []generate.Generator{
+		generate.NewResolverGenerator(outputPath),
+		generate.NewEnumGenerator(outputPath),
+	}
 
 	// Generate Aggregator
 	// Generate Resolvers
 	// Library for various functions
-	err = resolver.Generate(schema.Inspect())
-	CheckError(err)
+	for _, generator := range generators {
+		err = generator.Generate(parsedSchema)
+		CheckError(err)
+	}
 }
 
 func LoadSchema(schemaPath string) (*graphql.Schema, error) {

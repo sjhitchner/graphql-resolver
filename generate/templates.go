@@ -17,6 +17,10 @@ import (
 
 var tmpl *template.Template
 
+type Generator interface {
+	Generate(schema *ParsedSchema) error
+}
+
 /*
 	template.ParseFiles(
 		"templates/fragments.tmpl",

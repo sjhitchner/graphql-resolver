@@ -74,7 +74,8 @@ func nameRecurse(t *introspection.Type) string {
 		}
 
 	case "NON_NULL":
-		return "*" + nameRecurse(t.OfType())
+		//return "*" + nameRecurse(t.OfType())
+		return nameRecurse(t.OfType())
 	}
 
 	panic("Invalid Type " + t.Kind())
