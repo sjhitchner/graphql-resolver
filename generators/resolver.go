@@ -3,7 +3,6 @@ package generators
 import (
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/graph-gophers/graphql-go/introspection"
 	"github.com/stoewer/go-strcase"
@@ -11,7 +10,7 @@ import (
 
 type ResolverTemplate struct {
 	Imports []string
-	Models  []*introspection.Type
+	Model   *introspection.Type
 }
 
 type ResolverGenerator struct {
@@ -22,15 +21,15 @@ func NewResolverGenerator(path string) *ResolverGenerator {
 	return &ResolverGenerator{path}
 }
 
-func (t *ResolverGenerator) Generate(schema *intropsection.Schema) error {
-	for _, t := range schema.Types() {
-		if t.Kind() != Object || SafeHasPrefix(t.Name(), "__") {
+func (t *ResolverGenerator) Generate(schema *introspection.Schema) error {
+	for _, model := range schema.Types() {
+		if model.Kind() != Object || SafeHasPrefix(model.Name(), "__") {
 			continue
 		}
 
-		typeName := SafeString(t.Name())
+		modeleName := SafeString(model.Name())
 
-		f, err := os.Create(t.Filename(typeName))
+		f, err := os.Create(t.Filename(modeleName))
 		if err != nil {
 			return err
 		}

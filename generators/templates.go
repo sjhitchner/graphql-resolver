@@ -6,11 +6,11 @@ import (
 	//"go/parser"
 	//"go/token"
 	"io"
-	"strings"
+	//"strings"
 	"text/template"
 
-	"github.com/pkg/errors"
-	"github.com/stoewer/go-strcase"
+	//"github.com/pkg/errors"
+	//"github.com/stoewer/go-strcase"
 
 	"github.com/graph-gophers/graphql-go/introspection"
 )
@@ -31,12 +31,19 @@ func init() {
 	tmpl = template.Must(
 		template.New("").Funcs(
 			template.FuncMap{
-				"args":    Args,
-				"snake":   SnakeCase,
-				"camel":   CamelCase,
-				"lcamel":  LowerCamelCase,
-				"comment": Comment,
-				"safe":    Safe,
+				"args":     Args,
+				"snake":    SnakeCase,
+				"camel":    CamelCase,
+				"lcamel":   LowerCamelCase,
+				"comment":  Comment,
+				"safe":     Safe,
+				"typeName": TypeName,
+				//"recursetype": TypeType,
+				"isQuery":      IsQuery,
+				"isPageInfo":   IsPageInfo,
+				"isEdge":       IsEdge,
+				"isConnection": IsConnection,
+				"allFields":    AllFields,
 			},
 		).ParseGlob("templates/*.tmpl"),
 	)

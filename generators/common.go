@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/graph-gophers/graphql-go/introspection"
+	"github.com/pkg/errors"
 	"github.com/stoewer/go-strcase"
 )
 
@@ -24,7 +25,14 @@ func SafeHasPrefix(str *string, s string) bool {
 	if str == nil {
 		return false
 	}
-	return strings.HasPrefix(*str, "__")
+	return strings.HasPrefix(*str, s)
+}
+
+func SafeHasSuffix(str *string, s string) bool {
+	if str == nil {
+		return false
+	}
+	return strings.HasSuffix(*str, s)
 }
 
 func Args(values ...interface{}) (map[string]interface{}, error) {
@@ -79,45 +87,67 @@ func Comment(values ...interface{}) (string, error) {
 
 func Safe(values ...interface{}) (interface{}, error) {
 
-	/*
-		t:=reflect.TypeOf(values[0])
-		if t.Kind() == reflect.Ptr {
-			t = t.Elem()
-		}
+	value := reflect.ValueOf(values[0])
+	if value.Kind() == reflect.Ptr {
+		value = value.Elem()
+	}
 
-		switch v := values[0].(type) {
-		case string:
-	*/
-	return "", nil
+	switch value.Kind() {
+	case reflect.String:
+		return value.String(), nil
+
+	case reflect.Float32, reflect.Float64:
+		return value.Float(), nil
+
+	case reflect.Bool:
+		return value.Bool(), nil
+
+	case reflect.Int, reflect.Int64:
+		return value.Int(), nil
+
+	default:
+		return value.Interface(), nil
+	}
 }
 
-/*
-	"isQuery": func(values ...interface{}) bool {
-		b, ok := values[0].(ModelType)
-		return ok && b == Query
-	},
-	"isResolver": func(values ...interface{}) bool {
-		b, ok := values[0].(ModelType)
-		return ok && b == Resolver
-	},
-	"isPageInfo": func(values ...interface{}) bool {
-		b, ok := values[0].(ModelType)
-		return ok && b == PageInfo
-	},
-	"isEdge": func(values ...interface{}) bool {
-		b, ok := values[0].(ModelType)
-		return ok && b == Edge
-	},
-	"isConnection": func(values ...interface{}) bool {
-		b, ok := values[0].(ModelType)
-		return ok && b == Connection
-	},
-*/
+func IsQuery(values ...interface{}) bool {
+	t, ok := values[0].(*introspection.Type)
+	return ok && SafeString(t.Name()) == "Query"
+}
 
-func TypeName(values ...interface{}) (string, error) {
+func IsPageInfo(values ...interface{}) bool {
+	t, ok := values[0].(*introspection.Type)
+	return ok && SafeString(t.Name()) == "PageInfo"
+}
+
+func IsEdge(values ...interface{}) bool {
+	t, ok := values[0].(*introspection.Type)
+	return ok && SafeHasSuffix(t.Name(), "Edge")
+}
+
+func IsConnection(values ...interface{}) bool {
+	t, ok := values[0].(*introspection.Type)
+	return ok && SafeHasSuffix(t.Name(), "Connection")
+}
+
+func AllFields(values ...interface{}) (interface{}, error) {
 	t, ok := values[0].(*introspection.Type)
 	if !ok {
-		return "", err
+		return "", errors.New("Not an introspection type")
+	}
+
+	fields := t.Fields(&struct{ IncludeDeprecated bool }{true})
+	if fields == nil {
+		return "", errors.New("No fields")
+	}
+
+	return *fields, nil
+}
+
+func TypeName(values ...interface{}) (interface{}, error) {
+	t, ok := values[0].(*introspection.Type)
+	if !ok {
+		return "", errors.New("Not an introspection type")
 	}
 
 	return nameRecurse(t), nil
@@ -137,12 +167,12 @@ func nameRecurse(t *introspection.Type) string {
 	case "UNION":
 		fallthrough
 	case "INPUT_OBJECT":
-		return *t.Name()
+		return *t.Name() + "Resolver"
 
 	case "SCALAR":
 		switch *t.Name() {
 		case "ID":
-			return "*graphql.ID"
+			return "graphql.ID"
 		case "Int":
 			return "int64"
 		case "Float":
@@ -162,10 +192,11 @@ func nameRecurse(t *introspection.Type) string {
 	panic("Invalid Type " + t.Kind())
 }
 
-func TypeType(values ...interface{}) (string, error) {
+/*
+func TypeType(values ...interface{}) (interface{}, error) {
 	t, ok := values[0].(*introspection.Type)
 	if !ok {
-		return "", err
+		return "", errors.New("Not an introspection type")
 	}
 
 	return typeRecurse(t), nil
@@ -206,3 +237,4 @@ func typeRecurse(t *introspection.Type) string {
 		panic("Invalid Type " + t.Kind())
 	}
 }
+*/

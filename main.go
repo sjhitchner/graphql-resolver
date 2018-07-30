@@ -7,8 +7,7 @@ import (
 
 	"github.com/graph-gophers/graphql-go"
 
-	. "github.com/sjhitchner/graphql-resolver/domain"
-	"github.com/sjhitchner/graphql-resolver/generate"
+	"github.com/sjhitchner/graphql-resolver/generators"
 )
 
 var (
@@ -30,18 +29,16 @@ func main() {
 	b, err := schema.ToJSON()
 	fmt.Println(string(b))
 
-	parsedSchema := ParseSchema(schema.Inspect())
-
-	generators := []generate.Generator{
-		generate.NewResolverGenerator(outputPath),
-		generate.NewEnumGenerator(outputPath),
+	generators := []generators.Generator{
+		generators.NewResolverGenerator(outputPath),
+		//generate.NewEnumGenerator(outputPath),
 	}
 
 	// Generate Aggregator
 	// Generate Resolvers
 	// Library for various functions
 	for _, generator := range generators {
-		err = generator.Generate(parsedSchema)
+		err = generator.Generate(schema.Inspect())
 		CheckError(err)
 	}
 }

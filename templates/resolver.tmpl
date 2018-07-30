@@ -23,14 +23,15 @@ package resolver
 
 {{ define "MethodSignature" }}
 {{ comment .Field.Description }}
+{{ if .Field.IsDeprecated }}{{ comment .Field.DeprecationReason }}{{ end }}
 func (t *{{ .Name }}Resolver) {{ .Field.Name | camel }}(ctx context.Context 
   {{- if .Field.Args -}}
     , args struct{
     {{ range $a := .Field.Args -}}
-	  {{ $a.Name }} {{ $a.Type }} 
-    {{- end }}
+	  {{ $a.Name }} {{ typeName $a.Type }} 
+    {{ end -}}
  }{{ end -}}
-) ({{ .Field.Type.Base }}, error)
+) ({{ typeName .Field.Type }}, error)
 {{- end -}}
 
 {{ define "ResolverMethod" }}
@@ -78,30 +79,29 @@ $a.Name $a.Type
 {{ with $m := .Model }}
 {{ comment $m.Description }}
 type {{ $m.Name }}Resolver struct {
-	{{- if isResolver $m.Type }}
-	aggregator Aggregator
-	obj *{{ $m.Name }}
-	{{- else if isQuery $m.Type }}
+	{{- if isQuery $m }}
 	aggregator Aggregator
 	{{- else }}
-		{{ range $f := $m.Fields -}}
-			{{ lcamel $f.Name }} {{ $f.Type.String }}
+		aggregator Aggregator
+		obj *{{ $m.Name }}
+		{{ range $f := allFields $m -}}
+			{{ lcamel $f.Name }} {{ typeName $f.Type }}
 		{{ end }}
 	{{- end }}
 }
 
-{{ range $f := $m.Fields -}}
+{{ range $f := allFields $m -}}
 	{{ template "MethodSignature" args "Name" $m.Name "Field" $f }} {
-	{{- if isResolver $m.Type }}
+	{{- if isQuery $m }}
 		{{ template "ResolverMethod" $f }}
-	{{- else if isQuery $m.Type }}
-		{{ template "ResolverMethod" $f }}
-	{{- else if isConnection $m.Type }}
+	{{- else if isConnection $m }}
 		{{ template "ConnectionMethod" $f }}
-	{{- else if isEdge $m.Type }}
+	{{- else if isEdge $m }}
 		{{ template "EdgeMethod" $f }}
-	{{- else if isPageInfo $m.Type }}
+	{{- else if isPageInfo $m }}
 		{{ template "PageInfoMethod" $f }}
+	{{- else }}
+		{{ template "ResolverMethod" $f }}
 	{{- end }}
 }
 {{ end }}
