@@ -22,34 +22,49 @@ func (t Query) Return() string {
 }
 */
 
+type Type struct {
+	Base    BaseType
+	Values  []string
+	Indexed bool
+}
+
+type BaseType int
+
+const (
+	Null BaseType = iota
+	ID
+	Integer
+	Float
+	Boolean
+	String
+	Time
+	DateTime
+	List
+	Object
+	Interface
+	ENUM
+	Union
+	InputObject
+	NonNull
+	UserType
+)
+
 type Enum struct {
 	Name        string
 	Description string
 	Values      []Field
 }
 
-type ModelType int
-
-const (
-	Resolver ModelType = iota
-	PageInfo
-	Edge
-	Connection
-	Query
-)
-
 type Model struct {
 	Name        string // Constructed model name
+	Plural      string
 	Description string
-	Implements  string
 	Fields      []Field
-	Type        ModelType
 }
 
 type Field struct {
 	Name        string
 	Description string
-	Args        []Argument
 	Deprecated  string
 	Type        Type
 }

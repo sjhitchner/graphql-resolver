@@ -1,0 +1,49 @@
+---
+- name: "Human"
+  description: "A humanoid creature from the Star Wars universe"
+  fields: 
+    - name: "id"
+      description: "The ID of the human"
+      deprecated: false
+      type: 
+        base: ID
+        index: primary
+    - name: "name"
+      description: "What this human calls themselves"
+      deprecated: false
+      type: 
+        base: string
+        index: name_index
+    - name: "height"
+      description: "Height in the preferred unit, default is meters"
+      deprecated: false
+      type: 
+        base: string
+    - name: "mass"
+      description: "Mass in kilograms, or null if unknown"
+      deprecated: false
+      type: 
+        base: string
+
+- name: "Droid"
+  description: "An autonomous mechanical character in the Star Wars universe"
+  fields: 
+    - name: "id"
+      description: "The ID of the human"
+      deprecated: false
+      type: 
+        base: ID
+        index: primary
+    - name: "name"
+      description: "What this human calls themselves"
+      deprecated: false
+      type: 
+        base: string
+        index: name_index
+    - name: "primary_function"
+      description: "This droid's primary function"
+      deprecated: false
+      type: 
+        base: string
+        index: name_index
+
