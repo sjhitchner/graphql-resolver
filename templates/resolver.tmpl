@@ -1,110 +1,39 @@
 package resolver
 
-{{/* template "imports" .Imports 
-
-{{ define "ResolverMapping" }}
-	{{ if .IsList }}
-		resolvers := make([]*{{ .ResolverName }}, 0, len(obj)
-		for _, o := range obj {
-			resolvers = append(resolvers, &{{ .ResolverName }} {t.aggregator,  &o}
-		}
-		return resolvers
-	{{ else }}
-		return &{{ .ResolverName }}{t.aggregator,  obj}
-	{{ end }}
-{{ end }}
-
-*/}}
-
-// import aggregator
-// import context
-// import errors
-
-
-{{ define "MethodSignature" }}
-{{ comment .Field.Description }}
-{{ if .Field.IsDeprecated }}{{ comment .Field.DeprecationReason }}{{ end }}
-func (t *{{ .Name }}Resolver) {{ .Field.Name | camel }}(ctx context.Context 
-  {{- if .Field.Args -}}
-    , args struct{
-    {{ range $a := .Field.Args -}}
-	  {{ $a.Name }} {{ typeName $a.Type }} 
-    {{ end -}}
- }{{ end -}}
-) ({{ typeName .Field.Type }}, error)
-{{- end -}}
-
-{{ define "ResolverMethod" }}
-	return t.obj.{{ camel .Name }}
-{{ end }}
-
-{{ define "ResolverConnectionMethod" }}
-	return t.obj.{{ camel .Name }}
-{{ end }}
-
-{{ define "ConnectionMethod" }}
-	ConnectionMethod
-{{ end }}
-
-{{ define "EdgeMethod" }}
-	EdgeMethod
-{{ end }}
-
-{{- define "PageInfoMethod" -}}
-	return t.{{ lcamel .Name }}
-{{- end -}}
-
-{{/*
-
-{{ range $q := .Queries }}
-func (t *Resolver) {{ $q.Name }}(ctx context.Context 
-{{ if  $q.Args }}
-args struct{
-{{- range $a := $q.Args }}
-$a.Name $a.Type
-{{ end }}
-}) ($q.Return, error) {
-	{{ $q.Name }}, err := t.aggregator.{{ $q.Aggregator }}(ctx context.Context)
-	if err != nil {
-		return nil, err
-	}
-
-	{{ template "ResolverMapping" $q }}	
-}
-{{ end }}
-{{ end }}
-*/}}
-
+{{ template "imports" join .Imports "encoding/base64" "github.com/graph-gophers/graphql-go" }}
 
 {{ with $m := .Model }}
 {{ comment $m.Description }}
+
+type {{ $m.Name }} struct {
+{{ template "ModelFields" $m }}
+}
+
 type {{ $m.Name }}Resolver struct {
-	{{- if isQuery $m }}
 	aggregator Aggregator
-	{{- else }}
-		aggregator Aggregator
-		obj *{{ $m.Name }}
-		{{ range $f := allFields $m -}}
-			{{ lcamel $f.Name }} {{ typeName $f.Type }}
-		{{ end }}
+	{{ if isQuery $m }}
+	{{- else if isPageInfo $m -}}
+	{{- template "ModelFields" $m -}}
+	{{- else -}}
+	aggregator Aggregator
+	obj *{{ $m.Name }}
+	{{ template "ModelFields" $m }}
 	{{- end }}
 }
 
 {{ range $f := allFields $m -}}
-	{{ template "MethodSignature" args "Name" $m.Name "Field" $f }} {
-	{{- if isQuery $m }}
-		{{ template "ResolverMethod" $f }}
-	{{- else if isConnection $m }}
-		{{ template "ConnectionMethod" $f }}
-	{{- else if isEdge $m }}
-		{{ template "EdgeMethod" $f }}
-	{{- else if isPageInfo $m }}
-		{{ template "PageInfoMethod" $f }}
-	{{- else }}
-		{{ template "ResolverMethod" $f }}
-	{{- end }}
+{{ template "ModelSignature" args "Name" $m.Name "Field" $f }} {
+{{- if isQuery $m }}
+	{{ template "ResolverMethod" $f }}
+{{- else if isConnection $m }}
+	{{ template "ConnectionMethod" $f }}
+{{- else if isEdge $m }}
+	{{ template "EdgeMethod" $f }}
+{{- else if isPageInfo $m }}
+	{{ template "PageInfoMethod" $f }}
+{{- else }}
+	{{ template "ResolverMethod" $f }}
+{{- end }}
 }
 {{ end }}
 {{ end }}
-
-

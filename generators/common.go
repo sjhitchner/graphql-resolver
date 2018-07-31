@@ -1,6 +1,7 @@
 package generators
 
 import (
+	"fmt"
 	"reflect"
 	"strings"
 
@@ -13,6 +14,46 @@ const (
 	Object = "OBJECT"
 	Enum   = "ENUM"
 )
+
+func Join(values ...interface{}) ([]string, error) {
+	list := make([]string, 0, len(values))
+	for _, value := range values {
+		switch v := value.(type) {
+		case []string:
+			list = append(list, v...)
+		case string:
+			list = append(list, v)
+		case int, int64:
+			list = append(list, fmt.Sprintf("%d", v))
+		case float32, float64:
+			list = append(list, fmt.Sprintf("%f", v))
+		case bool:
+			list = append(list, fmt.Sprintf("%t", v))
+		}
+	}
+	return list, nil
+}
+
+func Unique(values ...interface{}) ([]string, error) {
+	list := make(map[string]struct{}, 0, len(values))
+	for _, value := range values {
+		switch v := value.(type) {
+		case []string:
+			for _, s := range v {
+				list[s] = struct{}{}
+			}
+		case string:
+			list[v] = struct{}{}
+		case int, int64:
+			list[fmt.Sprintf("%d", v)] = struct{}{}
+		case float32, float64:
+			list[fmt.Sprintf("%f", v)] = struct{}{}
+		case bool:
+			list[fmt.Sprintf("%t", v)] = struct{}{}
+		}
+	}
+	return list, nil
+}
 
 func SafeString(str *string) string {
 	if str == nil {

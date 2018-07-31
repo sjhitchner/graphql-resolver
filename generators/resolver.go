@@ -22,6 +22,11 @@ func NewResolverGenerator(path string) *ResolverGenerator {
 }
 
 func (t *ResolverGenerator) Generate(schema *introspection.Schema) error {
+	imports := []string{
+		"context",
+		"github.com/graph-gophers/graphql-go",
+	}
+
 	for _, model := range schema.Types() {
 		if model.Kind() != Object || SafeHasPrefix(model.Name(), "__") {
 			continue
@@ -35,7 +40,8 @@ func (t *ResolverGenerator) Generate(schema *introspection.Schema) error {
 		}
 
 		if err := ExecuteTemplate(f, "resolver.tmpl", ResolverTemplate{
-			Model: model,
+			Imports: imports,
+			Model:   model,
 		}); err != nil {
 			return err
 		}

@@ -44,6 +44,8 @@ func init() {
 				"isEdge":       IsEdge,
 				"isConnection": IsConnection,
 				"allFields":    AllFields,
+				"join":         Join,
+				"unique":       Unique,
 			},
 		).ParseGlob("templates/*.tmpl"),
 	)
