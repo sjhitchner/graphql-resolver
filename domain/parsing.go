@@ -1,5 +1,6 @@
 package domain
 
+/*
 import (
 	"fmt"
 	"strings"
@@ -172,7 +173,6 @@ func ParseSchema(schema *introspection.Schema) *ParsedSchema {
 	}
 }
 
-/*
 func TypeBuilder(obj *introspection.Type) string {
 	if obj == nil {
 		return "NULL"

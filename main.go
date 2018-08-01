@@ -3,10 +3,11 @@ package main
 import (
 	"flag"
 	"fmt"
-	"io/ioutil"
+	"os"
 
-	"github.com/graph-gophers/graphql-go"
+	//"github.com/graph-gophers/graphql-go"
 
+	. "github.com/sjhitchner/graphql-resolver/domain"
 	"github.com/sjhitchner/graphql-resolver/generators"
 )
 
@@ -26,8 +27,8 @@ func main() {
 	schema, err := LoadSchema(schemaPath)
 	CheckError(err)
 
-	b, err := schema.ToJSON()
-	fmt.Println(string(b))
+	//b, err := schema.ToJSON()
+	fmt.Println(schema)
 
 	generators := []generators.Generator{
 		generators.NewResolverGenerator(outputPath),
@@ -38,23 +39,9 @@ func main() {
 	// Generate Resolvers
 	// Library for various functions
 	for _, generator := range generators {
-		err = generator.Generate(schema.Inspect())
+		err = generator.Generate(schema...)
 		CheckError(err)
 	}
-}
-
-func LoadSchema(schemaPath string) (*graphql.Schema, error) {
-	b, err := ioutil.ReadFile(schemaPath)
-	if err != nil {
-		return nil, err
-	}
-
-	schema, err := graphql.ParseSchema(string(b), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return schema, nil
 }
 
 func CheckError(err error) {
@@ -63,8 +50,22 @@ func CheckError(err error) {
 	}
 }
 
-/*
+func LoadSchema(schemaPath string) ([]Model, error) {
+	f, err := os.Open(schemaPath)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
 
+	schema, err := ReadSchema(f)
+	if err != nil {
+		return nil, err
+	}
+
+	return schema, nil
+}
+
+/*
 func (s *GraphQLSuite) Test_GraphQL(c *C) {
 	schema, err := graphql.ParseSchema(Schema, nil)
 	c.Assert(err, IsNil)

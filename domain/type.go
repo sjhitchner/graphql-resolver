@@ -1,5 +1,6 @@
 package domain
 
+/*
 import (
 	"github.com/graph-gophers/graphql-go/introspection"
 )
@@ -147,3 +148,4 @@ func (t Type) String() string {
 		panic("Invalid GRAPHQL Type")
 	}
 }
+*/

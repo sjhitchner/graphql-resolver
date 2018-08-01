@@ -5,14 +5,14 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/graph-gophers/graphql-go/introspection"
+	//	"github.com/graph-gophers/graphql-go/introspection"
 	"github.com/pkg/errors"
 	"github.com/stoewer/go-strcase"
 )
 
 const (
-	Object = "OBJECT"
-	Enum   = "ENUM"
+//Object = "OBJECT"
+//Enum   = "ENUM"
 )
 
 func Join(values ...interface{}) ([]string, error) {
@@ -35,22 +35,27 @@ func Join(values ...interface{}) ([]string, error) {
 }
 
 func Unique(values ...interface{}) ([]string, error) {
-	list := make(map[string]struct{}, 0, len(values))
+	mlist := make(map[string]struct{})
 	for _, value := range values {
 		switch v := value.(type) {
 		case []string:
 			for _, s := range v {
-				list[s] = struct{}{}
+				mlist[s] = struct{}{}
 			}
 		case string:
-			list[v] = struct{}{}
+			mlist[v] = struct{}{}
 		case int, int64:
-			list[fmt.Sprintf("%d", v)] = struct{}{}
+			mlist[fmt.Sprintf("%d", v)] = struct{}{}
 		case float32, float64:
-			list[fmt.Sprintf("%f", v)] = struct{}{}
+			mlist[fmt.Sprintf("%f", v)] = struct{}{}
 		case bool:
-			list[fmt.Sprintf("%t", v)] = struct{}{}
+			mlist[fmt.Sprintf("%t", v)] = struct{}{}
 		}
+	}
+
+	list := make([]string, 0, len(mlist))
+	for k, _ := range mlist {
+		list = append(list, k)
 	}
 	return list, nil
 }
@@ -151,6 +156,7 @@ func Safe(values ...interface{}) (interface{}, error) {
 	}
 }
 
+/*
 func IsQuery(values ...interface{}) bool {
 	t, ok := values[0].(*introspection.Type)
 	return ok && SafeString(t.Name()) == "Query"

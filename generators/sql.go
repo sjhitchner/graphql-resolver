@@ -4,20 +4,20 @@ import (
 	. "github.com/sjhitchner/graphql-resolver/domain"
 )
 
-type ResolverTemplate struct {
+type SQLTemplate struct {
 	Imports []string
 	Model   Model
 }
 
-type ResolverGenerator struct {
+type SQLGenerator struct {
 	path string
 }
 
-func NewResolverGenerator(path string) *ResolverGenerator {
-	return &ResolverGenerator{path}
+func NewSQLGenerator(path string) *SQLGenerator {
+	return &SQLGenerator{path}
 }
 
-func (t *ResolverGenerator) Generate(models ...Model) error {
+func (t *SQLGenerator) Generate(models ...Model) error {
 	imports := []string{
 		"context",
 		"github.com/graph-gophers/graphql-go",
@@ -27,17 +27,18 @@ func (t *ResolverGenerator) Generate(models ...Model) error {
 		//if err := GenerateGoFile(
 		if err := GenerateFile(
 			t.Filename(model.Name),
-			"resolver.tmpl",
-			ResolverTemplate{
+			"sql.tmpl",
+			SQLTemplate{
 				Imports: imports,
 				Model:   model,
 			}); err != nil {
 			return err
 		}
 	}
+
 	return nil
 }
 
-func (t *ResolverGenerator) Filename(name string) string {
-	return TemplatePath(t.path, "resolvers", name)
+func (t *SQLGenerator) Filename(name string) string {
+	return TemplatePath(t.path, "interfaces/db", name)
 }
