@@ -1,0 +1,42 @@
+package db
+
+import (
+	"context"
+	"github.com/jmoiron/sqlx"
+)
+
+
+
+
+
+{{ with $m := .Model }}
+{{ with $name := printf "%s%s" $m.Name "DB" }} 
+
+
+const {{ $m.Name}}Select = `
+SELECT 
+`
+
+
+
+type {{ $name }} struct {
+}
+
+func New{{ $name }}() *{{ $name }} {
+	return &{{ $name }}{}
+}
+
+{{ range $index := $m.Indexes }}
+const {{ $index.Name }} = `
+WHERE id = $1
+`
+
+func (t *{{ $name }}) Get{{ $m.Name }}ById(ctx context.Context, id {{ $pimaryKey }}) (*{{ $m.Name }}, error) {
+
+	
+}
+{{ end }}
+
+{{ end }}
+{{ end }}
+

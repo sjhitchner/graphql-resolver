@@ -26,6 +26,8 @@ type Model struct {
 	Description string  `yaml:"description,omitempty"`
 	Fields      []Field `yaml:"fields"`
 	// Module TODO what modules to generate use PROTOBUFS/SQL etc
+	// SQL fragments for active = true etc etc
+	// Indexes method
 }
 
 func (t Model) String() string {
@@ -34,6 +36,10 @@ func (t Model) String() string {
 		return err.Error()
 	}
 	return string(b)
+}
+
+func (t Model) Indexes() []Index {
+
 }
 
 type Field struct {
