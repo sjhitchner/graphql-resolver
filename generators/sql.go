@@ -1,6 +1,9 @@
 package generators
 
 import (
+	"fmt"
+	"github.com/pkg/errors"
+
 	. "github.com/sjhitchner/graphql-resolver/domain"
 )
 
@@ -17,23 +20,33 @@ func NewSQLGenerator(path string) *SQLGenerator {
 	return &SQLGenerator{path}
 }
 
-func (t *SQLGenerator) Generate(models ...Model) error {
+func (t *SQLGenerator) Generate(model Model) error {
+
+	if !model.ShouldGenerate(SQL) {
+		return nil
+	}
+
+	sql := model.SQL
+	if sql == nil {
+		return errors.Errorf("Model '%s' set to generate SQL but no sql block configured", model.Name)
+	}
+
 	imports := []string{
 		"context",
 		"github.com/graph-gophers/graphql-go",
 	}
 
-	for _, model := range models {
-		//if err := GenerateGoFile(
-		if err := GenerateFile(
-			t.Filename(model.Name),
-			"sql.tmpl",
-			SQLTemplate{
-				Imports: imports,
-				Model:   model,
-			}); err != nil {
-			return err
-		}
+	fmt.Println(model.Indexes())
+
+	//if err := GenerateGoFile(
+	if err := GenerateFile(
+		t.Filename(model.Name),
+		"sql.tmpl",
+		SQLTemplate{
+			Imports: imports,
+			Model:   model,
+		}); err != nil {
+		return err
 	}
 
 	return nil

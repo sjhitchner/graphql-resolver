@@ -19,7 +19,7 @@ import (
 var tmpl *template.Template
 
 type Generator interface {
-	Generate(models ...Model) error
+	Generate(model Model) error
 }
 
 func init() {
@@ -34,6 +34,10 @@ func init() {
 				"safe":    Safe,
 				"join":    Join,
 				"unique":  Unique,
+				"add":     Add,
+				"sub":     Subtract,
+				"mul":     Multiply,
+				"div":     Divide,
 				/*
 					"allFields":    AllFields,
 					"typeName":     TypeName,

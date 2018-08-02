@@ -36,6 +36,16 @@ func (t *{{ .Name }}) String() string {
 {{ end }}
 
 
+{{ define "RepoSignature" }} 
+func (t *{{ .Struct }}) Get{{ .Model }}By
+{{- range $i, $f := .Index.Fields -}}
+  {{- if gt $i 0 }}And{{ end -}}
+  {{- camel $f.Name -}}
+{{- end -}}(ctx context.Context
+{{- range $f := .Index.Fields }}, {{ $f.Name }} {{ $f.Type }}{{ end }})(*{{ .Model }}, error)
+{{- end }}
+
+{{/*
 {{ define "ModelSignature" }}
 {{ comment .Field.Description }}
 {{ if .Field.IsDeprecated }}{{ comment .Field.DeprecationReason }}{{ end }}
@@ -43,10 +53,10 @@ func (t *{{ .Name }}Resolver) {{ .Field.Name | camel }}(ctx context.Context
   {{- if .Field.Args -}}
     , args struct{
     {{ range $a := .Field.Args -}}
-	  {{ $a.Name }} {{ typeName $a.Type }}
+	  {{ $a.Name }} {{ $a.Type }}
     {{ end -}}
  }{{ end -}}
-) ({{ typeName .Field.Type }}, error)
+) ({{ .Field.Type }}, error)
 {{- end -}}
 
 
@@ -80,8 +90,8 @@ func (t *{{ .Name }}Resolver) {{ .Field.Name | camel }}(ctx context.Context
 
 
 {{ define "ModelFields" }}
-{{ range $f := allFields . -}}
-	{{ lcamel $f.Name }} {{ typeName $f.Type }}
+{{ range $f := .Fields . -}}
+	{{ lcamel $f.Name }} {{ $f.Type }}
 {{ end }}{{ end }}
 
 

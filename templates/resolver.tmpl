@@ -1,6 +1,6 @@
 package resolver
 
-{{ template "imports" join .Imports "encoding/base64" "github.com/graph-gophers/graphql-go" }}
+{{ template "imports" unique .Imports "encoding/base64" "github.com/graph-gophers/graphql-go" }}
 
 {{ with $m := .Model }}
 {{ comment $m.Description }}
@@ -11,8 +11,8 @@ type {{ $m.Name }} struct {
 
 type {{ $m.Name }}Resolver struct {
 	aggregator Aggregator
-	{{ if isQuery $m }}
-	{{- else if isPageInfo $m -}}
+	{{ if  $m }}
+	{{- else if  $m -}}
 	{{- template "ModelFields" $m -}}
 	{{- else -}}
 	aggregator Aggregator
@@ -21,15 +21,15 @@ type {{ $m.Name }}Resolver struct {
 	{{- end }}
 }
 
-{{ range $f := allFields $m -}}
+{{ range $f := .Fields $m -}}
 {{ template "ModelSignature" args "Name" $m.Name "Field" $f }} {
-{{- if isQuery $m }}
+{{- if  $m }}
 	{{ template "ResolverMethod" $f }}
-{{- else if isConnection $m }}
+{{- else if  $m }}
 	{{ template "ConnectionMethod" $f }}
-{{- else if isEdge $m }}
+{{- else if  $m }}
 	{{ template "EdgeMethod" $f }}
-{{- else if isPageInfo $m }}
+{{- else if  $m }}
 	{{ template "PageInfoMethod" $f }}
 {{- else }}
 	{{ template "ResolverMethod" $f }}

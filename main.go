@@ -31,7 +31,8 @@ func main() {
 	fmt.Println(schema)
 
 	generators := []generators.Generator{
-		generators.NewResolverGenerator(outputPath),
+		generators.NewSQLGenerator(outputPath),
+		//generators.NewResolverGenerator(outputPath),
 		//generate.NewEnumGenerator(outputPath),
 	}
 
@@ -39,8 +40,10 @@ func main() {
 	// Generate Resolvers
 	// Library for various functions
 	for _, generator := range generators {
-		err = generator.Generate(schema...)
-		CheckError(err)
+		for _, model := range schema {
+			err = generator.Generate(model)
+			CheckError(err)
+		}
 	}
 }
 

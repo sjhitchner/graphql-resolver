@@ -3,21 +3,29 @@ package db
 import (
 	"context"
 	"github.com/jmoiron/sqlx"
+	"github.com/pkg/errors"
 )
 
+{{- define "SelectSingleFunction" -}} {
+	return nil, errors.New("Not implemented")
+}
+{{ end }}
 
-
+{{ define "SelectMultiFunction" }} {
+	return nil, errors.New("Not implemented")
+}
+{{ end }}
 
 
 {{ with $m := .Model }}
 {{ with $name := printf "%s%s" $m.Name "DB" }} 
-
-
 const {{ $m.Name}}Select = `
-SELECT 
+SELECT
+{{- range $i, $f := $m.Fields -}}
+	{{ if gt $i 0 }},{{ end }} {{ snake $f.Internal }}	
+{{ end -}}
+FROM {{ $m.SQL.Table }}
 `
-
-
 
 type {{ $name }} struct {
 }
@@ -26,17 +34,20 @@ func New{{ $name }}() *{{ $name }} {
 	return &{{ $name }}{}
 }
 
-{{ range $index := $m.Indexes }}
-const {{ $index.Name }} = `
-WHERE id = $1
+{{- range $index := $m.Indexes }}
+{{ with $queryName := printf "%s%s" $index.Name "Query" | camel }}
+const {{ $queryName }} = {{ $m.Name }}Select + `
+WHERE {{ range $i, $f := $index.Fields -}}
+  {{- if gt $i 0 }} AND {{ end -}}
+  {{ $f.Name }} = ${{ add $i 1 }}
+{{- end }}
 `
-
-func (t *{{ $name }}) Get{{ $m.Name }}ById(ctx context.Context, id {{ $pimaryKey }}) (*{{ $m.Name }}, error) {
-
-	
-}
+  {{ template "RepoSignature" args "Struct" $name "Model" $m.Name "Index" $index -}}
+  {{- if eq $index.Name "primary" -}}
+    {{ template "SelectSingleFunction" args "Struct" $name "Model" $m.Name "Index" $index}}
+  {{- else -}}
+    {{template "SelectMultiFunction" args "Struct" $name "Model" $m.Name "Index" $index}}
+  {{ end }}
 {{ end }}
 
-{{ end }}
-{{ end }}
-
+{{ end }}{{ end }}{{ end }}
