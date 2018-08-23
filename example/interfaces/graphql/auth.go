@@ -1,5 +1,6 @@
 package graphql
 
+/*
 import (
 	"context"
 	"encoding/base64"
@@ -11,11 +12,11 @@ import (
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/pkg/errors"
-
-	gcontext "github.com/OscarYuen/go-graphql-starter/context"
-	"github.com/OscarYuen/go-graphql-starter/model"
-	"github.com/OscarYuen/go-graphql-starter/service"
+	//gcontext "github.com/OscarYuen/go-graphql-starter/context"
+	//"github.com/OscarYuen/go-graphql-starter/model"
+	//"github.com/OscarYuen/go-graphql-starter/service"
 )
+*/
 
 // https://github.com/OscarYuen/go-graphql-starter/blob/master/handler/auth.go
 // TODO constants
@@ -24,6 +25,7 @@ const (
 	Authorization = "Authorization"
 )
 
+/*
 func Authenticate(h http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var (
@@ -92,3 +94,4 @@ func validateBearerAuthHeader(ctx context.Context, r *http.Request) (*jwt.Token,
 	token, err := ctx.Value("authService").(*service.AuthService).ValidateJWT(&tokenString)
 	return token, err
 }
+*/

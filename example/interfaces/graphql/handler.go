@@ -1,21 +1,22 @@
 package graphql
 
 import (
-	"log"
+	//"log"
+	"encoding/json"
 	"net/http"
 
 	"github.com/graph-gophers/graphql-go"
 	"github.com/graph-gophers/graphql-go/example/starwars"
-	"github.com/graph-gophers/graphql-go/relay"
+	//"github.com/graph-gophers/graphql-go/relay"
 )
 
 type Handler struct {
 	schema *graphql.Schema
 }
 
-func NewHandler(schema string, resolver interface{}) *GraphQLHander {
-	return &GraphQLHandler{
-		schema: graphql.MustParseSchema(starwars.Schema, resolver),
+func NewHandler(schema string, resolver interface{}) *Handler {
+	return &Handler{
+		schema: graphql.MustParseSchema(schema, resolver),
 	}
 }
 
@@ -34,7 +35,7 @@ func (t *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	//ctx := h.Loaders.Attach(r.Context())
 
-	response := t.Schema.Exec(ctx, params.Query, params.OperationName, params.Variables)
+	response := t.schema.Exec(r.Context(), params.Query, params.OperationName, params.Variables)
 	responseJSON, err := json.Marshal(response)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -49,8 +50,8 @@ type GraphiQLHandler struct {
 	schema *graphql.Schema
 }
 
-func NewGraphiQLHandler(schema string) *GraphQLHander {
-	return &GraphQLHandler{
+func NewGraphiQLHandler(schema string) *GraphiQLHandler {
+	return &GraphiQLHandler{
 		schema: graphql.MustParseSchema(starwars.Schema, nil),
 	}
 }

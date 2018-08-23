@@ -51,7 +51,7 @@ type RecipeConnectionResolver struct {
 }
 
 func (t *RecipeConnectionResolver) TotalCount() int32 {
-	return int32(r.totalCount)
+	return int32(t.totalCount)
 }
 
 func (t *RecipeConnectionResolver) Edges() *[]*RecipeEdgeResolver {
@@ -59,8 +59,8 @@ func (t *RecipeConnectionResolver) Edges() *[]*RecipeEdgeResolver {
 	for i := range l {
 		l[i] = &RecipeEdgeResolver{
 			// EncodeCursor
-			cursor: r.users[i].ID,
-			model:  r.users[i],
+			cursor: t.recipes[i].ID,
+			model:  t.recipes[i],
 		}
 	}
 	return &l

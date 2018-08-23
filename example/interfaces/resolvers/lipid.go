@@ -94,23 +94,23 @@ func (t *LipidResolver) Creamy() int64 {
 }
 
 type LipidConnectionResolver struct {
-	recipes    []*domain.Lipid
+	lipids     []*domain.Lipid
 	totalCount int
 	from       *string
 	to         *string
 }
 
 func (t *LipidConnectionResolver) TotalCount() int32 {
-	return int32(r.totalCount)
+	return int32(t.totalCount)
 }
 
 func (t *LipidConnectionResolver) Edges() *[]*LipidEdgeResolver {
-	l := make([]*LipidEdgeResolver, len(t.recipes))
+	l := make([]*LipidEdgeResolver, len(t.lipids))
 	for i := range l {
 		l[i] = &LipidEdgeResolver{
 			// EncodeCursor
-			cursor: r.users[i].ID,
-			model:  r.users[i],
+			cursor: graphql.ID(t.lipids[i].ID),
+			model:  t.lipids[i],
 		}
 	}
 	return &l
