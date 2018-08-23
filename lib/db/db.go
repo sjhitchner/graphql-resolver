@@ -9,7 +9,7 @@ import (
 // TODO Transactions??
 
 type DBHandler interface {
-	Connection() *sqlx.DB
+	DB() *sqlx.DB
 	Host() string
 	Name() string
 	Port() string

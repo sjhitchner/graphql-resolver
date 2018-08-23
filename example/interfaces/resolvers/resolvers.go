@@ -37,21 +37,3 @@ func (t *Resolver) Recipe(ctx context.Context, args struct {
 }) (*RecipeResolver, error) {
 	return &RecipeResolver{}, nil
 }
-
-type PageInfoResolver struct {
-	startCursor graphql.ID
-	endCursor   graphql.ID
-	hasNextPage bool
-}
-
-func (r *PageInfoResolver) StartCursor() *graphql.ID {
-	return &r.startCursor
-}
-
-func (r *PageInfoResolver) EndCursor() *graphql.ID {
-	return &r.endCursor
-}
-
-func (r *PageInfoResolver) HasNextPage() bool {
-	return r.hasNextPage
-}

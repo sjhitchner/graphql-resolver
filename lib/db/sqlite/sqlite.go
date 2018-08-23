@@ -1,4 +1,4 @@
-package psql
+package sqlite
 
 import (
 	"context"
@@ -7,77 +7,57 @@ import (
 	"strings"
 
 	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
+	_ "github.com/mattn/go-sqlite3"
 )
 
-const (
-	SSLModeDisable SSLMode = "disable"     // No SSL
-	SSLModeRequire SSLMode = "require"     // Always SSL (skip verification)
-	SSLModeFull    SSLMode = "verify-full" // Always SSL (require verification)
-)
-
-type SSLMode string
-
-type PSQLHandler struct {
-	conn *sqlx.DB
-	host string
-	name string
-	port int
+type SQLiteHandler struct {
+	conn     *sqlx.DB
+	filepath string
 }
 
 // Postgres Connection Object.  Wraps a sqlx.DB and provides a DBConnection() method to access the
 // DB Connection
-func NewPSQLDBHandler(host, dbname, user, password string, port int, sslmode SSLMode) (*PSQLHandler, error) {
-	dsn := fmt.Sprintf("host=%s user=%s password='%s' dbname=%s port=%d sslmode=%s",
-		host,
-		user,
-		password,
-		dbname,
-		port,
-		sslmode,
-	)
-	conn, err := sqlx.Connect("postgres", dsn)
+func NewSQLiteDBHandler(filepath string) (*SQLiteHandler, error) {
+	conn, err := sqlx.Connect("sqlite3", filepath)
 	if err != nil {
 		return nil, err
 	}
 	conn.SetMaxOpenConns(20)
 
-	psql := &PSQLHandler{
-		conn: conn,
-		host: host,
-		name: dbname,
-		port: port,
+	s := &SQLiteHandler{
+		conn:     conn,
+		filepath: filepath,
 	}
 
-	err = psql.Ping()
+	err = s.Ping()
 	if err != nil {
 		return nil, err
 	}
 
-	return psql, nil
+	return s, nil
 }
 
-func (t *PSQLHandler) DB() *sqlx.DB {
+func (t *SQLiteHandler) DB() *sqlx.DB {
 	return t.conn
 }
 
-func (t *PSQLHandler) Host() string {
-	return t.host
+func (t *SQLiteHandler) Host() string {
+	return t.filepath
 }
 
-func (t *PSQLHandler) Name() string {
-	return t.name
+func (t *SQLiteHandler) Name() string {
+	return "sqlite"
 }
 
-func (t *PSQLHandler) Port() string {
-	return fmt.Sprintf("%d", t.port)
+func (t *SQLiteHandler) Port() string {
+	return "0"
 }
 
-func (t *PSQLHandler) Ping() error {
+func (t *SQLiteHandler) Ping() error {
 	return t.conn.Ping()
 }
 
-func (t *PSQLHandler) Close() {
+func (t *SQLiteHandler) Close() {
 	if err := t.conn.Close(); err != nil {
 		panic(err)
 	}
@@ -87,7 +67,7 @@ func IsDuplicateKey(err error) bool {
 	return strings.Contains(err.Error(), "duplicate key")
 }
 
-func (t *PSQLHandler) GetById(ctx context.Context, result interface{}, query string, id interface{}) error {
+func (t *SQLiteHandler) GetById(ctx context.Context, result interface{}, query string, id interface{}) error {
 
 	tx, err := t.conn.Beginx()
 	if err != nil {
@@ -104,7 +84,7 @@ func (t *PSQLHandler) GetById(ctx context.Context, result interface{}, query str
 	return Commit(ctx, tx, err)
 }
 
-func (t *PSQLHandler) Select(ctx context.Context, results interface{}, query string, params ...interface{}) error {
+func (t *SQLiteHandler) Select(ctx context.Context, results interface{}, query string, params ...interface{}) error {
 
 	tx, err := t.conn.Beginx()
 	if err != nil {
@@ -121,7 +101,7 @@ func (t *PSQLHandler) Select(ctx context.Context, results interface{}, query str
 	return Commit(ctx, tx, err)
 }
 
-func (t *PSQLHandler) InsertWithId(ctx context.Context, query string, params ...interface{}) (int64, error) {
+func (t *SQLiteHandler) InsertWithId(ctx context.Context, query string, params ...interface{}) (int64, error) {
 
 	if !strings.Contains(strings.ToUpper(query), "RETURNING") {
 		panic(fmt.Sprintf("Query (%s) needs to contain a 'RETURNING id' expression", query))
@@ -140,7 +120,7 @@ func (t *PSQLHandler) InsertWithId(ctx context.Context, query string, params ...
 	return id, err
 }
 
-func (t *PSQLHandler) Insert(ctx context.Context, query string, params ...interface{}) error {
+func (t *SQLiteHandler) Insert(ctx context.Context, query string, params ...interface{}) error {
 
 	tx, err := t.conn.Beginx()
 	if err != nil {
@@ -154,7 +134,7 @@ func (t *PSQLHandler) Insert(ctx context.Context, query string, params ...interf
 	return err
 }
 
-func (t *PSQLHandler) Update(ctx context.Context, query string, params ...interface{}) (int64, error) {
+func (t *SQLiteHandler) Update(ctx context.Context, query string, params ...interface{}) (int64, error) {
 
 	tx, err := t.conn.Beginx()
 	if err != nil {

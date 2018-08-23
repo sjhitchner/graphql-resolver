@@ -4,6 +4,7 @@ import (
 	"github.com/graph-gophers/graphql-go"
 
 	"github.com/sjhitchner/graphql-resolver/example/domain"
+	gqllib "github.com/sjhitchner/graphql-resolver/lib/graphql"
 )
 
 type RecipeResolver struct {
@@ -15,7 +16,7 @@ func (t *RecipeResolver) ID() graphql.ID {
 }
 
 func (t *RecipeResolver) Units() string {
-	return t.recipe.Unit
+	return t.recipe.Units
 }
 
 func (t *RecipeResolver) LyeType() string {
@@ -38,9 +39,9 @@ func (t *RecipeResolver) FragranceRatio() float64 {
 	return t.recipe.FragranceRatio
 }
 
-func (t *RecipeResolver) Lipid() []RecipeLipid {
+func (t *RecipeResolver) Lipid() []*RecipeLipidResolver {
 	//TODO connection
-	return []RecipeLipid{} //t.recipe.Lipids
+	return []*RecipeLipidResolver{} //t.recipe.Lipids
 }
 
 type RecipeConnectionResolver struct {
@@ -59,20 +60,19 @@ func (t *RecipeConnectionResolver) Edges() *[]*RecipeEdgeResolver {
 	for i := range l {
 		l[i] = &RecipeEdgeResolver{
 			// EncodeCursor
-			cursor: t.recipes[i].ID,
+			cursor: gqllib.EncodeCursor(t.recipes[i].ID),
 			model:  t.recipes[i],
 		}
 	}
 	return &l
 }
 
-func (t *RecipeConnectionResolver) PageInfo() *PageInfoResolver {
-	return &PageInfoResolver{
-		// EncodeCursor
-		startCursor: t.from,
-		endCursor:   t.to,
-		hasNextPage: false,
-	}
+func (t *RecipeConnectionResolver) PageInfo() *gqllib.PageInfoResolver {
+	return gqllib.NewPageInfoResolver(
+		t.from,
+		t.to,
+		false,
+	)
 }
 
 type RecipeEdgeResolver struct {
@@ -85,5 +85,5 @@ func (t *RecipeEdgeResolver) Cursor() graphql.ID {
 }
 
 func (t *RecipeEdgeResolver) Node() *RecipeResolver {
-	return &RecipeResolver{u: t.model}
+	return &RecipeResolver{t.model}
 }

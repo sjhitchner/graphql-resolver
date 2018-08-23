@@ -4,6 +4,7 @@ import (
 	"github.com/graph-gophers/graphql-go"
 
 	"github.com/sjhitchner/graphql-resolver/example/domain"
+	gqllib "github.com/sjhitchner/graphql-resolver/lib/graphql"
 )
 
 type LipidResolver struct {
@@ -116,13 +117,12 @@ func (t *LipidConnectionResolver) Edges() *[]*LipidEdgeResolver {
 	return &l
 }
 
-func (t *LipidConnectionResolver) PageInfo() *PageInfoResolver {
-	return &PageInfoResolver{
-		// EncodeCursor
-		startCursor: t.from,
-		endCursor:   t.to,
-		hasNextPage: false,
-	}
+func (t *LipidConnectionResolver) PageInfo() *gqllib.PageInfoResolver {
+	return gqllib.NewPageInfoResolver(
+		t.from,
+		t.to,
+		false,
+	)
 }
 
 type LipidEdgeResolver struct {
@@ -135,5 +135,5 @@ func (t *LipidEdgeResolver) Cursor() graphql.ID {
 }
 
 func (t *LipidEdgeResolver) Node() *LipidResolver {
-	return &LipidResolver{u: t.model}
+	return &LipidResolver{t.model}
 }
