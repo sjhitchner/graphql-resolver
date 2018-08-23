@@ -1,9 +1,12 @@
 package db
 
 import (
-	"github.com/jmoiron/sqlx"
+	"context"
+
+	"github.com/pkg/errors"
 
 	"github.com/sjhitchner/graphql-resolver/example/domain"
+	"github.com/sjhitchner/graphql-resolver/lib/db"
 )
 
 const SelectLipid = `
@@ -33,19 +36,30 @@ FROM lipid
 `
 
 const SelectLipidById = SelectLipid + `WHERE id = $1`
-const SelectLipids = SelectLipid
+const SelectLipids = SelectLipid + `
+WHERE id > $1 
+ORDER BY id
+LIMIT 100
+OFFSET $2`
+
 const SearchLipids = SelectLipid + `WHERE name ILIKE $1 LIMIT 10`
 
 type LipidDB struct {
+	db db.DBHandler
 }
 
 func (t *LipidDB) GetLipidById(ctx context.Context, id string) (*domain.Lipid, error) {
+	var obj domain.Lipid
+	err := t.db.GetById(ctx, &obj, SelectRecipeById, id)
+	return &obj, errors.Wrapf(err, "error geting recipe '%s'", id)
 }
 
 func (t *LipidDB) ListLipids(ctx context.Context, first *int32, after *string) ([]*domain.Lipid, error) {
-	var lipids []*domain.Lipid
+	var list []*domain.Lipid
+	err := t.db.Select(ctx, &list, SelectLipids, after, first)
+	return list, errors.Wrapf(err, "err selecting recipes")
 }
 
 func (t *LipidDB) SearchLipid(ctx context.Context, prefix string) ([]*domain.Lipid, error) {
-
+	return nil, errors.New("Not implemented")
 }

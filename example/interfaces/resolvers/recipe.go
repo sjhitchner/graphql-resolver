@@ -39,7 +39,8 @@ func (t *RecipeResolver) FragranceRatio() float64 {
 }
 
 func (t *RecipeResolver) Lipid() []RecipeLipid {
-	return t.recipe.Lipids
+	//TODO connection
+	return []RecipeLipid{} //t.recipe.Lipids
 }
 
 type RecipeConnectionResolver struct {

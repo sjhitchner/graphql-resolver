@@ -6,6 +6,8 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+// TODO Transactions??
+
 type DBHandler interface {
 	Connection() *sqlx.DB
 	Host() string

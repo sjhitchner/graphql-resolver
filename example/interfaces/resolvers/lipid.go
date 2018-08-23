@@ -41,11 +41,11 @@ func (t *LipidResolver) Ins() int64 {
 	return t.lipid.Ins
 }
 
-func (t *LipidResolver) Lauric() int64 {
+func (t *LipidResolver) Lauric() float64 {
 	return t.lipid.Lauric
 }
 
-func (t *LipidResolver) Myristic() int64 {
+func (t *LipidResolver) Myristic() float64 {
 	return t.lipid.Myristic
 }
 
@@ -57,7 +57,7 @@ func (t *LipidResolver) Stearic() float64 {
 	return t.lipid.Stearic
 }
 
-func (t *LipidResolver) Ricinoleic() int64 {
+func (t *LipidResolver) Ricinoleic() float64 {
 	return t.lipid.Ricinoleic
 }
 
