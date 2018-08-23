@@ -24,6 +24,12 @@ type Lipid struct {
 	Creamy         int64
 }
 
+type LipidRepo interface {
+	GetLipidById(ctx context.Context, id string) (*domain.Lipid, error)
+	ListLipids(ctx context.Context, first *int32, after *string) ([]*domain.Lipid, error)
+	SearchLipid(ctx context.Context, prefix string) ([]*domain.Lipid, error)
+}
+
 type Recipe struct {
 	ID                 string
 	Units              string
@@ -33,6 +39,14 @@ type Recipe struct {
 	SuperFatPercentage float64
 	FragranceRatio     float64
 	Lipids             []RecipeLipid
+}
+
+type RecipeRepo interface {
+	GetRecipeById(ctx context.Context, id string) (*domain.Recipe, error)
+	ListRecipes(ctx context.Context, first *int32, after *string) ([]*domain.Recipe, error)
+
+	CreateRecipe(ctx context.Context, recipe *domain.Recipe) (*domain.Recipe, error)
+	UpdateRecipe(ctx context.Context, recipe *domain.Recipe) (*domain.Recipe, error)
 }
 
 type RecipeLipid struct {
