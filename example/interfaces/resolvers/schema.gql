@@ -1,0 +1,119 @@
+
+type Lipid {
+	id: ID!
+	name: String!
+	description: String! 
+	scientific_name: String! 
+	naoh: Float!
+	koh: Float!
+	iodine: Int!
+	ins: Int!
+	lauric: Int!
+	myristic: Int!
+	palmitic: Float!
+	stearic: Float!
+	ricinoleic: Int!
+	oleic: Float!
+	linoleic: Float!
+	linolenic: Flost!
+	hardness: Int!
+	cleansing: Int!
+	condition: Int!
+	bubbly: Int!
+	creamy: Int!
+}
+
+type Recipe {
+	id: ID!
+	units: String! 
+	lye_type: String!
+	lipid_weight: Float!
+	water_lipid_ratio: Float!
+	super_fat_percentage: Float!
+	fragrance_ratio: Float!
+	lipids: [RecipeLipid!]
+}
+
+type RecipeLipid {
+	id: ID!
+	lipid_id: String!
+	sap: Float!
+	weight: Int!
+	percentage: Int!
+}
+
+type CreateRecipeInput {
+	name: String!
+	lye_type: String!
+	lipid_weight: Float!
+	water_lipid_ratio: Float!
+	super_fat_percentage: Float!
+	fragrance_ratio: Float!
+}
+
+type CreateRecipePayload {
+	recipe: Recipe!
+}
+
+type UpdateRecipeInput {
+	id: ID!
+	name: String
+	lye_type: String
+	lipid_weight: Float
+	water_lipid_ratio: Float
+	super_fat_percentage: Float
+	fragrance_ratio: Float
+}
+
+type UpdateRecipePayload {
+	recipe: Recipe!
+}
+
+type AddRecipeLipidInput {
+	recipe_id: ID!
+	lipid_id: ID!
+	weight: Int!
+	percentage: Int!	
+}
+
+type AddRecipeLipidPayload {
+	recipe: Recipe!
+}
+
+type UpdateRecipeLipidInput {
+	id: ID!
+	weight: Int!
+	percentage: Int!	
+}
+
+type UpdateRecipeLipidPayload {
+	recipe: Recipe!
+}
+
+type DeleteRecipeLipidInput {
+	id: ID!
+}
+
+type DeleteRecipeLipidPayload {
+	recipe: Recipe!
+}
+
+type Mutation {
+	createRecipe(input: CreateRecipeInput!): CreateRecipePayload
+	updateReceipe(input: UpdateRecipeInput!): UpdateRecipePayload
+	addLipid(input: AddRecipeLipidInput!): AddRecipeLipidPayload
+	updateLipid(input: UpdateRecipeLipidInput!): UpdateRecipeLipidPayload
+	deleteLipid(input: DeleteRecipeLipidInput!): DeleteRecipeLipidPayload
+}
+
+type Query {
+	lipids(prefix: String): [Lipid!]! 
+	lipid(id: String!): Lipid
+	recipes: [Recipe!]!
+	recipe(id: String!): Recipe
+}
+
+type schema {
+	query: Query
+	mutation: Mutation
+}
