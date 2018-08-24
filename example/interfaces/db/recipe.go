@@ -62,13 +62,17 @@ type RecipeDB struct {
 	db db.DBHandler
 }
 
+func NewRecipeDB(db db.DBHandler) *RecipeDB {
+	return &RecipeDB{db}
+}
+
 func (t *RecipeDB) GetRecipeById(ctx context.Context, id string) (*domain.Recipe, error) {
 	var obj domain.Recipe
 	err := t.db.GetById(ctx, &obj, SelectRecipeById, id)
 	return &obj, errors.Wrapf(err, "error geting recipe '%s'", id)
 }
 
-func (t *RecipeDB) ListRecipes(ctx context.Context, first *int32, after *string) ([]*domain.Recipe, error) {
+func (t *RecipeDB) ListRecipes(ctx context.Context, first int32, after string) ([]*domain.Recipe, error) {
 	var list []*domain.Recipe
 	err := t.db.Select(ctx, &list, SelectRecipes, after, first)
 	return list, errors.Wrapf(err, "err selecting recipes")

@@ -1,4 +1,3 @@
-scalar Int64
 
 type Lipid {
 	id: ID!
@@ -9,11 +8,11 @@ type Lipid {
 	koh: Float!
 	iodine: Int!
 	ins: Int!
-	lauric: Float!
-	myristic: Float!
+	lauric: Int!
+	myristic: Int!
 	palmitic: Float!
 	stearic: Float!
-	ricinoleic: Float!
+	ricinoleic: Int!
 	oleic: Float!
 	linoleic: Float!
 	linolenic: Float!
@@ -32,12 +31,12 @@ type Recipe {
 	water_lipid_ratio: Float!
 	super_fat_percentage: Float!
 	fragrance_ratio: Float!
-	lipids: [RecipeLipid!]!
+	lipids: [RecipeLipid!]
 }
 
 type RecipeLipid {
 	id: ID!
-	lipid: Lipid!
+	lipid_id: String!
 	sap: Float!
 	weight: Int!
 	percentage: Int!
@@ -99,13 +98,22 @@ type DeleteRecipeLipidPayload {
 	recipe: Recipe!
 }
 
+type Mutation {
+	createRecipe(input: CreateRecipeInput!): CreateRecipePayload
+	updateReceipe(input: UpdateRecipeInput!): UpdateRecipePayload
+	addLipid(input: AddRecipeLipidInput!): AddRecipeLipidPayload
+	updateLipid(input: UpdateRecipeLipidInput!): UpdateRecipeLipidPayload
+	deleteLipid(input: DeleteRecipeLipidInput!): DeleteRecipeLipidPayload
+}
+
 type Query {
 	lipids(prefix: String): [Lipid!]! 
-	lipid(id: ID!): Lipid
+	lipid(id: String!): Lipid
 	recipes: [Recipe!]!
-	recipe(id: ID!): Recipe
+	recipe(id: String!): Recipe
 }
 
 schema {
 	query: Query
+	mutation: Mutation
 }

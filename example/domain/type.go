@@ -11,8 +11,8 @@ type Lipid struct {
 	ScientificName string  `db:"scientific_name"`
 	NaOH           float64 `db:"naoh"`
 	KOH            float64 `db:"koh"`
-	Iodine         int64   `db:"iodine"`
-	Ins            int64   `db:"ins"`
+	Iodine         int     `db:"iodine"`
+	Ins            int     `db:"ins"`
 	Lauric         float64 `db:"lauric"`
 	Myristic       float64 `db:"myristic"`
 	Palmitic       float64 `db:"palmitic"`
@@ -21,17 +21,18 @@ type Lipid struct {
 	Oleic          float64 `db:"oleic"`
 	Linoleic       float64 `db:"linoleic"`
 	Linolenic      float64 `db:"linolenic"`
-	Hardness       int64   `db:"hardness"`
-	Cleansing      int64   `db:"cleansing"`
-	Condition      int64   `db:"condition"`
-	Bubbly         int64   `db:"buddly"`
-	Creamy         int64   `db:"creamy"`
+	Hardness       int     `db:"hardness"`
+	Cleansing      int     `db:"cleansing"`
+	Condition      int     `db:"condition"`
+	Bubbly         int     `db:"buddly"`
+	Creamy         int     `db:"creamy"`
 }
 
 type LipidRepo interface {
 	GetLipidById(ctx context.Context, id string) (*Lipid, error)
-	ListLipids(ctx context.Context, first *int32, after *string) ([]*Lipid, error)
+	ListLipids(ctx context.Context, first int32, after string) ([]*Lipid, error)
 	SearchLipid(ctx context.Context, prefix string) ([]*Lipid, error)
+	//LipidCount(ctx context.Context) (int64, error)
 }
 
 type Recipe struct {
@@ -46,7 +47,8 @@ type Recipe struct {
 
 type RecipeRepo interface {
 	GetRecipeById(ctx context.Context, id string) (*Recipe, error)
-	ListRecipes(ctx context.Context, first *int32, after *string) ([]*Recipe, error)
+	ListRecipes(ctx context.Context, first int32, after string) ([]*Recipe, error)
+	//RecipeCount(ctx context.Context) (int64, error)
 
 	CreateRecipe(ctx context.Context, recipe *Recipe) (*Recipe, error)
 	UpdateRecipe(ctx context.Context, recipe *Recipe) (*Recipe, error)
@@ -55,10 +57,15 @@ type RecipeRepo interface {
 type RecipeLipid struct {
 	ID         string
 	RecipeID   string
-	Name       string
+	LipidID    string
 	SAP        float64
-	Weight     int64
+	Weight     int
 	Percentage float64
+}
+
+type Aggregator interface {
+	LipidRepo
+	RecipeRepo
 }
 
 var Lipids = []Lipid{

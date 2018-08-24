@@ -1,8 +1,8 @@
 package graphql
 
 import (
-	//"log"
 	"encoding/json"
+	"log"
 	"net/http"
 
 	"github.com/graph-gophers/graphql-go"
@@ -21,6 +21,7 @@ func NewHandler(schema string, resolver interface{}) *Handler {
 }
 
 func (t *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Println("Serve GraphQL Request")
 
 	var params struct {
 		Query         string                 `json:"query"`
@@ -33,9 +34,17 @@ func (t *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	log.Println("Params", params.Query)
+
 	//ctx := h.Loaders.Attach(r.Context())
 
-	response := t.schema.Exec(r.Context(), params.Query, params.OperationName, params.Variables)
+	response := t.schema.Exec(
+		r.Context(),
+		params.Query,
+		params.OperationName,
+		params.Variables,
+	)
+
 	responseJSON, err := json.Marshal(response)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -75,7 +84,7 @@ var GraphiQLPage = []byte(`
 		<div id="graphiql" style="height: 100vh;">Loading...</div>
 		<script>
 			function graphQLFetcher(graphQLParams) {
-				return fetch("/query", {
+				return fetch("/graphql", {
 					method: "post",
 					body: JSON.stringify(graphQLParams),
 					credentials: "include",

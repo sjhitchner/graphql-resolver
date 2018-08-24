@@ -1,34 +1,62 @@
 package main
 
 import (
+	"context"
+	"flag"
 	"io/ioutil"
+	"log"
 	"net/http"
+	"os"
 
 	// "github.com/graph-gophers/graphql-go"
+	"github.com/sjhitchner/graphql-resolver/example/domain"
+	"github.com/sjhitchner/graphql-resolver/example/interfaces/db"
 	"github.com/sjhitchner/graphql-resolver/example/interfaces/graphql"
 	"github.com/sjhitchner/graphql-resolver/example/interfaces/resolvers"
 	//"github.com/sjhitchner/graphql-resolver/lib/db/psql"
-	"github.com/sjhitchner/graphql-resolver/lib/db"
-	"github.com/sjhitchner/graphql-resolver/lib/db/sqlite"
+	libdb "github.com/sjhitchner/graphql-resolver/lib/db"
+	libsql "github.com/sjhitchner/graphql-resolver/lib/db/sqlite"
 )
 
 // https://github.com/graph-gophers/dataloader
+var (
+	initializeDB bool
+)
 
 func init() {
-
+	flag.BoolVar(&initializeDB, "initialize", false, "Initialize the DB")
 }
 
 func main() {
+	flag.Parse()
 
 	//dbh, err := psql.NewPSQLDBHandler("localhost", "
-	dbh, err := psql.NewSQLiteDBHandler(":memory:")
+	dbh, err := libsql.NewSQLiteDBHandler(":memory:")
+	CheckError(err)
+
+	if initializeDB {
+		CheckError(InitializeDBSchema(dbh))
+		os.Exit(0)
+	}
 
 	schema, err := ioutil.ReadFile("schema.gql")
 	CheckError(err)
 
+	aggregator := struct {
+		domain.LipidRepo
+		domain.RecipeRepo
+	}{
+		db.NewLipidDB(dbh),
+		db.NewRecipeDB(dbh),
+	}
+
 	handler := graphql.NewHandler(string(schema), &resolvers.Resolver{})
 
-	http.Handle("/graphql", handler)
+	ctx := context.Background()
+	ctx = context.WithValue(ctx, "agg", aggregator)
+
+	http.Handle("/graphql", graphql.WrapContext(ctx, handler))
+	http.Handle("/", graphql.NewGraphiQLHandler(string(schema)))
 
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
@@ -39,7 +67,7 @@ func CheckError(err error) {
 	}
 }
 
-func DbSetup(dbh db.DBHandler) error {
+func InitializeDBSchema(dbh libdb.DBHandler) error {
 
 	lipidSchema := `
 CREATE TABLE lipid (
@@ -65,8 +93,7 @@ CREATE TABLE lipid (
 	, bubbly INTEGER 
 	, creamy INTEGER
 );`
-	result, err := dbh.DB().Exec(lipidSchema)
-	if err != nil {
+	if _, err := dbh.DB().Exec(lipidSchema); err != nil {
 		return err
 	}
 
@@ -80,8 +107,7 @@ CREATE TABLE recipe (
 	, super_fat_percentage FLOAT
 	, fragrance_ratio FLOAT
 );`
-	result, err := dbh.DB().Exec(recipeSchema)
-	if err != nil {
+	if _, err := dbh.DB().Exec(recipeSchema); err != nil {
 		return err
 	}
 

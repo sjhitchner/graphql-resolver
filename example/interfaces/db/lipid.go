@@ -48,13 +48,17 @@ type LipidDB struct {
 	db db.DBHandler
 }
 
+func NewLipidDB(db db.DBHandler) *LipidDB {
+	return &LipidDB{db}
+}
+
 func (t *LipidDB) GetLipidById(ctx context.Context, id string) (*domain.Lipid, error) {
 	var obj domain.Lipid
 	err := t.db.GetById(ctx, &obj, SelectRecipeById, id)
 	return &obj, errors.Wrapf(err, "error geting recipe '%s'", id)
 }
 
-func (t *LipidDB) ListLipids(ctx context.Context, first *int32, after *string) ([]*domain.Lipid, error) {
+func (t *LipidDB) ListLipids(ctx context.Context, first int32, after string) ([]*domain.Lipid, error) {
 	var list []*domain.Lipid
 	err := t.db.Select(ctx, &list, SelectLipids, after, first)
 	return list, errors.Wrapf(err, "err selecting recipes")

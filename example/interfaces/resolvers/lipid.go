@@ -1,4 +1,4 @@
-package graphql
+package resolvers
 
 import (
 	"github.com/graph-gophers/graphql-go"
@@ -11,9 +11,10 @@ type LipidResolver struct {
 	lipid *domain.Lipid
 }
 
-func (t *LipidResolver) ID() string {
-	return t.lipid.ID
+func (t *LipidResolver) ID() graphql.ID {
+	return graphql.ID(t.lipid.ID)
 }
+
 func (t *LipidResolver) Name() string {
 	return t.lipid.Name
 }
@@ -34,12 +35,12 @@ func (t *LipidResolver) KOH() float64 {
 	return t.lipid.KOH
 }
 
-func (t *LipidResolver) Iodine() int64 {
-	return t.lipid.Iodine
+func (t *LipidResolver) Iodine() int32 {
+	return int32(t.lipid.Iodine)
 }
 
-func (t *LipidResolver) Ins() int64 {
-	return t.lipid.Ins
+func (t *LipidResolver) Ins() int32 {
+	return int32(t.lipid.Ins)
 }
 
 func (t *LipidResolver) Lauric() float64 {
@@ -74,24 +75,24 @@ func (t *LipidResolver) Linolenic() float64 {
 	return t.lipid.Linolenic
 }
 
-func (t *LipidResolver) Hardness() int64 {
-	return t.lipid.Hardness
+func (t *LipidResolver) Hardness() int32 {
+	return int32(t.lipid.Hardness)
 }
 
-func (t *LipidResolver) Cleansing() int64 {
-	return t.lipid.Cleansing
+func (t *LipidResolver) Cleansing() int32 {
+	return int32(t.lipid.Cleansing)
 }
 
-func (t *LipidResolver) Condition() int64 {
-	return t.lipid.Condition
+func (t *LipidResolver) Condition() int32 {
+	return int32(t.lipid.Condition)
 }
 
-func (t *LipidResolver) Bubbly() int64 {
-	return t.lipid.Bubbly
+func (t *LipidResolver) Bubbly() int32 {
+	return int32(t.lipid.Bubbly)
 }
 
-func (t *LipidResolver) Creamy() int64 {
-	return t.lipid.Creamy
+func (t *LipidResolver) Creamy() int32 {
+	return int32(t.lipid.Creamy)
 }
 
 type LipidConnectionResolver struct {

@@ -1,4 +1,4 @@
-package graphql
+package resolvers
 
 import (
 	"github.com/graph-gophers/graphql-go"
@@ -39,8 +39,7 @@ func (t *RecipeResolver) FragranceRatio() float64 {
 	return t.recipe.FragranceRatio
 }
 
-func (t *RecipeResolver) Lipid() []*RecipeLipidResolver {
-	//TODO connection
+func (t *RecipeResolver) Lipids() []*RecipeLipidResolver {
 	return []*RecipeLipidResolver{} //t.recipe.Lipids
 }
 
@@ -59,8 +58,7 @@ func (t *RecipeConnectionResolver) Edges() *[]*RecipeEdgeResolver {
 	l := make([]*RecipeEdgeResolver, len(t.recipes))
 	for i := range l {
 		l[i] = &RecipeEdgeResolver{
-			// EncodeCursor
-			cursor: gqllib.EncodeCursor(t.recipes[i].ID),
+			cursor: gqllib.EncodeCursor(&t.recipes[i].ID),
 			model:  t.recipes[i],
 		}
 	}
