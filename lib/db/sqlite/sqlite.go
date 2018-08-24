@@ -3,7 +3,6 @@ package sqlite
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"strings"
 
 	"github.com/jmoiron/sqlx"
@@ -103,54 +102,67 @@ func (t *SQLiteHandler) Select(ctx context.Context, results interface{}, query s
 
 func (t *SQLiteHandler) InsertWithId(ctx context.Context, query string, params ...interface{}) (int64, error) {
 
-	if !strings.Contains(strings.ToUpper(query), "RETURNING") {
-		panic(fmt.Sprintf("Query (%s) needs to contain a 'RETURNING id' expression", query))
-	}
+	/*
+		if !strings.Contains(strings.ToUpper(query), "RETURNING") {
+			panic(fmt.Sprintf("Query (%s) needs to contain a 'RETURNING id' expression", query))
+		}
+	*/
 
 	tx, err := t.conn.Beginx()
 	if err != nil {
-		return 0, err
+		return 0, Rollback(ctx, tx, err)
 	}
 
-	var id int64
-	if err := tx.QueryRow(query, params...).Scan(&id); sql.ErrNoRows == err {
-		return 0, err
+	result, err := tx.Exec(query, params...)
+	if sql.ErrNoRows == err {
+		return 0, Rollback(ctx, tx, err)
 	}
 
-	return id, err
+	if err != nil {
+		return 0, Rollback(ctx, tx, err)
+	}
+
+	lastId, err := result.LastInsertId()
+	if err != nil {
+		return 0, Rollback(ctx, tx, err)
+	}
+
+	return lastId, Commit(ctx, tx, err)
 }
 
 func (t *SQLiteHandler) Insert(ctx context.Context, query string, params ...interface{}) error {
 
 	tx, err := t.conn.Beginx()
 	if err != nil {
-		return err
+		return Rollback(ctx, tx, err)
 	}
 
 	// TODO result
 	if _, err := tx.Exec(query, params...); sql.ErrNoRows == err {
-		return err
+		return Rollback(ctx, tx, err)
 	}
-	return err
+
+	return Commit(ctx, tx, err)
 }
 
 func (t *SQLiteHandler) Update(ctx context.Context, query string, params ...interface{}) (int64, error) {
 
 	tx, err := t.conn.Beginx()
 	if err != nil {
-		return 0, err
+		return 0, Rollback(ctx, tx, err)
 	}
 
 	result, err := tx.Exec(query, params...)
 	if err != nil {
-		return 0, err
+		return 0, Rollback(ctx, tx, err)
 	}
 
 	affected, err := result.RowsAffected()
 	if err != nil {
-		return 0, nil
+		return 0, Rollback(ctx, tx, err)
 	}
-	return affected, nil
+
+	return affected, Commit(ctx, tx, err)
 }
 
 func Commit(ctx context.Context, tx *sqlx.Tx, err error) error {

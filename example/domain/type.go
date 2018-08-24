@@ -2,6 +2,7 @@ package domain
 
 import (
 	"context"
+	"encoding/json"
 )
 
 type Lipid struct {
@@ -24,8 +25,16 @@ type Lipid struct {
 	Hardness       int     `db:"hardness"`
 	Cleansing      int     `db:"cleansing"`
 	Condition      int     `db:"condition"`
-	Bubbly         int     `db:"buddly"`
+	Bubbly         int     `db:"bubbly"`
 	Creamy         int     `db:"creamy"`
+}
+
+func (t Lipid) String() string {
+	b, err := json.MarshalIndent(t, "", "  ")
+	if err != nil {
+		return err.Error()
+	}
+	return string(b)
 }
 
 type LipidRepo interface {
@@ -37,12 +46,21 @@ type LipidRepo interface {
 
 type Recipe struct {
 	ID                 string  `db:"id"`
+	Name               string  `db:"name"`
 	Units              string  `db:"units"`
 	LyeType            string  `db:"lye_type"`
 	LipidWeight        float64 `db:"lipid_weight"`
 	WaterLipidRatio    float64 `db:"water_lipid_ratio"`
 	SuperFatPercentage float64 `db:"super_fat_percentage"`
 	FragranceRatio     float64 `db:"fragrance_ratio"`
+}
+
+func (t Recipe) String() string {
+	b, err := json.MarshalIndent(t, "", "  ")
+	if err != nil {
+		return err.Error()
+	}
+	return string(b)
 }
 
 type RecipeRepo interface {
@@ -55,17 +73,23 @@ type RecipeRepo interface {
 }
 
 type RecipeLipid struct {
-	ID         string
-	RecipeID   string
-	LipidID    string
-	SAP        float64
-	Weight     int
-	Percentage float64
+	ID         string  `db:"id"`
+	RecipeID   string  `db:"recipe_id"`
+	LipidID    string  `db:"lipid_id"`
+	SAP        float64 `db:"sap"`
+	Weight     int     `db:"weight"`
+	Percentage float64 `db:"percentage"`
+}
+
+type RecipeLipidRepo interface {
+	GetRecipeLipidById(ctx context.Context, id string) (*RecipeLipid, error)
+	ListRecipeLipidsByRecipeId(ctx context.Context, recipeID string) ([]*RecipeLipid, error)
 }
 
 type Aggregator interface {
 	LipidRepo
 	RecipeRepo
+	RecipeLipidRepo
 }
 
 var Lipids = []Lipid{

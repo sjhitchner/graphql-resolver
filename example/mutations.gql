@@ -1,4 +1,3 @@
-
 type Lipid {
 	id: ID!
 	name: String!
@@ -8,11 +7,11 @@ type Lipid {
 	koh: Float!
 	iodine: Int!
 	ins: Int!
-	lauric: Int!
-	myristic: Int!
+	lauric: Float!
+	myristic: Float!
 	palmitic: Float!
 	stearic: Float!
-	ricinoleic: Int!
+	ricinoleic: Float!
 	oleic: Float!
 	linoleic: Float!
 	linolenic: Float!
@@ -25,25 +24,28 @@ type Lipid {
 
 type Recipe {
 	id: ID!
+	name: String!
 	units: String! 
 	lye_type: String!
 	lipid_weight: Float!
 	water_lipid_ratio: Float!
 	super_fat_percentage: Float!
 	fragrance_ratio: Float!
-	lipids: [RecipeLipid!]
+	lipids: [RecipeLipid!]!
 }
 
 type RecipeLipid {
 	id: ID!
-	lipid_id: String!
+	recipe: Recipe!
+	lipid: Lipid!
 	sap: Float!
 	weight: Int!
-	percentage: Int!
+	percentage: Float!
 }
 
-type CreateRecipeInput {
+input CreateRecipeInput {
 	name: String!
+	units: String!
 	lye_type: String!
 	lipid_weight: Float!
 	water_lipid_ratio: Float!
@@ -55,21 +57,22 @@ type CreateRecipePayload {
 	recipe: Recipe!
 }
 
-type UpdateRecipeInput {
+input UpdateRecipeInput {
 	id: ID!
-	name: String
-	lye_type: String
-	lipid_weight: Float
-	water_lipid_ratio: Float
-	super_fat_percentage: Float
-	fragrance_ratio: Float
+	name: String!
+	units: String!
+	lye_type: String!
+	lipid_weight: Float!
+	water_lipid_ratio: Float!
+	super_fat_percentage: Float!
+	fragrance_ratio: Float!
 }
 
 type UpdateRecipePayload {
 	recipe: Recipe!
 }
 
-type AddRecipeLipidInput {
+input AddRecipeLipidInput {
 	recipe_id: ID!
 	lipid_id: ID!
 	weight: Int!
@@ -80,7 +83,7 @@ type AddRecipeLipidPayload {
 	recipe: Recipe!
 }
 
-type UpdateRecipeLipidInput {
+input UpdateRecipeLipidInput {
 	id: ID!
 	weight: Int!
 	percentage: Int!	
@@ -90,7 +93,7 @@ type UpdateRecipeLipidPayload {
 	recipe: Recipe!
 }
 
-type DeleteRecipeLipidInput {
+input DeleteRecipeLipidInput {
 	id: ID!
 }
 
@@ -101,16 +104,16 @@ type DeleteRecipeLipidPayload {
 type Mutation {
 	createRecipe(input: CreateRecipeInput!): CreateRecipePayload
 	updateReceipe(input: UpdateRecipeInput!): UpdateRecipePayload
-	addLipid(input: AddRecipeLipidInput!): AddRecipeLipidPayload
-	updateLipid(input: UpdateRecipeLipidInput!): UpdateRecipeLipidPayload
-	deleteLipid(input: DeleteRecipeLipidInput!): DeleteRecipeLipidPayload
+	#addLipid(input: AddRecipeLipidInput!): AddRecipeLipidPayload
+	#updateLipid(input: UpdateRecipeLipidInput!): UpdateRecipeLipidPayload
+	#deleteLipid(input: DeleteRecipeLipidInput!): DeleteRecipeLipidPayload
 }
 
 type Query {
 	lipids(prefix: String): [Lipid!]! 
-	lipid(id: String!): Lipid
+	lipid(id: ID!): Lipid
 	recipes: [Recipe!]!
-	recipe(id: String!): Recipe
+	recipe(id: ID!): Recipe
 }
 
 schema {

@@ -15,6 +15,10 @@ func (t *RecipeResolver) ID() graphql.ID {
 	return graphql.ID(t.recipe.ID)
 }
 
+func (t *RecipeResolver) Name() string {
+	return t.recipe.Name
+}
+
 func (t *RecipeResolver) Units() string {
 	return t.recipe.Units
 }

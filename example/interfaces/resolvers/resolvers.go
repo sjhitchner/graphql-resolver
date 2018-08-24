@@ -16,6 +16,7 @@ func Aggregator(ctx context.Context) domain.Aggregator {
 }
 
 type Resolver struct {
+	*Mutation
 }
 
 func (t *Resolver) Lipids(ctx context.Context, args struct {

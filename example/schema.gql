@@ -37,10 +37,11 @@ type Recipe {
 
 type RecipeLipid {
 	id: ID!
+	recipe: Recipe!
 	lipid: Lipid!
 	sap: Float!
 	weight: Int!
-	percentage: Int!
+	percentage: Float!
 }
 
 type CreateRecipeInput {

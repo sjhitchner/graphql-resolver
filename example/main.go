@@ -13,25 +13,30 @@ import (
 	"github.com/sjhitchner/graphql-resolver/example/interfaces/db"
 	"github.com/sjhitchner/graphql-resolver/example/interfaces/graphql"
 	"github.com/sjhitchner/graphql-resolver/example/interfaces/resolvers"
-	//"github.com/sjhitchner/graphql-resolver/lib/db/psql"
 	libdb "github.com/sjhitchner/graphql-resolver/lib/db"
+	//libsql "github.com/sjhitchner/graphql-resolver/lib/db/psql"
 	libsql "github.com/sjhitchner/graphql-resolver/lib/db/sqlite"
 )
 
 // https://github.com/graph-gophers/dataloader
 var (
 	initializeDB bool
+
+	sqlitePath string
+	schemaPath string
 )
 
 func init() {
 	flag.BoolVar(&initializeDB, "initialize", false, "Initialize the DB")
+	flag.StringVar(&sqlitePath, "sqlite", ":memory:", "Path to sqlite db")
+	flag.StringVar(&schemaPath, "schema", "schema.gql", "Path to graphql schema")
 }
 
 func main() {
 	flag.Parse()
 
-	//dbh, err := psql.NewPSQLDBHandler("localhost", "
-	dbh, err := libsql.NewSQLiteDBHandler(":memory:")
+	//dbh, err := libsql.NewPSQLDBHandler("localhost", "
+	dbh, err := libsql.NewSQLiteDBHandler(sqlitePath)
 	CheckError(err)
 
 	if initializeDB {
@@ -39,15 +44,17 @@ func main() {
 		os.Exit(0)
 	}
 
-	schema, err := ioutil.ReadFile("schema.gql")
+	schema, err := ioutil.ReadFile(schemaPath)
 	CheckError(err)
 
 	aggregator := struct {
 		domain.LipidRepo
 		domain.RecipeRepo
+		domain.RecipeLipidRepo
 	}{
 		db.NewLipidDB(dbh),
 		db.NewRecipeDB(dbh),
+		db.NewRecipeLipidDB(dbh),
 	}
 
 	handler := graphql.NewHandler(string(schema), &resolvers.Resolver{})
@@ -108,6 +115,19 @@ CREATE TABLE recipe (
 	, fragrance_ratio FLOAT
 );`
 	if _, err := dbh.DB().Exec(recipeSchema); err != nil {
+		return err
+	}
+
+	recipeLipidSchema := `
+CREATE TABLE recipe_lipid (
+	id VARCHAR(32) 
+	, recipe_id VARCHAR(32) 
+	, lipid_id VARCHAR(32) 
+	, sap FLOAT   
+	, weight INTEGER
+	, percentage FLOAT
+);`
+	if _, err := dbh.DB().Exec(recipeLipidSchema); err != nil {
 		return err
 	}
 

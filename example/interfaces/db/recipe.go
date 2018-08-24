@@ -2,6 +2,8 @@ package db
 
 import (
 	"context"
+	"fmt"
+	"log"
 
 	"github.com/pkg/errors"
 
@@ -15,10 +17,10 @@ SELECT
 	, units            
 	, lye_type         
 	, lipid_weight    
-	, water_lipid_ratio
-	, super_fat_percentage
+	, water_to_lipid_ratio
+	, superfat_percentage
 	, fragrance_ratio   
-FROM recipe
+FROM recipes
 `
 
 const SelectRecipeById = SelectRecipe + `WHERE id = $1`
@@ -29,32 +31,34 @@ LIMIT 100
 OFFSET $2`
 
 const CreateRecipe = `
-INSERT INTO recipe (
-	id
+INSERT INTO recipes (
+	  name
 	, units            
 	, lye_type         
 	, lipid_weight    
-	, water_lipid_ratio
-	, super_fat_percentage
+	, water_to_lipid_ratio
+	, superfat_percentage
 	, fragrance_ratio 
 ) VALUES (
-	 $1
+	  $1
 	, $2
 	, $3
 	, $4
 	, $5
 	, $6
+	, $7
 )
 `
 
 const UpdateRecipe = `
-UPDATE recipe SET 
-	units = $2 
-	, lye_type = $3         
-	, lipid_weight = $4    
-	, water_lipid_ratio = $5
-	, super_fat_percentage = $6
-	, fragrance_ratio = $7
+UPDATE recipes SET 
+	name = $2
+	, units = $3 
+	, lye_type = $4         
+	, lipid_weight = $5    
+	, water_to_lipid_ratio = $6
+	, superfat_percentage = $7
+	, fragrance_ratio = $8
 WHERE id = $1
 `
 
@@ -79,9 +83,37 @@ func (t *RecipeDB) ListRecipes(ctx context.Context, first int32, after string) (
 }
 
 func (t *RecipeDB) CreateRecipe(ctx context.Context, recipe *domain.Recipe) (*domain.Recipe, error) {
-	return nil, errors.New("Not implemented")
+	log.Println("CREATE RECIPE", recipe)
+
+	id, err := t.db.InsertWithId(
+		ctx,
+		CreateRecipe,
+		recipe.Name,
+		recipe.Units,
+		recipe.LyeType,
+		recipe.LipidWeight,
+		recipe.WaterLipidRatio,
+		recipe.SuperFatPercentage,
+		recipe.FragranceRatio,
+	)
+	recipe.ID = fmt.Sprintf("%d", id)
+	return recipe, errors.Wrapf(err, "error inserting recipe")
 }
 
 func (t *RecipeDB) UpdateRecipe(ctx context.Context, recipe *domain.Recipe) (*domain.Recipe, error) {
-	return nil, errors.New("Not implemented")
+	log.Println("UPDATE RECIPE", recipe)
+
+	_, err := t.db.Update(
+		ctx,
+		CreateRecipe,
+		recipe.ID,
+		recipe.Name,
+		recipe.Units,
+		recipe.LyeType,
+		recipe.LipidWeight,
+		recipe.WaterLipidRatio,
+		recipe.SuperFatPercentage,
+		recipe.FragranceRatio,
+	)
+	return recipe, errors.Wrapf(err, "error updating recipe")
 }

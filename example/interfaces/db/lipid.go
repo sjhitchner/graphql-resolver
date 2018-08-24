@@ -32,7 +32,7 @@ SELECT
 	, condition
 	, bubbly
 	, creamy
-FROM lipid
+FROM lipids
 `
 
 const SelectLipidById = SelectLipid + `WHERE id = $1`
