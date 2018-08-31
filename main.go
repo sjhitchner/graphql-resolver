@@ -8,8 +8,14 @@ import (
 	//"github.com/graph-gophers/graphql-go"
 
 	. "github.com/sjhitchner/graphql-resolver/domain"
-	"github.com/sjhitchner/graphql-resolver/generators"
+	"github.com/sjhitchner/graphql-resolver/internal/generators"
 )
+
+// GraphQL Schema
+// Resolvers
+// DB
+// Aggregator
+// Interactor
 
 var (
 	schemaPath string

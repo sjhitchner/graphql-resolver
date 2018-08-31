@@ -1,0 +1,124 @@
+---
+generate: 
+  - sql
+  - graphql
+  - resolvers
+graphql:
+  package: "resolvers"
+sql:
+  package: "db"
+  table: "humans"
+  dialect: "postgres"
+resolvers:
+  package: "resolvers"
+models:
+  - name: "User"
+    description: "A Slack User"
+    fields: 
+      - name: "id"
+        internal: "id"
+        description: "The ID of the User"
+        deprecated: false
+        type: id 
+        indexes: 
+          - primary
+      - name: "username"
+        internal: "username"
+        description: "The Username of the User"
+        type: string
+        indexes:
+         - username_index
+      - name: "email"
+        internal: "email"
+        description: "Email of the User"
+        type: string
+        indexes:
+          - email_index
+      - name: "password"
+        internal: "password"
+        description: "Password of the User"
+        type: password
+
+  - name: "Team"
+    description: "A Slack Team"
+    fields:
+      - name: "id"
+        internal: "id"
+        description: "The ID of the Team"
+        type: id 
+        indexes: 
+          - primary
+      - name: "owner"
+        internal: "owneri_id"
+        description: "Owner of the Team"
+        type: id
+        relationship: User 
+        indexes: 
+          - onwer_index
+      - name: "name"
+        internal: "name"
+        description: "Name of the Team"
+        type: string 
+   
+  - name: "channel"
+    description: "A slack Channel"
+    fields:
+      - name: "id"
+        internal: "id"
+        description: "id of the channel"
+        type: id 
+        indexes: 
+          - primary
+      - name: "owner"
+        internal: "owner_id"
+        description: "owner of the channel"
+        type: id
+        relationship: user 
+        indexes: 
+          - onwer_index
+      - name: "team"
+        internal: "team_id"
+        description: "team of the channel"
+        type: id
+        relationship: team
+        indexes: 
+          - team_index
+      - name: "name"
+        internal: "name"
+        description: "name of the channel"
+        type: string 
+      - name: "is_public"
+        description: "whether the channel is public"
+        type: string 
+    
+    
+  - name: "message"
+    description: "A Slack Message"
+    fields:
+      - name: "id"
+        internal: "id"
+        description: "the id of the channel"
+        type: id 
+        indexes: 
+          - primary
+      - name: "user"
+        internal: "user_id"
+        description: "Owner of the channel"
+        type: id
+        relationship: user 
+        indexes: 
+          - onwer_index
+      - name: "channel"
+        internal: "channel_id"
+        description: "Channel of Message"
+        type: id
+        relationship: channel
+        indexes: 
+          - channel_index
+      - name: "text"
+        internal: "text"
+        description: "Text of Message"
+        type: string 
+      - name: "timestamp"
+        description: "Timestamp of Message"
+        type: timestamp
