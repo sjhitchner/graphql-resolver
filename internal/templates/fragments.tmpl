@@ -1,4 +1,4 @@
-{{ define "imports" }}
+{{ define "Imports" }}
 import (
 {{- range $import := . }}
 	"{{ $import }}"
@@ -6,7 +6,7 @@ import (
 ){{ end }}
 
 
-{{ define "interface" }}
+{{ define "Interface" }}
 type {{ .Name }} interface {
 {{- range $method := .Methods -}}
 	{{ $method.Name }}(ctx context.Context
@@ -19,11 +19,11 @@ type {{ .Name }} interface {
 {{ end }}
 
 
-{{ define "struct" }}
-type {{ .Name }} struct {
-{{- range $field := .Fields -}}
-	{{ $field.Name }} {{ $field.Type }} `json:"{{ $field.JSONTag }}"`
-{{- end -}}
+{{ define "Struct" }}
+type {{ camel .Name }} struct {
+{{- range $field := .Fields }}
+	{{ camel $field.Name }} {{ $field.Type }} `db:"{{ $field.Internal }}" json:"{{ $field.Internal }}"`
+{{- end }}
 }
 
 func (t *{{ .Name }}) String() string {
@@ -90,8 +90,8 @@ func (t *{{ .Name }}Resolver) {{ .Field.Name | camel }}(ctx context.Context
 
 
 {{ define "ModelFields" }}
-{{ range $f := .Fields . -}}
-	{{ lcamel $f.Name }} {{ $f.Type }}
+{{ range $f := .Fields -}}
+	{{ lcamel $f.Name }} {{ $f.Type }} `db:"{{ $f.Internal }}" json:"{{ $f.Internal }}"`
 {{ end }}{{ end }}
 
 

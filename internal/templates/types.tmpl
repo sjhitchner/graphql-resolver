@@ -1,0 +1,10 @@
+package domain
+
+{{ template "Imports" unique .Imports "encoding/base64" "github.com/graph-gophers/graphql-go" }}
+
+{{ with $m := .Model }}
+
+{{ template "Interface" $m }}
+
+{{ template "Struct" $m }}
+{{ end }}

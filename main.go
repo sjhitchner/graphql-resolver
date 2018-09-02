@@ -2,12 +2,13 @@ package main
 
 import (
 	"flag"
-	"fmt"
-	"os"
+	//"fmt"
+	//"os"
 
 	//"github.com/graph-gophers/graphql-go"
 
-	. "github.com/sjhitchner/graphql-resolver/domain"
+	"github.com/sjhitchner/graphql-resolver/internal/config"
+	//"github.com/sjhitchner/graphql-resolver/internal/domain"
 	"github.com/sjhitchner/graphql-resolver/internal/generators"
 )
 
@@ -16,40 +17,39 @@ import (
 // DB
 // Aggregator
 // Interactor
+// Generate Aggregator
+// Generate Resolvers
+// Library for various functions
 
 var (
-	schemaPath string
+	configPath string
 	outputPath string
 )
 
 func init() {
-	flag.StringVar(&schemaPath, "schema", "", "Path to schema")
+	flag.StringVar(&configPath, "config", "", "Path to config")
 	flag.StringVar(&outputPath, "path", "generated", "Path to output directory")
 }
 
 func main() {
 	flag.Parse()
 
-	schema, err := LoadSchema(schemaPath)
+	config, err := config.LoadConfigFile(configPath)
 	CheckError(err)
 
 	//b, err := schema.ToJSON()
-	fmt.Println(schema)
+	//fmt.Println(config)
 
 	generators := []generators.Generator{
-		generators.NewSQLGenerator(outputPath),
+		//generators.NewSQLGenerator(outputPath),
+		generators.NewTypesGenerator(outputPath),
 		//generators.NewResolverGenerator(outputPath),
 		//generate.NewEnumGenerator(outputPath),
 	}
 
-	// Generate Aggregator
-	// Generate Resolvers
-	// Library for various functions
 	for _, generator := range generators {
-		for _, model := range schema {
-			err = generator.Generate(model)
-			CheckError(err)
-		}
+		err = generator.Generate(config)
+		CheckError(err)
 	}
 }
 
@@ -57,21 +57,6 @@ func CheckError(err error) {
 	if err != nil {
 		panic(err)
 	}
-}
-
-func LoadSchema(schemaPath string) ([]Model, error) {
-	f, err := os.Open(schemaPath)
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-
-	schema, err := ReadSchema(f)
-	if err != nil {
-		return nil, err
-	}
-
-	return schema, nil
 }
 
 /*

@@ -13,13 +13,13 @@ import (
 	//"github.com/pkg/errors"
 	"github.com/stoewer/go-strcase"
 
-	. "github.com/sjhitchner/graphql-resolver/domain"
+	"github.com/sjhitchner/graphql-resolver/internal/config"
 )
 
 var tmpl *template.Template
 
 type Generator interface {
-	Generate(model Model) error
+	Generate(config *config.Config) error
 }
 
 func init() {
@@ -47,7 +47,7 @@ func init() {
 					"isConnection": IsConnection,
 				*/
 			},
-		).ParseGlob("templates/*.tmpl"),
+		).ParseGlob("internal/templates/*.tmpl"),
 	)
 }
 

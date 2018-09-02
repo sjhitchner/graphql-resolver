@@ -1,12 +1,15 @@
 package generators
 
 import (
-	. "github.com/sjhitchner/graphql-resolver/domain"
+	//. "github.com/sjhitchner/graphql-resolver/domain"
+	"github.com/sjhitchner/graphql-resolver/internal/config"
 )
+
+const ResolverModule = "resolvers"
 
 type ResolverTemplate struct {
 	Imports []string
-	Model   Model
+	Model   config.Model
 }
 
 type ResolverGenerator struct {
@@ -17,13 +20,18 @@ func NewResolverGenerator(path string) *ResolverGenerator {
 	return &ResolverGenerator{path}
 }
 
-func (t *ResolverGenerator) Generate(models ...Model) error {
+func (t *ResolverGenerator) Generate(config *config.Config) error {
+
+	if !config.ShouldGenerate(ResolverModule) {
+		return nil
+	}
+
 	imports := []string{
 		"context",
 		"github.com/graph-gophers/graphql-go",
 	}
 
-	for _, model := range models {
+	for _, model := range config.Models {
 		//if err := GenerateGoFile(
 		if err := GenerateFile(
 			t.Filename(model.Name),

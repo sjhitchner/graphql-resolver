@@ -7,12 +7,20 @@ graphql:
   package: "resolvers"
 sql:
   package: "db"
-  table: "humans"
   dialect: "postgres"
 resolvers:
   package: "resolvers"
+custom_types:
+  - name: id
+    type: integer
+  - name: username
+    type: string
+  - name: email
+    type: string
+  - name: password
+    type: string
 models:
-  - name: "User"
+  - name: "user"
     description: "A Slack User"
     fields: 
       - name: "id"
@@ -25,13 +33,13 @@ models:
       - name: "username"
         internal: "username"
         description: "The Username of the User"
-        type: string
+        type: username
         indexes:
          - username_index
       - name: "email"
         internal: "email"
         description: "Email of the User"
-        type: string
+        type: email
         indexes:
           - email_index
       - name: "password"
@@ -39,7 +47,7 @@ models:
         description: "Password of the User"
         type: password
 
-  - name: "Team"
+  - name: "team"
     description: "A Slack Team"
     fields:
       - name: "id"
@@ -49,16 +57,20 @@ models:
         indexes: 
           - primary
       - name: "owner"
-        internal: "owneri_id"
+        internal: "owner_id"
         description: "Owner of the Team"
         type: id
-        relationship: User 
+        relationship: user 
         indexes: 
           - onwer_index
       - name: "name"
         internal: "name"
         description: "Name of the Team"
         type: string 
+      - name: "members"
+        description: "members of the team"
+        type: "manytomany"
+        relationship: user
    
   - name: "channel"
     description: "A slack Channel"
@@ -90,6 +102,10 @@ models:
       - name: "is_public"
         description: "whether the channel is public"
         type: string 
+      - name: "members"
+        description: "members of the channel"
+        type: "manytomany"
+        relationship: user
     
     
   - name: "message"
