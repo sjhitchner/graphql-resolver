@@ -1,0 +1,9 @@
+package domain
+
+{{ template "Imports" unique .Imports "github.com/graph-gophers/graphql-go" }}
+
+{{ with $m := .Model }}
+{{ template "Interface" $m }}
+
+{{ template "Struct" $m }}
+{{ end }}

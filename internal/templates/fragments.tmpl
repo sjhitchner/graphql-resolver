@@ -1,9 +1,11 @@
 {{ define "Imports" }}
+{{ if . }}
 import (
 {{- range $import := . }}
 	"{{ $import }}"
 {{- end }}
 ){{ end }}
+{{ end }}
 
 
 {{ define "Interface" }}

@@ -12,13 +12,13 @@ resolvers:
   package: "resolvers"
 custom_types:
   - name: id
-    type: integer
+    primative: integer
   - name: username
-    type: string
+    primative: string
   - name: email
-    type: string
+    primative: string
   - name: password
-    type: string
+    primative: string
 models:
   - name: "user"
     description: "A Slack User"

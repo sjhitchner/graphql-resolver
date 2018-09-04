@@ -1,9 +1,9 @@
+// Generated File DO NOT EDIT
 package domain
 
-{{ template "Imports" unique .Imports "github.com/graph-gophers/graphql-go" }}
+{{ template "Imports" unique .Imports }}
 
-{{ with $m := .Model }}
-{{ template "Interface" $m }}
-
-{{ template "Struct" $m }}
+{{ range $type := .Types }}
+//go:generate sqltype -type={{ $type.Name }} -primative={{ $type.Type }}
+type {{ $type.Name }} {{ $type.Type }} 
 {{ end }}

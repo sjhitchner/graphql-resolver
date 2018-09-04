@@ -67,7 +67,7 @@ func (t Config) TypeMapping(base string) string {
 	}
 }
 
-func (t Config) BaseType(base string) string {
+func (t Config) TypePrimative(base string) string {
 	switch base {
 	case "integer":
 		return "int64"
@@ -80,7 +80,7 @@ func (t Config) BaseType(base string) string {
 	default:
 		for _, b := range t.Types {
 			if base == b.Name {
-				return b.Type
+				return b.Primative
 			}
 		}
 	}
@@ -115,8 +115,8 @@ type Field struct {
 }
 
 type Type struct {
-	Name string `yaml:"name"`
-	Type string `yaml:"type"`
+	Name      string `yaml:"name"`
+	Primative string `yaml:"primative"`
 }
 
 func (t Config) String() string {

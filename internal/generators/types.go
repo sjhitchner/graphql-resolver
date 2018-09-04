@@ -1,15 +1,15 @@
 package generators
 
 import (
+	"github.com/stoewer/go-strcase"
+
 	"github.com/sjhitchner/graphql-resolver/internal/config"
 	"github.com/sjhitchner/graphql-resolver/internal/domain"
 )
 
-const TypesModule = "resolvers"
-
 type TypesTemplate struct {
 	Imports []string
-	Model   domain.Model
+	Types   []domain.Arg
 }
 
 type TypesGenerator struct {
@@ -22,23 +22,24 @@ func NewTypesGenerator(path string) *TypesGenerator {
 
 func (t *TypesGenerator) Generate(config *config.Config) error {
 
-	if !config.ShouldGenerate(TypesModule) {
-		return nil
+	imports := []string{}
+
+	args := make([]domain.Arg, 0, len(config.Types))
+	for _, typ := range config.Types {
+		args = append(args, domain.Arg{
+			Name: strcase.UpperCamelCase(typ.Name),
+			Type: config.TypePrimative(typ.Primative),
+		})
 	}
 
-	imports := []string{
-		"context",
-		"github.com/graph-gophers/graphql-go",
-	}
-
-	for _, model := range domain.GenerateModels(config) {
-		//if err := GenerateGoFile(
-		if err := GenerateFile(
-			t.Filename(model.Name),
+	if len(args) > 0 {
+		if err := GenerateGoFile(
+			//if err := GenerateFile(
+			t.Filename("common"),
 			"types.tmpl",
 			TypesTemplate{
 				Imports: imports,
-				Model:   model,
+				Types:   args,
 			}); err != nil {
 			return err
 		}
