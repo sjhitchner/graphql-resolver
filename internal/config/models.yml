@@ -62,7 +62,7 @@ models:
         type: id
         relationship: user 
         indexes: 
-          - onwer_index
+          - owner_index
       - name: "name"
         internal: "name"
         description: "Name of the Team"

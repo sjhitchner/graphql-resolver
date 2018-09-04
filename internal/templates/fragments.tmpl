@@ -8,13 +8,13 @@ import (
 
 {{ define "Interface" }}
 type {{ .Name }} interface {
-{{- range $method := .Methods -}}
+{{- range $method := .Methods }}
 	{{ $method.Name }}(ctx context.Context
-{{ range $arg := $method.Args -}}
+{{- range $arg := $method.Args -}}
 , {{ $arg.Name }} {{ $arg.Type }}
 {{- end -}}
 ) ({{ $method.Return }}, error)
-{{- end -}}
+{{- end }}
 }
 {{ end }}
 
