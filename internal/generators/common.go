@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+	"time"
 
 	//	"github.com/graph-gophers/graphql-go/introspection"
 	"github.com/pkg/errors"
@@ -329,6 +330,11 @@ func Divide(b, a interface{}) (interface{}, error) {
 	default:
 		return nil, errors.Errorf("divide: unknown type for %q (%T)", av, a)
 	}
+}
+
+func Now() (interface{}, error) {
+	format := time.RFC3339
+	return time.Now().UTC().Format(format), nil
 }
 
 /*

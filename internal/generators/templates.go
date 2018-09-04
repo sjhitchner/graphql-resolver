@@ -38,6 +38,7 @@ func init() {
 				"sub":     Subtract,
 				"mul":     Multiply,
 				"div":     Divide,
+				"now":     Now,
 				/*
 					"allFields":    AllFields,
 					"typeName":     TypeName,
@@ -71,7 +72,12 @@ func GenerateGoFile(filename, template string, data interface{}) error {
 	}
 
 	fset := token.NewFileSet()
-	out, err := parser.ParseFile(fset, "", buf, parser.AllErrors)
+	out, err := parser.ParseFile(
+		fset,
+		"",
+		buf,
+		parser.AllErrors|parser.ParseComments,
+	)
 	if err != nil {
 		return err
 	}

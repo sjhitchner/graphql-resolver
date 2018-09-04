@@ -47,6 +47,11 @@ func (t *{{ .Struct }}) Get{{ .Model }}By
 {{- range $f := .Index.Fields }}, {{ $f.Name }} {{ $f.Type }}{{ end }})(*{{ .Model }}, error)
 {{- end }}
 
+
+{{ define "Header" }}
+// Generated file DO NOT EDIT {{ now }}
+{{- end }}
+
 {{/*
 {{ define "ModelSignature" }}
 {{ comment .Field.Description }}
