@@ -9,23 +9,205 @@ import (
 	"github.com/sjhitchner/graphql-resolver/internal/config"
 )
 
+type Repo struct {
+	Name    string
+	Methods []Method
+}
+
+type Method struct {
+	Name         string
+	Args         []Arg
+	ReturnType   string
+	ReturnPrefix string
+}
+
+type Arg struct {
+	Name string
+	Type string
+}
+
 type Model struct {
 	Name        string
-	Internal    string
 	Description string
 	Fields      []Field
-	Deprecated  string
-	Methods     []Method
+	Indexes     []Index
+}
+
+type Index struct {
+	Name   string
+	Type   string
+	Fields []string
 }
 
 type Field struct {
 	Name         string
-	Internal     string
-	Description  string
 	Type         string
-	Indexes      []string
+	Primative    string
+	Internal     string // Snake Case
+	Relationship string
+}
+
+type Type struct {
+	Name string
+	Type string
+}
+
+func ProcessConfig(config *config.Config) ([]Model, []Repo, []Type) {
+	models := make([]Model, 0, len(config.Models))
+	repos := make([]Repo, 0, len(config.Models))
+
+	for _, m := range config.Models {
+		model, repo := ProcessModel(config, m)
+		models = append(models, model)
+		repos = append(repos, repo)
+	}
+
+	return models, repos, ProcessTypes(config, config.Types)
+}
+
+func ProcessTypes(config *config.Config, ct []config.Type) []Type {
+	types := make([]Type, 0, len(ct))
+	for _, t := range ct {
+		types = append(types, Type{
+			Name: CamelCasef(t.Name),
+			Type: config.TypePrimative(t.Primative),
+		})
+	}
+	return types
+}
+
+func ProcessModel(config *config.Config, model config.Model) (Model, Repo) {
+	fields := ProcessFields(config, model)
+	indexes := ProcessIndexes(config, model)
+	methods := ProcessMethods(config, model, indexes)
+
+	return Model{
+			Name:        CamelCasef(model.Name),
+			Description: model.Description,
+			Fields:      fields,
+			Indexes:     indexes,
+		},
+		Repo{
+			Name:    CamelCasef("%s_%s", model.Name, "repo"),
+			Methods: methods,
+		}
+}
+
+func ProcessMethods(config *config.Config, model config.Model, indexes []Index) []Method {
+	methods := make([]Method, 0, len(model.Fields))
+	for _, index := range indexes {
+		args := make([]Arg, 0, len(index.Fields))
+		for _, f := range index.Fields {
+			field := model.FindFieldByInternal(f)
+			args = append(args, Arg{
+				Name: LowerCamelCasef(field.Internal),
+				Type: config.TypeMapping(field.Type),
+			})
+		}
+
+		methods = append(methods, Method{
+			Name: fmt.Sprintf(
+				"%s%sBy%s",
+				func() string {
+					if index.Type == "index" {
+						return "List"
+					}
+					return "Get"
+				}(),
+				CamelCasef(func() string {
+					if index.Type == "index" {
+						return model.Name + "s"
+					}
+					return model.Name
+				}()),
+				func() string {
+					return CamelCasef(
+						strings.Join(index.Fields, "_"),
+					)
+				}(),
+			),
+			Args:       args,
+			ReturnType: CamelCasef(model.Name),
+			ReturnPrefix: func() string {
+				if index.Type == "index" {
+					return "[]*"
+				}
+				return "*"
+			}(),
+		})
+	}
+	return methods
+}
+
+func ProcessFields(config *config.Config, model config.Model) []Field {
+	fields := make([]Field, 0, len(model.Fields))
+	for _, field := range model.Fields {
+		fields = append(fields, Field{
+			Name:         field.Name,
+			Type:         field.Type,
+			Primative:    config.TypePrimative(field.Type),
+			Internal:     field.Internal,
+			Relationship: field.Relationship,
+		})
+	}
+	return fields
+}
+
+func ProcessIndexes(config *config.Config, model config.Model) []Index {
+	indexMap := make(map[string][]string)
+	for _, field := range model.Fields {
+		for _, index := range field.Indexes {
+			_, found := indexMap[index]
+			if !found {
+				indexMap[index] = make([]string, 0, 10)
+			}
+			indexMap[index] = append(indexMap[index], field.Internal)
+		}
+	}
+
+	indexes := make([]Index, 0, len(indexMap))
+	for name, fields := range indexMap {
+		indexes = append(indexes, Index{
+			Name: name,
+			Type: Validate(func() string {
+				s := strings.Split(name, "_")
+				if len(s) == 2 {
+					return s[1]
+				}
+				return name
+			}(),
+				"index",
+				"unique",
+				"primary",
+			),
+			Fields: fields,
+		})
+	}
+
+	return indexes
+}
+
+/*
+type Model struct {
+	Internal   string
+	Deprecated string
+	Methods    []Method
+}
+
+type Field struct {
+	Description  string
+	Type         Type
 	Deprecated   string
 	Relationship string
+}
+
+type Type struct {
+	Type      string
+	Primative string
+}
+
+func (t Type) String() string {
+	return t.Type
 }
 
 type Method struct {
@@ -36,7 +218,7 @@ type Method struct {
 
 type Arg struct {
 	Name string
-	Type string
+	Type Type
 }
 
 type Index struct {
@@ -91,18 +273,27 @@ func GenerateModels(config *config.Config) []Model {
 					Fields: []Field{
 						Field{
 							Name:     "Id",
-							Internal: "id",
-							Type:     config.TypeMapping("id"),
+							Internal: "Id",
+							Type: Type{
+								Type:      config.TypeMapping("id"),
+								Primative: config.TypePrimative("id"),
+							},
 						},
 						Field{
 							Name:     CamelCasef("%s_id", m.Name),
 							Internal: fmt.Sprintf("%s_id", m.Name),
-							Type:     config.TypeMapping("id"),
+							Type: Type{
+								Type:      config.TypeMapping("id"),
+								Primative: config.TypePrimative("id"),
+							},
 						},
 						Field{
 							Name:     CamelCasef("%s_id", f.Relationship),
 							Internal: fmt.Sprintf("%s_id", f.Relationship),
-							Type:     config.TypeMapping("id"),
+							Type: Type{
+								Type:      config.TypeMapping("id"),
+								Primative: config.TypePrimative("id"),
+							},
 						},
 					},
 				})
@@ -119,8 +310,12 @@ func GenerateModels(config *config.Config) []Model {
 				}(),
 				Description: f.Description,
 				Deprecated:  f.Deprecated,
-				Type:        config.TypeMapping(f.Type),
-				Indexes:     f.Indexes,
+				Type: Type{
+					Type:      config.TypeMapping(f.Type),
+					Primative: config.TypePrimative(f.Type),
+				},
+				Relationship: f.Relationship,
+				Indexes:      f.Indexes,
 			})
 		}
 
@@ -188,6 +383,7 @@ func PopulateMethods(models []Model) []Model {
 
 	return models
 }
+*/
 
 func CamelCasef(f string, args ...interface{}) string {
 	return strcase.UpperCamelCase(fmt.Sprintf(f, args...))
@@ -195,4 +391,13 @@ func CamelCasef(f string, args ...interface{}) string {
 
 func LowerCamelCasef(f string, args ...interface{}) string {
 	return strcase.LowerCamelCase(fmt.Sprintf(f, args...))
+}
+
+func Validate(input string, valid ...string) string {
+	for _, v := range valid {
+		if v == input {
+			return input
+		}
+	}
+	panic(fmt.Sprintf("Invalid Input Not Valid %v", valid))
 }

@@ -52,6 +52,24 @@ type Config struct {
 	SQL       *SQLModule       `yaml:"sql,omitempty"`
 }
 
+func (t Config) FindModelByName(name string) Model {
+	for _, model := range t.Models {
+		if model.Name == name {
+			return model
+		}
+	}
+	panic("Model Name " + name + " Not Found")
+}
+
+func (t Config) FindModelByInternal(internal string) Model {
+	for _, model := range t.Models {
+		if model.Internal == internal {
+			return model
+		}
+	}
+	panic("Model Internal " + internal + " Not Found")
+}
+
 func (t Config) TypeMapping(base string) string {
 	switch base {
 	case "integer":
@@ -62,6 +80,10 @@ func (t Config) TypeMapping(base string) string {
 		return "bool"
 	case "string":
 		return "string"
+	case "timestamp":
+		return "time.Time"
+	case "id":
+		return "id"
 	default:
 		return strcase.UpperCamelCase(base)
 	}
@@ -77,6 +99,12 @@ func (t Config) TypePrimative(base string) string {
 		return "bool"
 	case "string":
 		return "string"
+	case "timestamp":
+		return "time.Time"
+	case "time.Time":
+		return "time.Time"
+	case "manytomany":
+		return "manytomany"
 	default:
 		for _, b := range t.Types {
 			if base == b.Name {
@@ -138,4 +166,22 @@ type ResolversModule struct {
 type SQLModule struct {
 	Package string `yaml:"package"`
 	Dialect string `yaml:"dialect"`
+}
+
+func (t Model) FindFieldByName(name string) Field {
+	for _, field := range t.Fields {
+		if field.Name == name {
+			return field
+		}
+	}
+	panic("No field " + name + " in model " + t.Name)
+}
+
+func (t Model) FindFieldByInternal(internal string) Field {
+	for _, field := range t.Fields {
+		if field.Internal == internal {
+			return field
+		}
+	}
+	panic("No field " + internal + " in model " + t.Internal)
 }
