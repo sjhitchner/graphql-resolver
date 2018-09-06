@@ -3,12 +3,13 @@ package domain
 
 {{ template "Imports" unique .Imports }}
 
+
 {{ with $m := .Model }}
-{{ template "Interface" $m }}
+{{ template "RepoInterface" $m }}
 
 {{ template "Struct" $m }}
 
-{{ range $sm := $m.SubModels }}
+{{ range $sm := $m.Relationships }}
 {{ template "Struct" $sm }}
 {{ end}}
 {{ end }}

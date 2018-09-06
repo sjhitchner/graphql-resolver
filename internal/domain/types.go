@@ -27,13 +27,24 @@ type Arg struct {
 }
 
 type Model struct {
+	Name          string
+	Description   string
+	Fields        []Field
+	Indexes       []Index
+	RepoName      string
+	Methods       []Method
+	Relationships []Relationship
+}
+
+type Relationship struct {
 	Name        string
 	Description string
 	Fields      []Field
 	Indexes     []Index
 	RepoName    string
 	Methods     []Method
-	SubModels   []Model
+	Through     string
+	Model       Model
 }
 
 type Index struct {
@@ -68,9 +79,18 @@ func ProcessConfig(config *config.Config) ([]Model, []Type) {
 	for i, m := range models {
 		for _, f := range m.Fields {
 			if f.Type == "manytomany" {
-				models[i].SubModels = append(models[i].SubModels, Model{
+				models[i].Relationships = append(models[i].Relationships, Relationship{
 					Name:        m.Name + "_" + f.Name,
 					Description: fmt.Sprintf("Linking %s to %s", m.Name, f.Relationship),
+					Through:     f.Name,
+					Model: func() Model {
+						for _, m := range models {
+							if m.Name == f.Relationship {
+								return m
+							}
+						}
+						panic("Relationship Model " + f.Relationship + " Not Found")
+					}(),
 					Fields: []Field{
 						Field{
 							Name:      "id",
@@ -92,7 +112,42 @@ func ProcessConfig(config *config.Config) ([]Model, []Type) {
 						},
 					},
 					Indexes: nil,
-					Methods: nil,
+					Methods: []Method{
+						Method{
+							Name: fmt.Sprintf(
+								"%s_%s_%s_by_%s_id",
+								"list",
+								m.Name,
+								f.Name,
+								m.Name,
+							),
+							Args: []Arg{
+								Arg{
+									Name: m.Name + "_id",
+									Type: "id",
+								},
+							},
+							ReturnType:   m.Name,
+							ReturnPrefix: "[]*",
+						},
+						Method{
+							Name: fmt.Sprintf(
+								"%s_%s_%s_by_%s_id",
+								"list",
+								m.Name,
+								f.Name,
+								f.Relationship,
+							),
+							Args: []Arg{
+								Arg{
+									Name: f.Relationship + "_id",
+									Type: "id",
+								},
+							},
+							ReturnType:   f.Relationship,
+							ReturnPrefix: "[]*",
+						},
+					},
 				})
 			}
 		}
@@ -143,9 +198,9 @@ func ProcessMethods(config *config.Config, model config.Model, indexes []Index) 
 				"%s_%s_by_%s",
 				func() string {
 					if index.Type == "index" {
-						return "List"
+						return "list"
 					}
-					return "Get"
+					return "get"
 				}(),
 				func() string {
 					if index.Type == "index" {

@@ -8,6 +8,31 @@ import (
 {{ end }}
 
 
+{{ define "RepoInterface" }}
+type {{ camel .Name }} interface {
+{{- range $method := .Methods }}
+	{{ template "RepoMethod" $method }}
+{{- end }}
+{{- range $model := .Relationships -}}
+	{{- range $method := $model.Methods }}
+		{{ template "RepoMethod" $method }}
+	{{- end }}
+{{- end -}}
+}
+{{ end }}
+
+{{- define "RepoMethod" -}}
+{{ camel .Name }}(ctx context.Context
+{{- range $arg := .Args -}}
+, {{ lcamel $arg.Name }} {{ gotype $arg.Type }}
+{{- end -}}
+) ({{ .ReturnPrefix }}{{ camel .ReturnType }}, error)
+{{- end -}}
+
+
+
+
+
 {{ define "Interface" }}
 type {{ camel .Name }} interface {
 {{- range $method := .Methods }}

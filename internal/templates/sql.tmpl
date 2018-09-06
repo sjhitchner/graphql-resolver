@@ -8,18 +8,44 @@ import (
 	"github.com/sjhitchner/slack-clone/backend/infrastructure/db"
 )
 
+
 {{ define "Select" }}
 SELECT {{ range $i, $f := .Fields }}
-	{{- if ne $f.Type "manytomany" }}
-	{{- if gt $i 0 }}, {{ end -}}{{ $f.Internal }}
-	{{ end -}}
+{{- if ne $f.Type "manytomany" }}
+	{{- if gt $i 0 }}, {{ end -}}{{ $.Name }}.{{ $f.Internal }} {{ $f.Internal }}
+{{ end }}
 {{- end -}}
 FROM {{ .Name }}
 {{ end }}
 
 
-{{ with $m := .Model }}
+{{- define "QueryError" -}}
+errors.Wrapf(err, "Error Getting {{ .Model.Name }} {{ range $arg := .Method.Args -}} {{ lcamel $arg.Name }}='%v'{{- end -}}" 
+{{- range $arg := .Method.Args -}}, {{ lcamel $arg.Name }}{{- end -}})
+{{- end -}}
 
+
+{{- define "GetQuery" -}}
+var obj domain.{{ camel .Model.Name }}
+err := t.db.GetById(ctx, &obj, Select{{ camel .Method.Name }}
+{{- range $arg := .Method.Args -}}
+	, {{ lcamel $arg.Name }}
+{{- end -}})
+return &obj, {{- template "QueryError" args "Model" .Model "Method" .Method }}
+{{- end -}}
+
+
+{{- define "ListQuery" -}}
+var list []*domain.{{ camel .Model.Name }}
+err := t.db.Select(ctx, &list, Select{{ camel .Method.Name }}
+{{- range $arg := .Method.Args -}}
+	, {{ lcamel $arg.Name }}
+{{- end -}})
+return list, {{- template "QueryError" args "Model" .Model "Method" .Method }}
+{{- end -}}
+
+
+{{ with $m := .Model }}
 type {{ camel $m.Name }}DB struct {
 	db db.DBHandler
 }
@@ -33,78 +59,35 @@ const Select{{ camel $method.Name }} = `
 {{- end }}
 `
 
-
-func (t *{{ camel $m.Name}}DB) {{ camel $method.Name }}(ctx context.Context
-{{- range $arg := $method.Args -}}
-, {{ lcamel $arg.Name }} {{ gotype $arg.Type }}
-{{- end -}}
-) ({{ $method.ReturnPrefix }}{{ camel $method.ReturnType }}, error) {
+func (t *{{ camel $m.Name}}DB) {{ template "RepoMethod" $method }} {
 {{- if eq $method.ReturnPrefix "*" }}
-var obj domain.{{ $m.Name }}
-err := t.db.GetById(ctx, &obj, Select{{ camel $method.Name }}
-{{- range $arg := $method.Args -}}
-	, {{ lcamel $arg.Name }}
-{{- end -}})
-return &obj, errors.Wrapf(err, "Error Getting {{ $m.Name }} {{ range $arg := $method.Args -}} {{ lcamel $arg.Name }}='%v'{{- end -}}" 
-{{- range $arg := $method.Args -}}, {{ lcamel $arg.Name }}{{- end -}})
+	{{ template "GetQuery" args "Model" $m "Method" $method }}
 {{- else }}
-var list []*domain.{{ $m.Name }}
-err := t.db.Select(ctx, &list, Select{{ camel $method.Name }}
-{{- range $arg := $method.Args -}}
-	, {{ lcamel $arg.Name }}
-{{- end -}})
-return &obj, errors.Wrapf(err, "Error Getting {{ $m.Name }} {{ range $arg := $method.Args -}} {{ lcamel $arg.Name }}='%v'{{- end -}}" 
-{{- range $arg := $method.Args -}}, {{ lcamel $arg.Name }}{{- end -}})
+	{{ template "ListQuery" args "Model" $m "Method" $method }}
 {{- end }}
 }
-{{- end }}
+
 {{ end }}
+{{ range $rm := $m.Relationships }}
+{{ range $method := $rm.Methods }}
 
-{{/*
-
-{{- define "SelectSingleFunction" -}} {
-	return nil, errors.New("Not implemented")
-}
-{{ end }}
-
-{{ define "SelectMultiFunction" }} {
-	return nil, errors.New("Not implemented")
-}
-{{ end }}
-
-
-{{ with $name := printf "%s%s" $m.Name "DB" }} 
-const {{ $m.Name}}Select = `
-SELECT
-{{- range $i, $f := $m.Fields -}}
-	{{ if gt $i 0 }},{{ end }} {{ snake $f.Internal }}	
-{{ end -}}
-FROM {{ $m.SQL.Table }}
-`
-
-type {{ $name }} struct {
-}
-
-func New{{ $name }}() *{{ $name }} {
-	return &{{ $name }}{}
-}
-
-{{- range $index := $m.Indexes }}
-{{ with $queryName := printf "%s%s" $index.Name "Query" | camel }}
-const {{ $queryName }} = {{ $m.Name }}Select + `
-WHERE {{ range $i, $f := $index.Fields -}}
-  {{- if gt $i 0 }} AND {{ end -}}
-  {{ $f.Name }} = ${{ add $i 1 }}
+const Select{{ camel $method.Name }} = `
+{{- template "Select" $rm.Model }}JOIN {{ $rm.Name }}
+ON {{ $rm.Model.Name }}.id = {{ $rm.Name }}.{{ $rm.Model.Name }}_id
+WHERE {{ range $i, $arg := $method.Args -}}
+{{- if gt $i 0 }}AND {{ end -}}
+{{ $rm.Name }}.{{ $arg.Name }} = ${{ add $i 1 }}
 {{- end }}
 `
-  {{ template "RepoSignature" args "Struct" $name "Model" $m.Name "Index" $index -}}
-  {{- if eq $index.Name "primary" -}}
-    {{ template "SelectSingleFunction" args "Struct" $name "Model" $m.Name "Index" $index}}
-  {{- else -}}
-    {{template "SelectMultiFunction" args "Struct" $name "Model" $m.Name "Index" $index}}
-  {{ end }}
+
+func (t *{{ camel $m.Name}}DB) {{ template "RepoMethod" $method }} {
+{{- if eq $method.ReturnPrefix "*" }}
+	{{ template "GetQuery" args "Model" $rm "Method" $method }}
+{{- else }}
+	{{ template "ListQuery" args "Model" $rm "Method" $method }}
+{{- end }}
+}
+
 {{ end }}
-
-{{ end }}{{ end }}{{ end }}
-
-*/}}
+{{ end }}
+{{ end }}
