@@ -1,7 +1,9 @@
 package generators
 
 import (
-	"fmt"
+	//"fmt"
+
+	"github.com/pkg/errors"
 
 	"github.com/sjhitchner/graphql-resolver/internal/config"
 	"github.com/sjhitchner/graphql-resolver/internal/domain"
@@ -10,20 +12,8 @@ import (
 const ResolverModule = "resolvers"
 
 type ResolverTemplate struct {
-	Imports      []string
-	ResolverName string
-	ObjectName   string
-	Description  string
-	Methods      []ResolverMethod
-}
-
-type ResolverMethod struct {
-	Name         string
-	Description  string
-	Template     string
-	Relationship string
-	Return       string
-	Args         []domain.Arg
+	Imports []string
+	Model   domain.Model
 }
 
 type ResolverGenerator struct {
@@ -42,44 +32,16 @@ func (t *ResolverGenerator) Generate(config *config.Config) error {
 
 	models, _, imports := domain.ProcessConfig(config)
 
-	imports = append(imports, "context")
-
 	for _, model := range models {
-		resolverName := fmt.Sprintf("%sResolver", model.Name)
-		objectName := model.Name
-
-		methods := make([]ResolverMethod, 0, len(model.Fields))
-		for _, field := range model.Fields {
-
-			methods = append(methods, ResolverMethod{
-				Name: field.Name,
-				Template: func() string {
-					if field.Relationship != "" {
-						return "relationship"
-					}
-					if field.Type == "id" {
-						return "id"
-					}
-					return field.Type
-				}(),
-				Relationship: domain.CamelCasef(field.Relationship),
-				Return:       field.Type,
-				Args:         []domain.Arg{},
-			})
-		}
-
-		//if err := GenerateGoFile(
-		if err := GenerateFile(
+		if err := GenerateGoFile(
+			//if err := GenerateFile(
 			t.Filename(model.Name),
 			"resolver.tmpl",
 			ResolverTemplate{
-				Imports:      imports,
-				ResolverName: resolverName,
-				ObjectName:   objectName,
-				Description:  model.Description,
-				Methods:      methods,
+				Imports: imports,
+				Model:   model,
 			}); err != nil {
-			return err
+			return errors.Wrapf(err, "Error generating resolver %s", model.Name)
 		}
 	}
 	return nil

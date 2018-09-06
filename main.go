@@ -48,7 +48,7 @@ func main() {
 	generators := []generators.Generator{
 		generators.NewTypesGenerator(outputPath),
 		generators.NewDomainGenerator(outputPath),
-		//generators.NewResolverGenerator(outputPath),
+		generators.NewResolverGenerator(outputPath),
 		generators.NewSQLGenerator(outputPath),
 		//generate.NewEnumGenerator(outputPath),
 	}

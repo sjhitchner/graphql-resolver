@@ -1,144 +1,77 @@
 {{ template "Header" }}
 package resolver
 
-{{ template "Imports" unique .Imports "encoding/base64" "github.com/graph-gophers/graphql-go" }}
+{{ template "Imports" unique .Imports "context" "encoding/base64" "github.com/graph-gophers/graphql-go" }}
 
 
 {{ define "MethodID" }} graphql.ID {
-	return ToID(t.obj.{{ .Name }})
+	return domain.ToID(t.obj.{{ camel .Field.Name }})
 }
 {{ end }}
 
-{{ define "MethodInteger" }} int32 {
-	{{ if eq .Return.Type .Return.Primative -}}
-	return t.obj.{{ .Name }}
-	{{- else -}}
-	return int32(t.obj.{{ .Name }})
-	{{- end }}
-}
-{{ end }}
-
-{{ define "MethodFloat" }} float64 {
-	{{ if eq .Return.Type .Return.Primative -}}
-	return t.obj.{{ .Name }}
-	{{- else -}}
-	return float64(t.obj.{{ .Name }})
-	{{- end }}
-}
-{{ end }}
-
-{{ define "MethodBoolean" }} bool {
-	{{ if eq .Return.Type .Return.Primative -}}
-	return t.obj.{{ .Name }}
-	{{- else -}}
-	return bool(t.obj.{{ .Name }})
-	{{- end }}
-}
-{{ end }}
 
 {{ define "MethodTimestamp" }} string {
-	return t.obj.{{ .Name }}.Format(time.RFC3339)
+	return t.obj.{{ .Field.Name }}.Format(time.RFC3339)
 }
 {{ end }}
 
-{{ define "MethodString" }} string {
-	{{ if eq .Return.Type .Return.Primative -}}
-	return t.obj.{{ .Name }}
+
+{{ define "MethodPrimative" }} {{ .Field.Primative }} {
+	{{ if eq .Field.Type .Field.Primative -}}
+	return t.obj.{{ camel .Field.Name }}
 	{{- else -}}
-	return string(t.obj.{{ .Name }})
+	return {{ .Field.Primative }}(t.obj.{{ camel .Field.Name }})
 	{{- end }}
 }
 {{ end }}
 
-{{ define "MethodRelationship" }} (*{{ .Relationship }}Resolver, error) {
-	obj, err := Interactor(ctx).Get{{ .Relationship }}ById(ctx, t.obj.{{ .Name }})
-	return &{{ .Relationship }}Resolver{obj}, errors.Wrapf(err, "Failed Getting {{ .Name }} '%v'", t.obj.{{ .Name }})
+
+{{ define "MethodRelationship" }} (*{{ camel .Field.Relationship }}Resolver, error) {
+	obj, err := Interactor(ctx).Get{{ camel .Field.Relationship }}ById(ctx, t.obj.{{ camel .Field.Internal }})
+	return &{{ camel .Field.Relationship }}Resolver{obj}, errors.Wrapf(err, "Failed Getting {{ camel .Field.Name }} '%v'", t.obj.{{ camel .Field.Internal }})
 }
 {{ end }}
 
-{{ define "MethodManyToMany" }} ([]*{{ .Relationship }}Resolver, error) {
-	list, err := Interactor(ctx).List{{ .Relationship }}ByTeamId(ctx, t.obj.Id)
-	resolvers := make([]*{{ .Relationship }}Resolver, len(list))
+
+{{ define "MethodManyToMany" }} ([]*{{ camel .Field.Relationship }}Resolver, error) {
+	list, err := Interactor(ctx).List{{ camel .Model.Name }}{{ camel .Field.Name }}By{{ camel .Field.Relationship }}Id(ctx, t.obj.Id)
+	resolvers := make([]*{{ camel .Field.Relationship }}Resolver, len(list))
 	for i := range resolvers {
-		resolvers[i] = &{{ .Relationship }}Resolver{list[i]}
+		resolvers[i] = &{{ camel .Field.Relationship }}Resolver{list[i]}
 	}
-	return resolvers, errors.Wrapf(err, "Failed Getting {{ .Name }}")
+	return resolvers, errors.Wrapf(err, "Failed Getting {{ camel .Field.Name }} By '%v'", t.obj.Id)
 }
 {{ end }}
 
 
 
-{{ with $r := . }}
-{{ comment $r.Description }}
-type {{ $r.ResolverName }} {
-	obj *domain.{{ $r.ObjectName }}
+{{ with $m := .Model }}
+{{ comment $m.Description }}
+type {{ camel $m.Name }}Resolver struct {
+	obj *domain.{{ camel $m.Name }}
 }
 
-func New{{ $r.ResolverName }}(obj *domain.{{ $r.ObjectName }}) *{{ $r.ResolverName }} {
+func New{{ camel $m.Name }}Resolver(obj *domain.{{ camel $m.Name }}) *{{ camel $m.Name }}Resolver {
 	if obj == nil {
 		return nil
 	}
-	return &{{ $r.ResolverName }}{obj}
+	return &{{ camel $m.Name }}Resolver{obj}
 }
 
-{{ range $m := $r.Methods }}
-func (t *{{ $r.ResolverName }}) {{ $m.Name }}() 
-{{- if eq $m.Template "id" -}}
-	{{ template "MethodID" $m }}
-{{- else if eq $m.Template "integer" -}}
-	{{ template "MethodInteger" $m }}
-{{- else if eq $m.Template "float" -}}
-	{{ template "MethodFloat" $m }}
-{{- else if eq $m.Template "boolean" -}}
-	{{ template "MethodBoolean" $m }}
-{{- else if eq $m.Template "string" -}}
-	{{ template "MethodString" $m }}
+{{ range $f := $m.Fields }}
+func (t *{{ camel $m.Name }}Resolver) {{ camel $f.Name }}() 
+{{- if ne $f.Relationship "" -}}
+	{{- if eq $f.Type "manytomany" -}}
+		{{ template "MethodManyToMany" args "Model" $m "Field" $f }}
+	{{- else -}}
+		{{ template "MethodRelationship" args "Model" $m "Field" $f }}
+	{{- end -}}
+{{- else if eq $f.Type "id" -}}
+	{{ template "MethodID" args "Model" $m "Field" $f }}
+{{- else if eq $f.Type "timestamp" -}}
+	{{ template "MethodTimestamp" args "Model" $m "Field" $f }}
 {{- else -}}
-	{{ template "MethodRelationship" $m }}
+	{{ template "MethodPrimative" args "Model" $m "Field" $f }}
 {{- end -}}
 {{ end }}
 {{ end }}
-
-
-
-{{/*
-
-{
-
-
-
-
-type {{ $m.Name }} struct {
-{{ template "ModelFields" $m }}
-}
-
-type {{ $m.Name }}Resolver struct {
-	aggregator Aggregator
-	{{ if  $m }}
-	{{- else if  $m -}}
-	{{- template "ModelFields" $m -}}
-	{{- else -}}
-	aggregator Aggregator
-	obj *{{ $m.Name }}
-	{{ template "ModelFields" $m }}
-	{{- end }}
-}
-
-{{ range $f := .Fields $m -}}
-{{ template "ModelSignature" args "Name" $m.Name "Field" $f }} {
-{{- if  $m }}
-	{{ template "ResolverMethod" $f }}
-{{- else if  $m }}
-	{{ template "ConnectionMethod" $f }}
-{{- else if  $m }}
-	{{ template "EdgeMethod" $f }}
-{{- else if  $m }}
-	{{ template "PageInfoMethod" $f }}
-{{- else }}
-	{{ template "ResolverMethod" $f }}
-{{- end }}
-}
-{{ end }}
-{{ end }}
-
-*/}}
