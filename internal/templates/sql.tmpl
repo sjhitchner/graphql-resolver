@@ -4,8 +4,8 @@ import (
 	"context"
 	"github.com/pkg/errors"
 
-	"github.com/sjhitchner/slack-clone/backend/domain"
-	"github.com/sjhitchner/slack-clone/backend/infrastructure/db"
+	"github.com/sjhitchner/graphql-resolver/generated/domain"
+	"github.com/sjhitchner/graphql-resolver/lib/db"
 )
 
 
@@ -73,7 +73,7 @@ func (t *{{ camel $m.Name}}DB) {{ template "RepoMethod" $method }} {
 
 const Select{{ camel $method.Name }} = `
 {{- template "Select" $rm.Model }}JOIN {{ $rm.Name }}
-ON {{ $rm.Model.Name }}.id = {{ $rm.Name }}.{{ $rm.Model.Name }}_id
+ON {{ $rm.Name }}.{{ $rm.Model.Name }}_id = {{ $rm.Model.Name }}.id
 WHERE {{ range $i, $arg := $method.Args -}}
 {{- if gt $i 0 }}AND {{ end -}}
 {{ $rm.Name }}.{{ $arg.Name }} = ${{ add $i 1 }}

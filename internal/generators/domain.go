@@ -23,12 +23,8 @@ func NewDomainGenerator(path string) *DomainGenerator {
 
 func (t *DomainGenerator) Generate(config *config.Config) error {
 
-	imports := []string{
-		"context",
-		"github.com/graph-gophers/graphql-go",
-	}
-
-	models, _ := domain.ProcessConfig(config)
+	models, _, imports := domain.ProcessConfig(config)
+	imports = append(imports, "context")
 
 	for _, model := range models {
 		b, _ := json.MarshalIndent(model, "", "  ")
@@ -39,7 +35,7 @@ func (t *DomainGenerator) Generate(config *config.Config) error {
 			t.Filename(model.Name),
 			"domain.tmpl",
 			DomainTemplate{
-				Imports: imports,
+				Imports: model.Imports,
 				Model:   model,
 			}); err != nil {
 			return err

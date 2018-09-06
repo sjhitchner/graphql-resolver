@@ -22,9 +22,7 @@ func NewTypesGenerator(path string) *TypesGenerator {
 
 func (t *TypesGenerator) Generate(config *config.Config) error {
 
-	imports := []string{}
-
-	_, types := domain.ProcessConfig(config)
+	_, types, imports := domain.ProcessConfig(config)
 	if len(types) > 0 {
 		if err := GenerateGoFile(
 			//if err := GenerateFile(

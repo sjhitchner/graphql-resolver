@@ -1,7 +1,7 @@
 package generators
 
 import (
-	//"fmt"
+	"fmt"
 	//"github.com/pkg/errors"
 
 	"github.com/sjhitchner/graphql-resolver/internal/config"
@@ -32,14 +32,16 @@ func (t *SQLGenerator) Generate(config *config.Config) error {
 		if sql == nil {
 			return errors.Errorf("Model '%s' set to generate SQL but no sql block configured", model.Name)
 		}
-	*/
 
 	imports := []string{
 		"context",
 		"github.com/graph-gophers/graphql-go",
 	}
+	*/
 
-	models, _ := domain.ProcessConfig(config)
+	models, _, imports := domain.ProcessConfig(config)
+
+	fmt.Println(t.path)
 
 	for _, model := range models {
 		if err := GenerateGoFile(

@@ -40,12 +40,9 @@ func (t *ResolverGenerator) Generate(config *config.Config) error {
 		return nil
 	}
 
-	imports := []string{
-		"context",
-		"github.com/graph-gophers/graphql-go",
-	}
+	models, _, imports := domain.ProcessConfig(config)
 
-	models, _ := domain.ProcessConfig(config)
+	imports = append(imports, "context")
 
 	for _, model := range models {
 		resolverName := fmt.Sprintf("%sResolver", model.Name)

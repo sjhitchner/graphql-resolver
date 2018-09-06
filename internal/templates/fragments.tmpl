@@ -9,7 +9,7 @@ import (
 
 
 {{ define "RepoInterface" }}
-type {{ camel .Name }} interface {
+type {{ camel .RepoName }} interface {
 {{- range $method := .Methods }}
 	{{ template "RepoMethod" $method }}
 {{- end }}

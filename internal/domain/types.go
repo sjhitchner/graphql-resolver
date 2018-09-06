@@ -34,6 +34,7 @@ type Model struct {
 	RepoName      string
 	Methods       []Method
 	Relationships []Relationship
+	Imports       []string
 }
 
 type Relationship struct {
@@ -66,8 +67,10 @@ type Type struct {
 	Type string
 }
 
-func ProcessConfig(config *config.Config) ([]Model, []Type) {
+// Return []Models, []Types, []Global Imports
+func ProcessConfig(config *config.Config) ([]Model, []Type, []string) {
 	models := make([]Model, 0, len(config.Models))
+	imports := make([]string, 0, 10)
 
 	for _, m := range config.Models {
 		models = append(
@@ -152,23 +155,34 @@ func ProcessConfig(config *config.Config) ([]Model, []Type) {
 			}
 		}
 	}
-	return models, ProcessTypes(config, config.Types)
+
+	types := ProcessTypes(config, config.Types, &imports)
+
+	return models, types, imports
 }
 
-func ProcessTypes(config *config.Config, ct []config.Type) []Type {
+func ProcessTypes(config *config.Config, ct []config.Type, imports *[]string) []Type {
 	types := make([]Type, 0, len(ct))
 	for _, t := range ct {
+		typ, impt := config.TypePrimative(t.Primative)
+
 		types = append(types, Type{
 			Name: t.Name,
-			Type: config.TypePrimative(t.Primative),
+			Type: typ,
 		})
+
+		if impt != "" {
+			*imports = append(*imports, impt)
+		}
 	}
 	return types
 }
 
 func ProcessModel(config *config.Config, model config.Model) Model {
-	fields := ProcessFields(config, model)
+	imports := make([]string, 0, 10)
+
 	indexes := ProcessIndexes(config, model)
+	fields := ProcessFields(config, model, &imports)
 	methods := ProcessMethods(config, model, indexes)
 
 	return Model{
@@ -178,6 +192,7 @@ func ProcessModel(config *config.Config, model config.Model) Model {
 		Indexes:     indexes,
 		RepoName:    model.Name + "_" + "repo",
 		Methods:     methods,
+		Imports:     imports,
 	}
 }
 
@@ -223,13 +238,15 @@ func ProcessMethods(config *config.Config, model config.Model, indexes []Index) 
 	return methods
 }
 
-func ProcessFields(config *config.Config, model config.Model) []Field {
+func ProcessFields(config *config.Config, model config.Model, imports *[]string) []Field {
 	fields := make([]Field, 0, len(model.Fields))
 	for _, field := range model.Fields {
+		typ, impt := config.TypePrimative(field.Type)
+
 		fields = append(fields, Field{
 			Name:      field.Name,
 			Type:      field.Type,
-			Primative: config.TypePrimative(field.Type),
+			Primative: typ,
 			Internal: func() string {
 				if field.Internal == "" {
 					return field.Name
@@ -238,6 +255,10 @@ func ProcessFields(config *config.Config, model config.Model) []Field {
 			}(),
 			Relationship: field.Relationship,
 		})
+
+		if impt != "" {
+			*imports = append(*imports, impt)
+		}
 	}
 	return fields
 }

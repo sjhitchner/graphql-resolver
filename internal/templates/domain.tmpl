@@ -1,7 +1,7 @@
 {{ template "Header" }}
 package domain
 
-{{ template "Imports" unique .Imports }}
+{{ template "Imports" unique .Imports "context" "encoding/json" }}
 
 
 {{ with $m := .Model }}

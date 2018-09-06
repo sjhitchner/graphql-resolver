@@ -69,47 +69,27 @@ func (t Config) FindModelByInternal(internal string) Model {
 	panic("Model Internal " + internal + " Not Found")
 }
 
-/*
-func (t Config) TypeMapping(base string) string {
+// type and import
+func (t Config) TypePrimative(base string) (string, string) {
 	switch base {
 	case "integer":
-		return "int64"
+		return "int64", ""
 	case "float":
-		return "float64"
+		return "float64", ""
 	case "boolean":
-		return "bool"
+		return "bool", ""
 	case "string":
-		return "string"
+		return "string", ""
 	case "timestamp":
-		return "time.Time"
-	case "id":
-		return "Id"
-	default:
-		return base
-	}
-}
-*/
-
-func (t Config) TypePrimative(base string) string {
-	switch base {
-	case "integer":
-		return "int64"
-	case "float":
-		return "float64"
-	case "boolean":
-		return "bool"
-	case "string":
-		return "string"
-	case "timestamp":
-		return "time.Time"
+		return "time.Time", "time"
 	case "time.Time":
-		return "time.Time"
+		return "time.Time", "time"
 	case "manytomany":
-		return "manytomany"
+		return "manytomany", ""
 	default:
 		for _, b := range t.Types {
 			if base == b.Name {
-				return b.Primative
+				return b.Primative, ""
 			}
 		}
 	}
