@@ -22,4 +22,5 @@ type DBHandler interface {
 	InsertWithId(ctx context.Context, query string, params ...interface{}) (int64, error)
 	Insert(ctx context.Context, query string, params ...interface{}) error
 	Update(ctx context.Context, query string, params ...interface{}) (int64, error)
+	Delete(ctx context.Context, query string, params ...interface{}) (int64, error)
 }

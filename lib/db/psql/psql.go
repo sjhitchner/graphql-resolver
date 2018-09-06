@@ -173,6 +173,10 @@ func (t *PSQLHandler) Update(ctx context.Context, query string, params ...interf
 	return affected, nil
 }
 
+func (t *PSQLHandler) Delete(ctx context.Context, query string, params ...interface{}) (int64, error) {
+	return t.Update(ctx, query, params...)
+}
+
 func Commit(ctx context.Context, tx *sqlx.Tx, err error) error {
 	if err != nil {
 		return Rollback(ctx, tx, err)

@@ -21,6 +21,11 @@ import (
 // Generate Resolvers
 // Library for various functions
 
+// Data Structures
+
+// DB Models
+// RepoMethod
+
 var (
 	configPath string
 	outputPath string
@@ -41,10 +46,10 @@ func main() {
 	//fmt.Println(config)
 
 	generators := []generators.Generator{
-		//generators.NewSQLGenerator(outputPath),
 		generators.NewTypesGenerator(outputPath),
 		generators.NewDomainGenerator(outputPath),
 		//generators.NewResolverGenerator(outputPath),
+		generators.NewSQLGenerator(outputPath),
 		//generate.NewEnumGenerator(outputPath),
 	}
 
