@@ -31,6 +31,9 @@ type Model struct {
 	Description string
 	Fields      []Field
 	Indexes     []Index
+	RepoName    string
+	Methods     []Method
+	SubModels   []Model
 }
 
 type Index struct {
@@ -52,45 +55,75 @@ type Type struct {
 	Type string
 }
 
-func ProcessConfig(config *config.Config) ([]Model, []Repo, []Type) {
+func ProcessConfig(config *config.Config) ([]Model, []Type) {
 	models := make([]Model, 0, len(config.Models))
-	repos := make([]Repo, 0, len(config.Models))
 
 	for _, m := range config.Models {
-		model, repo := ProcessModel(config, m)
-		models = append(models, model)
-		repos = append(repos, repo)
+		models = append(
+			models,
+			ProcessModel(config, m),
+		)
 	}
 
-	return models, repos, ProcessTypes(config, config.Types)
+	for i, m := range models {
+		for _, f := range m.Fields {
+			if f.Type == "manytomany" {
+				models[i].SubModels = append(models[i].SubModels, Model{
+					Name:        m.Name + "_" + f.Name,
+					Description: fmt.Sprintf("Linking %s to %s", m.Name, f.Relationship),
+					Fields: []Field{
+						Field{
+							Name:      "id",
+							Type:      "id",
+							Primative: "id",
+							Internal:  "id",
+						},
+						Field{
+							Name:      m.Name + "_id",
+							Type:      "id",
+							Primative: "id",
+							Internal:  m.Name + "_id",
+						},
+						Field{
+							Name:      f.Relationship + "_id",
+							Type:      "id",
+							Primative: "id",
+							Internal:  f.Relationship + "_id",
+						},
+					},
+					Indexes: nil,
+					Methods: nil,
+				})
+			}
+		}
+	}
+	return models, ProcessTypes(config, config.Types)
 }
 
 func ProcessTypes(config *config.Config, ct []config.Type) []Type {
 	types := make([]Type, 0, len(ct))
 	for _, t := range ct {
 		types = append(types, Type{
-			Name: CamelCasef(t.Name),
+			Name: t.Name,
 			Type: config.TypePrimative(t.Primative),
 		})
 	}
 	return types
 }
 
-func ProcessModel(config *config.Config, model config.Model) (Model, Repo) {
+func ProcessModel(config *config.Config, model config.Model) Model {
 	fields := ProcessFields(config, model)
 	indexes := ProcessIndexes(config, model)
 	methods := ProcessMethods(config, model, indexes)
 
 	return Model{
-			Name:        CamelCasef(model.Name),
-			Description: model.Description,
-			Fields:      fields,
-			Indexes:     indexes,
-		},
-		Repo{
-			Name:    CamelCasef("%s_%s", model.Name, "repo"),
-			Methods: methods,
-		}
+		Name:        model.Name,
+		Description: model.Description,
+		Fields:      fields,
+		Indexes:     indexes,
+		RepoName:    model.Name + "_" + "repo",
+		Methods:     methods,
+	}
 }
 
 func ProcessMethods(config *config.Config, model config.Model, indexes []Index) []Method {
@@ -100,34 +133,30 @@ func ProcessMethods(config *config.Config, model config.Model, indexes []Index) 
 		for _, f := range index.Fields {
 			field := model.FindFieldByInternal(f)
 			args = append(args, Arg{
-				Name: LowerCamelCasef(field.Internal),
-				Type: config.TypeMapping(field.Type),
+				Name: field.Internal,
+				Type: field.Type,
 			})
 		}
 
 		methods = append(methods, Method{
 			Name: fmt.Sprintf(
-				"%s%sBy%s",
+				"%s_%s_by_%s",
 				func() string {
 					if index.Type == "index" {
 						return "List"
 					}
 					return "Get"
 				}(),
-				CamelCasef(func() string {
+				func() string {
 					if index.Type == "index" {
 						return model.Name + "s"
 					}
 					return model.Name
-				}()),
-				func() string {
-					return CamelCasef(
-						strings.Join(index.Fields, "_"),
-					)
 				}(),
+				strings.Join(index.Fields, "_"),
 			),
 			Args:       args,
-			ReturnType: CamelCasef(model.Name),
+			ReturnType: model.Name,
 			ReturnPrefix: func() string {
 				if index.Type == "index" {
 					return "[]*"
@@ -143,10 +172,15 @@ func ProcessFields(config *config.Config, model config.Model) []Field {
 	fields := make([]Field, 0, len(model.Fields))
 	for _, field := range model.Fields {
 		fields = append(fields, Field{
-			Name:         field.Name,
-			Type:         field.Type,
-			Primative:    config.TypePrimative(field.Type),
-			Internal:     field.Internal,
+			Name:      field.Name,
+			Type:      field.Type,
+			Primative: config.TypePrimative(field.Type),
+			Internal: func() string {
+				if field.Internal == "" {
+					return field.Name
+				}
+				return field.Internal
+			}(),
 			Relationship: field.Relationship,
 		})
 	}

@@ -113,6 +113,27 @@ func CamelCase(values ...interface{}) (string, error) {
 	return strcase.UpperCamelCase(strcase.SnakeCase(s)), nil
 }
 
+func GoType(values ...interface{}) (string, error) {
+	s, ok := values[0].(string)
+	if !ok {
+		return "", errors.Errorf("Invalud argument '%s'", values[0])
+	}
+	switch s {
+	case "integer":
+		return "int64", nil
+	case "string":
+		return "string", nil
+	case "float":
+		return "float64", nil
+	case "boolean":
+		return "bool", nil
+	case "timestamp":
+		return "time.Time", nil
+	default:
+		return strcase.UpperCamelCase(s), nil
+	}
+}
+
 func LowerCamelCase(values ...interface{}) (string, error) {
 	s, ok := values[0].(string)
 	if !ok {

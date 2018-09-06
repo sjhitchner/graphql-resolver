@@ -2,9 +2,65 @@ package db
 
 import (
 	"context"
-	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
+
+	"github.com/sjhitchner/slack-clone/backend/domain"
+	"github.com/sjhitchner/slack-clone/backend/infrastructure/db"
 )
+
+{{ define "Select" }}
+SELECT {{ range $i, $f := .Fields }}
+	{{- if ne $f.Type "manytomany" }}
+	{{- if gt $i 0 }}, {{ end -}}{{ $f.Internal }}
+	{{ end -}}
+{{- end -}}
+FROM {{ .Name }}
+{{ end }}
+
+
+{{ with $m := .Model }}
+
+type {{ camel $m.Name }}DB struct {
+	db db.DBHandler
+}
+
+{{ range $method := .Methods }}
+
+const Select{{ camel $method.Name }} = `
+{{- template "Select" $m }} WHERE {{ range $i, $arg := $method.Args -}}
+{{- if gt $i 0 }}AND {{ end -}}
+{{ $arg.Name }} = ${{ add $i 1 }}
+{{- end }}
+`
+
+
+func (t *{{ camel $m.Name}}DB) {{ camel $method.Name }}(ctx context.Context
+{{- range $arg := $method.Args -}}
+, {{ lcamel $arg.Name }} {{ gotype $arg.Type }}
+{{- end -}}
+) ({{ $method.ReturnPrefix }}{{ camel $method.ReturnType }}, error) {
+{{- if eq $method.ReturnPrefix "*" }}
+var obj domain.{{ $m.Name }}
+err := t.db.GetById(ctx, &obj, Select{{ camel $method.Name }}
+{{- range $arg := $method.Args -}}
+	, {{ lcamel $arg.Name }}
+{{- end -}})
+return &obj, errors.Wrapf(err, "Error Getting {{ $m.Name }} {{ range $arg := $method.Args -}} {{ lcamel $arg.Name }}='%v'{{- end -}}" 
+{{- range $arg := $method.Args -}}, {{ lcamel $arg.Name }}{{- end -}})
+{{- else }}
+var list []*domain.{{ $m.Name }}
+err := t.db.Select(ctx, &list, Select{{ camel $method.Name }}
+{{- range $arg := $method.Args -}}
+	, {{ lcamel $arg.Name }}
+{{- end -}})
+return &obj, errors.Wrapf(err, "Error Getting {{ $m.Name }} {{ range $arg := $method.Args -}} {{ lcamel $arg.Name }}='%v'{{- end -}}" 
+{{- range $arg := $method.Args -}}, {{ lcamel $arg.Name }}{{- end -}})
+{{- end }}
+}
+{{- end }}
+{{ end }}
+
+{{/*
 
 {{- define "SelectSingleFunction" -}} {
 	return nil, errors.New("Not implemented")
@@ -17,7 +73,6 @@ import (
 {{ end }}
 
 
-{{ with $m := .Model }}
 {{ with $name := printf "%s%s" $m.Name "DB" }} 
 const {{ $m.Name}}Select = `
 SELECT
@@ -51,3 +106,5 @@ WHERE {{ range $i, $f := $index.Fields -}}
 {{ end }}
 
 {{ end }}{{ end }}{{ end }}
+
+*/}}

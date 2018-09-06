@@ -1,15 +1,16 @@
 package generators
 
 import (
-	"fmt"
-	"github.com/pkg/errors"
+	//"fmt"
+	//"github.com/pkg/errors"
 
-	. "github.com/sjhitchner/graphql-resolver/domain"
+	"github.com/sjhitchner/graphql-resolver/internal/config"
+	"github.com/sjhitchner/graphql-resolver/internal/domain"
 )
 
 type SQLTemplate struct {
 	Imports []string
-	Model   Model
+	Model   domain.Model
 }
 
 type SQLGenerator struct {
@@ -20,33 +21,37 @@ func NewSQLGenerator(path string) *SQLGenerator {
 	return &SQLGenerator{path}
 }
 
-func (t *SQLGenerator) Generate(model Model) error {
+func (t *SQLGenerator) Generate(config *config.Config) error {
 
+	/* TODO
 	if !model.ShouldGenerate(SQL) {
 		return nil
 	}
 
-	sql := model.SQL
-	if sql == nil {
-		return errors.Errorf("Model '%s' set to generate SQL but no sql block configured", model.Name)
-	}
+		sql := model.SQL
+		if sql == nil {
+			return errors.Errorf("Model '%s' set to generate SQL but no sql block configured", model.Name)
+		}
+	*/
 
 	imports := []string{
 		"context",
 		"github.com/graph-gophers/graphql-go",
 	}
 
-	fmt.Println(model.Indexes())
+	models, _ := domain.ProcessConfig(config)
 
-	//if err := GenerateGoFile(
-	if err := GenerateFile(
-		t.Filename(model.Name),
-		"sql.tmpl",
-		SQLTemplate{
-			Imports: imports,
-			Model:   model,
-		}); err != nil {
-		return err
+	for _, model := range models {
+		if err := GenerateGoFile(
+			//if err := GenerateFile(
+			t.Filename(model.Name),
+			"sql.tmpl",
+			SQLTemplate{
+				Imports: imports,
+				Model:   model,
+			}); err != nil {
+			return err
+		}
 	}
 
 	return nil

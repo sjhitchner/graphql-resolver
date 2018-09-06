@@ -16,7 +16,6 @@ import (
 	"os"
 
 	"github.com/pkg/errors"
-	"github.com/stoewer/go-strcase"
 	"gopkg.in/yaml.v2"
 )
 
@@ -70,6 +69,7 @@ func (t Config) FindModelByInternal(internal string) Model {
 	panic("Model Internal " + internal + " Not Found")
 }
 
+/*
 func (t Config) TypeMapping(base string) string {
 	switch base {
 	case "integer":
@@ -83,11 +83,12 @@ func (t Config) TypeMapping(base string) string {
 	case "timestamp":
 		return "time.Time"
 	case "id":
-		return "id"
+		return "Id"
 	default:
-		return strcase.UpperCamelCase(base)
+		return base
 	}
 }
+*/
 
 func (t Config) TypePrimative(base string) string {
 	switch base {

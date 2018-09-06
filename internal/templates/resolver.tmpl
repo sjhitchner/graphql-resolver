@@ -1,12 +1,112 @@
 {{ template "Header" }}
 package resolver
 
+{{ template "Imports" unique .Imports "encoding/base64" "github.com/graph-gophers/graphql-go" }}
+
+
+{{ define "MethodID" }} graphql.ID {
+	return ToID(t.obj.{{ .Name }})
+}
+{{ end }}
+
+{{ define "MethodInteger" }} int32 {
+	{{ if eq .Return.Type .Return.Primative -}}
+	return t.obj.{{ .Name }}
+	{{- else -}}
+	return int32(t.obj.{{ .Name }})
+	{{- end }}
+}
+{{ end }}
+
+{{ define "MethodFloat" }} float64 {
+	{{ if eq .Return.Type .Return.Primative -}}
+	return t.obj.{{ .Name }}
+	{{- else -}}
+	return float64(t.obj.{{ .Name }})
+	{{- end }}
+}
+{{ end }}
+
+{{ define "MethodBoolean" }} bool {
+	{{ if eq .Return.Type .Return.Primative -}}
+	return t.obj.{{ .Name }}
+	{{- else -}}
+	return bool(t.obj.{{ .Name }})
+	{{- end }}
+}
+{{ end }}
+
+{{ define "MethodTimestamp" }} string {
+	return t.obj.{{ .Name }}.Format(time.RFC3339)
+}
+{{ end }}
+
+{{ define "MethodString" }} string {
+	{{ if eq .Return.Type .Return.Primative -}}
+	return t.obj.{{ .Name }}
+	{{- else -}}
+	return string(t.obj.{{ .Name }})
+	{{- end }}
+}
+{{ end }}
+
+{{ define "MethodRelationship" }} (*{{ .Relationship }}Resolver, error) {
+	obj, err := Interactor(ctx).Get{{ .Relationship }}ById(ctx, t.obj.{{ .Name }})
+	return &{{ .Relationship }}Resolver{obj}, errors.Wrapf(err, "Failed Getting {{ .Name }} '%v'", t.obj.{{ .Name }})
+}
+{{ end }}
+
+{{ define "MethodManyToMany" }} ([]*{{ .Relationship }}Resolver, error) {
+	list, err := Interactor(ctx).List{{ .Relationship }}ByTeamId(ctx, t.obj.Id)
+	resolvers := make([]*{{ .Relationship }}Resolver, len(list))
+	for i := range resolvers {
+		resolvers[i] = &{{ .Relationship }}Resolver{list[i]}
+	}
+	return resolvers, errors.Wrapf(err, "Failed Getting {{ .Name }}")
+}
+{{ end }}
+
+
+
+{{ with $r := . }}
+{{ comment $r.Description }}
+type {{ $r.ResolverName }} {
+	obj *domain.{{ $r.ObjectName }}
+}
+
+func New{{ $r.ResolverName }}(obj *domain.{{ $r.ObjectName }}) *{{ $r.ResolverName }} {
+	if obj == nil {
+		return nil
+	}
+	return &{{ $r.ResolverName }}{obj}
+}
+
+{{ range $m := $r.Methods }}
+func (t *{{ $r.ResolverName }}) {{ $m.Name }}() 
+{{- if eq $m.Template "id" -}}
+	{{ template "MethodID" $m }}
+{{- else if eq $m.Template "integer" -}}
+	{{ template "MethodInteger" $m }}
+{{- else if eq $m.Template "float" -}}
+	{{ template "MethodFloat" $m }}
+{{- else if eq $m.Template "boolean" -}}
+	{{ template "MethodBoolean" $m }}
+{{- else if eq $m.Template "string" -}}
+	{{ template "MethodString" $m }}
+{{- else -}}
+	{{ template "MethodRelationship" $m }}
+{{- end -}}
+{{ end }}
+{{ end }}
+
+
+
 {{/*
 
-{{ template "imports" unique .Imports "encoding/base64" "github.com/graph-gophers/graphql-go" }}
+{
 
-{{ with $m := .Model }}
-{{ comment $m.Description }}
+
+
 
 type {{ $m.Name }} struct {
 {{ template "ModelFields" $m }}

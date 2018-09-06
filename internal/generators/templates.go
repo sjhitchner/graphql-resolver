@@ -39,6 +39,7 @@ func init() {
 				"mul":     Multiply,
 				"div":     Divide,
 				"now":     Now,
+				"gotype":  GoType,
 				/*
 					"allFields":    AllFields,
 					"typeName":     TypeName,

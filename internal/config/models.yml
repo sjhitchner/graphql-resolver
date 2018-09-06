@@ -35,13 +35,13 @@ models:
         description: "The Username of the User"
         type: username
         indexes:
-         - username_index
+         - username_unique
       - name: "email"
         internal: "email"
         description: "Email of the User"
         type: email
         indexes:
-          - email_index
+          - email_unique
       - name: "password"
         internal: "password"
         description: "Password of the User"
@@ -101,7 +101,7 @@ models:
         type: string 
       - name: "is_public"
         description: "whether the channel is public"
-        type: string 
+        type: boolean 
       - name: "members"
         description: "members of the channel"
         type: "manytomany"

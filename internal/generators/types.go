@@ -1,7 +1,7 @@
 package generators
 
 import (
-	"github.com/stoewer/go-strcase"
+	//"github.com/stoewer/go-strcase"
 
 	"github.com/sjhitchner/graphql-resolver/internal/config"
 	"github.com/sjhitchner/graphql-resolver/internal/domain"
@@ -9,7 +9,7 @@ import (
 
 type TypesTemplate struct {
 	Imports []string
-	Types   []domain.Arg
+	Types   []domain.Type
 }
 
 type TypesGenerator struct {
@@ -24,27 +24,46 @@ func (t *TypesGenerator) Generate(config *config.Config) error {
 
 	imports := []string{}
 
-	args := make([]domain.Arg, 0, len(config.Types))
-	for _, typ := range config.Types {
-		args = append(args, domain.Arg{
-			Name: strcase.UpperCamelCase(typ.Name),
-			Type: config.TypePrimative(typ.Primative),
-		})
-	}
-
-	if len(args) > 0 {
+	_, types := domain.ProcessConfig(config)
+	if len(types) > 0 {
 		if err := GenerateGoFile(
 			//if err := GenerateFile(
 			t.Filename("common"),
 			"types.tmpl",
 			TypesTemplate{
 				Imports: imports,
-				Types:   args,
+				Types:   types,
 			}); err != nil {
 			return err
 		}
 	}
 	return nil
+	/*
+		args := make([]domain.Arg, 0, len(config.Types))
+		for _, typ := range config.Types {
+			args = append(args, domain.Arg{
+				Name: strcase.UpperCamelCase(typ.Name),
+				Type: domain.Type{
+					Type:      "",
+					Primative: config.TypePrimative(typ.Primative),
+				},
+			})
+		}
+
+		if len(args) > 0 {
+			if err := GenerateGoFile(
+				//if err := GenerateFile(
+				t.Filename("common"),
+				"types.tmpl",
+				TypesTemplate{
+					Imports: imports,
+					Types:   args,
+				}); err != nil {
+				return err
+			}
+		}
+		return nil
+	*/
 }
 
 func (t *TypesGenerator) Filename(name string) string {
