@@ -15,12 +15,23 @@ package resolver
 {{ end }}
 
 
+{{ define "QueryArgs" }}
+, args struct {
+{{- range $arg := .Args }}
+	{{ camel $arg.Name }} {{ $arg.Type }}
+{{- end }}
+})
+{{ end }}
+
 type QueryResolver struct {
 }
 
-{{ range $m := .Models }}
-func (t *QueryResolver) {{ camel $m.Name }}() (*{{ camel $m.Name }}Resolver, error) {
-}
+{{ range $model := .Models }}
+{{ range $m := $model.Methods }}
+func (t *QueryResolver) {{ camel $m.Name }}(ctx context.Context, {{ template "QueryArgs" $m }} 
 
-	
+
+) (*{{ camel $m.Name }}Resolver, error) {
+}
+{{ end }}
 {{ end }}

@@ -1,8 +1,52 @@
 package schema
 
-{{ range $t := .Types }}
-
-// {{ $t.Description }}
-// type {{ $t.Name }} {{ $t.Kind }}
-
+{{ range $model := .Models }}
+type {{ camel $model.Name }} {
+{{- range $f := $model.Fields }}
+	{{ lcamel $f.Name }}: {{ gqltype $f }}!
+{{- end }}
+}
 {{ end }}
+
+type Channel {
+    id: ID!
+    name: String!
+    isPublic: Boolean!
+	owner: User!
+	team: Team!
+    messages: [Message!]!
+    members: [User!]!
+}
+
+type Message {
+    id: ID!
+    text: String!
+    user: User!
+	timestamp: String!
+    channel: Channel!
+}
+
+type User {
+	id: ID!
+    username: String!
+    email: String!
+    teams: [Team!]!
+}
+
+type Query {
+	ping: String!
+
+	userList: [User!]!
+
+	userTeamList(userId: ID!): [Team!]!
+	channelMessageList(channelId: ID!): [Message!]!
+	teamChannelList(teamId: ID!): [Channel!]!
+
+	team(id: ID!): Team!
+	channel(id: ID!): Channel!
+	user(id: ID!): User!
+}
+
+schema {
+	query: Query
+}

@@ -40,6 +40,7 @@ func init() {
 				"div":     Divide,
 				"now":     Now,
 				"gotype":  GoType,
+				"gqltype": GraphQLType,
 				/*
 					"allFields":    AllFields,
 					"typeName":     TypeName,

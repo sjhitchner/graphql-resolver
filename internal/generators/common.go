@@ -6,8 +6,8 @@ import (
 	"strings"
 	"time"
 
-	//	"github.com/graph-gophers/graphql-go/introspection"
 	"github.com/pkg/errors"
+	"github.com/sjhitchner/graphql-resolver/internal/domain"
 	"github.com/stoewer/go-strcase"
 )
 
@@ -131,6 +131,29 @@ func GoType(values ...interface{}) (string, error) {
 		return "time.Time", nil
 	default:
 		return strcase.UpperCamelCase(s), nil
+	}
+}
+
+func GraphQLType(values ...interface{}) (string, error) {
+	f, ok := values[0].(domain.Field)
+	if !ok {
+		return "", errors.Errorf("Invalud argument '%s'", values[0])
+	}
+	switch f.Type {
+	case "id":
+		return "ID", nil
+	case "integer":
+		return "Int", nil
+	case "string":
+		return "String", nil
+	case "float":
+		return "Float", nil
+	case "boolean":
+		return "Bool", nil
+	case "timestamp":
+		return "String", nil
+	default:
+		return strcase.UpperCamelCase(f.Primative), nil
 	}
 }
 

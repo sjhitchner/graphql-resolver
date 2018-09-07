@@ -50,7 +50,8 @@ func main() {
 		generators.NewDomainGenerator(outputPath),
 		generators.NewResolverGenerator(outputPath),
 		generators.NewSQLGenerator(outputPath),
-		//generate.NewEnumGenerator(outputPath),
+		generators.NewQueryGenerator(outputPath),
+		generators.NewGraphQLGenerator(outputPath),
 	}
 
 	for _, generator := range generators {
