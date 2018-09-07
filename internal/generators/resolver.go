@@ -13,6 +13,7 @@ const ResolverModule = "resolvers"
 
 type ResolverTemplate struct {
 	Imports []string
+	Types   []domain.Type
 	Model   domain.Model
 }
 
@@ -30,7 +31,7 @@ func (t *ResolverGenerator) Generate(config *config.Config) error {
 		return nil
 	}
 
-	models, _, imports := domain.ProcessConfig(config)
+	models, types, imports := domain.ProcessConfig(config)
 
 	for _, model := range models {
 		if err := GenerateGoFile(
@@ -44,6 +45,18 @@ func (t *ResolverGenerator) Generate(config *config.Config) error {
 			return errors.Wrapf(err, "Error generating resolver %s", model.Name)
 		}
 	}
+
+	//if err := GenerateGoFile(
+	if err := GenerateFile(
+		t.Filename("query"),
+		"query.tmpl",
+		ResolverTemplate{
+			Imports: imports,
+			Types:   types,
+		}); err != nil {
+		return errors.Wrapf(err, "Error generating query resolver")
+	}
+
 	return nil
 }
 

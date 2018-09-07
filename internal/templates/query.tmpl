@@ -3,14 +3,24 @@ package resolver
 {{ template "Imports" unique .Imports "context" "encoding/base64" "github.com/graph-gophers/graphql-go" }}
 
 {{ range $type := .Types }}
-	{{ if eq $type.Name "id" }}
+	{{- if eq $type.Name "id" -}}
 	func ToID(id Id) graphql.ID {
-	{{ if $type.Type "integer" }}
+	{{ if eq $type.Type "integer" -}}
 		return graphql.ID(fmt.Sprintf("%d", id))
-	{{ else }}
+	{{- else -}}
 		return graphql.ID(id)
-	{{ end }}
+	{{- end }}
 	}
 {{ end }}
 {{ end }}
 
+
+type QueryResolver struct {
+}
+
+{{ range $m := .Models }}
+func (t *QueryResolver) {{ camel $m.Name }}() (*{{ camel $m.Name }}Resolver, error) {
+}
+
+	
+{{ end }}
