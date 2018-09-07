@@ -1,0 +1,16 @@
+package resolver
+
+{{ template "Imports" unique .Imports "context" "encoding/base64" "github.com/graph-gophers/graphql-go" }}
+
+{{ range $type := .Types }}
+	{{ if eq $type.Name "id" }}
+	func ToID(id Id) graphql.ID {
+	{{ if $type.Type "integer" }}
+		return graphql.ID(fmt.Sprintf("%d", id))
+	{{ else }}
+		return graphql.ID(id)
+	{{ end }}
+	}
+{{ end }}
+{{ end }}
+
