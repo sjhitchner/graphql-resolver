@@ -81,77 +81,15 @@ func ProcessConfig(config *config.Config) ([]Model, []Type, []string) {
 
 	for i, m := range models {
 		for _, f := range m.Fields {
-			if f.Type == "manytomany" {
-				models[i].Relationships = append(models[i].Relationships, Relationship{
-					Name:        m.Name + "_" + f.Name,
-					Description: fmt.Sprintf("Linking %s to %s", m.Name, f.Relationship),
-					Through:     f.Name,
-					Model: func() Model {
-						for _, m := range models {
-							if m.Name == f.Relationship {
-								return m
-							}
-						}
-						panic("Relationship Model " + f.Relationship + " Not Found")
-					}(),
-					Fields: []Field{
-						Field{
-							Name:      "id",
-							Type:      "id",
-							Primative: "id",
-							Internal:  "id",
-						},
-						Field{
-							Name:      m.Name + "_id",
-							Type:      "id",
-							Primative: "id",
-							Internal:  m.Name + "_id",
-						},
-						Field{
-							Name:      f.Relationship + "_id",
-							Type:      "id",
-							Primative: "id",
-							Internal:  f.Relationship + "_id",
-						},
-					},
-					Indexes: nil,
-					Methods: []Method{
-						Method{
-							Name: fmt.Sprintf(
-								"%s_%s_%s_by_%s_id",
-								"list",
-								m.Name,
-								f.Name,
-								m.Name,
-							),
-							Args: []Arg{
-								Arg{
-									Name: m.Name + "_id",
-									Type: "id",
-								},
-							},
-							ReturnType:   m.Name,
-							ReturnPrefix: "[]*",
-						},
-						Method{
-							Name: fmt.Sprintf(
-								"%s_%s_%s_by_%s_id",
-								"list",
-								m.Name,
-								f.Name,
-								f.Relationship,
-							),
-							Args: []Arg{
-								Arg{
-									Name: f.Relationship + "_id",
-									Type: "id",
-								},
-							},
-							ReturnType:   f.Relationship,
-							ReturnPrefix: "[]*",
-						},
-					},
-				})
+			if f.Relationship != "" {
+				if f.Type == "manytomany" {
+					thruModel := FindModel(models, f.Relationship)
+
+					models[i].Relationships = append(
+						models[i].Relationships,
+						ManyToManyRelationship(m, f, thruModel),
+					)
+				}
 			}
 		}
 	}
@@ -159,6 +97,72 @@ func ProcessConfig(config *config.Config) ([]Model, []Type, []string) {
 	types := ProcessTypes(config, config.Types, &imports)
 
 	return models, types, imports
+}
+
+func ManyToManyRelationship(m Model, f Field, thruModel Model) Relationship {
+	return Relationship{
+		Name:        m.Name + "_" + f.Name,
+		Description: fmt.Sprintf("Linking %s to %s", m.Name, f.Relationship),
+		Through:     f.Name,
+		Model:       thruModel,
+		Fields: []Field{
+			Field{
+				Name:      "id",
+				Type:      "id",
+				Primative: "id",
+				Internal:  "id",
+			},
+			Field{
+				Name:      m.Name + "_id",
+				Type:      "id",
+				Primative: "id",
+				Internal:  m.Name + "_id",
+			},
+			Field{
+				Name:      f.Relationship + "_id",
+				Type:      "id",
+				Primative: "id",
+				Internal:  f.Relationship + "_id",
+			},
+		},
+		Indexes: nil,
+		Methods: []Method{
+			Method{
+				Name: fmt.Sprintf(
+					"%s_%s_%s_by_%s_id",
+					"list",
+					m.Name,
+					f.Name,
+					m.Name,
+				),
+				Args: []Arg{
+					Arg{
+						Name: m.Name + "_id",
+						Type: "id",
+					},
+				},
+				ReturnType:   m.Name,
+				ReturnPrefix: "[]*",
+			},
+			Method{
+				Name: fmt.Sprintf(
+					"%s_%s_%s_by_%s_id",
+					"list",
+					m.Name,
+					f.Name,
+					f.Relationship,
+				),
+				Args: []Arg{
+					Arg{
+						Name: f.Relationship + "_id",
+						Type: "id",
+					},
+				},
+				ReturnType:   f.Relationship,
+				ReturnPrefix: "[]*",
+			},
+		},
+	}
 }
 
 func ProcessTypes(config *config.Config, ct []config.Type, imports *[]string) []Type {
@@ -295,6 +299,15 @@ func ProcessIndexes(config *config.Config, model config.Model) []Index {
 	}
 
 	return indexes
+}
+
+func FindModel(models []Model, name string) Model {
+	for _, model := range models {
+		if model.Name == name {
+			return model
+		}
+	}
+	panic("No model named " + name)
 }
 
 /*
