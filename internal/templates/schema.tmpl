@@ -1,12 +1,15 @@
-package schema
-
-{{ range $model := .Models }}
-type {{ camel $model.Name }} {
-{{- range $f := $model.Fields }}
+type {{ camel .Model.Name }} {
+{{ range $f := .Model.Fields }}
+{{- if ne $f.Relationship "" }}
+	{{ lcamel $f.Name }}: {{ camel $f.Relationship }}!
+{{- else -}}
 	{{ lcamel $f.Name }}: {{ gqltype $f }}!
-{{- end }}
-}
+{{- end -}}
 {{ end }}
+{{ range $r := .Relationships }}
+	{{ lcamel $r.Name }}: {{ $r.Type }}
+{{ end }}
+}
 
 type Channel {
     id: ID!

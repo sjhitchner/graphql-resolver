@@ -31,7 +31,7 @@ func (t *QueryGenerator) Generate(config *config.Config) error {
 		}
 	*/
 
-	models, types, imports := domain.ProcessConfig(config)
+	models, _, types, imports := domain.ProcessConfig(config)
 
 	//if err := GenerateGoFile(
 	if err := GenerateFile(

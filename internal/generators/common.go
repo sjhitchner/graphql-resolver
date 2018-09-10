@@ -149,7 +149,7 @@ func GraphQLType(values ...interface{}) (string, error) {
 	case "float":
 		return "Float", nil
 	case "boolean":
-		return "Bool", nil
+		return "Boolean", nil
 	case "timestamp":
 		return "String", nil
 	default:
@@ -379,6 +379,38 @@ func Divide(b, a interface{}) (interface{}, error) {
 func Now() (interface{}, error) {
 	format := time.RFC3339
 	return time.Now().UTC().Format(format), nil
+}
+
+func Find(values ...interface{}) (interface{}, error) {
+	if len(values) != 2 {
+		return "", errors.Errorf("Invalud argument '%s'", values[0])
+	}
+
+	name := values[1].(string)
+
+	switch v := values[0].(type) {
+	case []domain.Model:
+		for _, m := range v {
+			if m.Name == name {
+				return m, nil
+			}
+		}
+
+	case []domain.Relationship:
+		for _, m := range v {
+			if m.Name == name {
+				return m, nil
+			}
+		}
+
+	case []domain.Field:
+		for _, m := range v {
+			if m.Name == name {
+				return m, nil
+			}
+		}
+	}
+	panic("Invalid find type")
 }
 
 /*

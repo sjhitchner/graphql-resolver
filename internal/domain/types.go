@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 
@@ -27,14 +28,13 @@ type Arg struct {
 }
 
 type Model struct {
-	Name          string
-	Description   string
-	Fields        []Field
-	Indexes       []Index
-	RepoName      string
-	Methods       []Method
-	Relationships []Relationship
-	Imports       []string
+	Name        string
+	Description string
+	Fields      []Field
+	Indexes     []Index
+	RepoName    string
+	Methods     []Method
+	Imports     []string
 }
 
 type Relationship struct {
@@ -45,7 +45,7 @@ type Relationship struct {
 	RepoName    string
 	Methods     []Method
 	Through     string
-	Model       Model
+	Models      []Model
 }
 
 type Index struct {
@@ -68,8 +68,9 @@ type Type struct {
 }
 
 // Return []Models, []Types, []Global Imports
-func ProcessConfig(config *config.Config) ([]Model, []Type, []string) {
+func ProcessConfig(config *config.Config) ([]Model, []Relationship, []Type, []string) {
 	models := make([]Model, 0, len(config.Models))
+	relationships := make([]Relationship, 0, len(config.Models))
 	imports := make([]string, 0, 10)
 
 	for _, m := range config.Models {
@@ -79,14 +80,14 @@ func ProcessConfig(config *config.Config) ([]Model, []Type, []string) {
 		)
 	}
 
-	for i, m := range models {
+	for _, m := range models {
 		for _, f := range m.Fields {
 			if f.Relationship != "" {
 				if f.Type == "manytomany" {
 					thruModel := FindModel(models, f.Relationship)
 
-					models[i].Relationships = append(
-						models[i].Relationships,
+					relationships = append(
+						relationships,
 						ManyToManyRelationship(m, f, thruModel),
 					)
 				}
@@ -96,7 +97,7 @@ func ProcessConfig(config *config.Config) ([]Model, []Type, []string) {
 
 	types := ProcessTypes(config, config.Types, &imports)
 
-	return models, types, imports
+	return models, relationships, types, imports
 }
 
 func ManyToManyRelationship(m Model, f Field, thruModel Model) Relationship {
@@ -104,7 +105,10 @@ func ManyToManyRelationship(m Model, f Field, thruModel Model) Relationship {
 		Name:        m.Name + "_" + f.Name,
 		Description: fmt.Sprintf("Linking %s to %s", m.Name, f.Relationship),
 		Through:     f.Name,
-		Model:       thruModel,
+		Models: []Model{
+			m,
+			thruModel,
+		},
 		Fields: []Field{
 			Field{
 				Name:      "id",
@@ -308,6 +312,33 @@ func FindModel(models []Model, name string) Model {
 		}
 	}
 	panic("No model named " + name)
+}
+
+func FindRelationship(relationships []Relationship, name string) Relationship {
+	for _, relationship := range relationships {
+		for _, model := range relationship.Models {
+			if model.Name == name {
+				return relationship
+			}
+		}
+	}
+	return Relationship{}
+}
+
+func (t Model) String() string {
+	b, err := json.MarshalIndent(t, "", "  ")
+	if err != nil {
+		return err.Error()
+	}
+	return string(b)
+}
+
+func (t Relationship) String() string {
+	b, err := json.MarshalIndent(t, "", "  ")
+	if err != nil {
+		return err.Error()
+	}
+	return string(b)
 }
 
 /*

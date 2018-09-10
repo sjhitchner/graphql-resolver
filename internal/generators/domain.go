@@ -23,7 +23,7 @@ func NewDomainGenerator(path string) *DomainGenerator {
 
 func (t *DomainGenerator) Generate(config *config.Config) error {
 
-	models, _, imports := domain.ProcessConfig(config)
+	models, _, _, imports := domain.ProcessConfig(config)
 	imports = append(imports, "context")
 
 	for _, model := range models {

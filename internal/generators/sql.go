@@ -39,7 +39,7 @@ func (t *SQLGenerator) Generate(config *config.Config) error {
 	}
 	*/
 
-	models, _, imports := domain.ProcessConfig(config)
+	models, _, _, imports := domain.ProcessConfig(config)
 
 	fmt.Println(t.path)
 

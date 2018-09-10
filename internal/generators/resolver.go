@@ -30,7 +30,7 @@ func (t *ResolverGenerator) Generate(config *config.Config) error {
 		return nil
 	}
 
-	models, _, imports := domain.ProcessConfig(config)
+	models, _, _, imports := domain.ProcessConfig(config)
 
 	for _, model := range models {
 		if err := GenerateGoFile(

@@ -46,11 +46,6 @@ models:
         internal: "password"
         description: "Password of the User"
         type: password
-      - name: "teams"
-        internal: "teams"
-        description: "Teams User is member of"
-        relationship: team
-        type: "manyto
 
   - name: "team"
     description: "A Slack Team"

@@ -41,6 +41,7 @@ func init() {
 				"now":     Now,
 				"gotype":  GoType,
 				"gqltype": GraphQLType,
+				"find":    Find,
 				/*
 					"allFields":    AllFields,
 					"typeName":     TypeName,
@@ -55,10 +56,18 @@ func init() {
 }
 
 func TemplatePath(path, module, name string) string {
+	return templatePath(path, module, name, ".go")
+}
+
+func SchemaPath(path, module, name string) string {
+	return templatePath(path, module, name, ".gql")
+}
+
+func templatePath(path, module, name, suffix string) string {
 	if err := os.MkdirAll(filepath.Join(path, module), os.ModePerm); err != nil {
 		panic(err)
 	}
-	return filepath.Join(path, module, strcase.SnakeCase(name)+".go")
+	return filepath.Join(path, module, strcase.SnakeCase(name)+suffix)
 }
 
 func GenerateGoFile(filename, template string, data interface{}) error {
