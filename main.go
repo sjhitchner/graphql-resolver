@@ -46,7 +46,7 @@ func main() {
 	//fmt.Println(config)
 
 	generators := []generators.Generator{
-		//generators.NewTypesGenerator(outputPath),
+		generators.NewTypesGenerator(outputPath),
 		//generators.NewDomainGenerator(outputPath),
 		//generators.NewResolverGenerator(outputPath),
 		//generators.NewSQLGenerator(outputPath),

@@ -1,40 +1,10 @@
-type {{ camel .Model.Name }} {
-{{ range $f := .Model.Fields }}
-{{- if ne $f.Relationship "" }}
-	{{ lcamel $f.Name }}: {{ camel $f.Relationship }}!
-{{- else -}}
-	{{ lcamel $f.Name }}: {{ gqltype $f }}!
-{{- end -}}
+{{ range $m := .Models }}
+type {{ camel $m.Name }} {
+{{- range $f := $m.Methods }}
+	{{ lcamel $f.Name }}: {{ $f.ReturnType }}!
+{{- end }}
+}
 {{ end }}
-{{ range $r := .Relationships }}
-	{{ lcamel $r.Name }}: {{ $r.Type }}
-{{ end }}
-}
-
-type Channel {
-    id: ID!
-    name: String!
-    isPublic: Boolean!
-	owner: User!
-	team: Team!
-    messages: [Message!]!
-    members: [User!]!
-}
-
-type Message {
-    id: ID!
-    text: String!
-    user: User!
-	timestamp: String!
-    channel: Channel!
-}
-
-type User {
-	id: ID!
-    username: String!
-    email: String!
-    teams: [Team!]!
-}
 
 type Query {
 	ping: String!

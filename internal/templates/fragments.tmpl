@@ -21,6 +21,7 @@ type {{ camel .RepoName }} interface {
 }
 {{ end }}
 
+
 {{- define "RepoMethod" -}}
 {{ camel .Name }}(ctx context.Context
 {{- range $arg := .Args -}}
@@ -28,9 +29,6 @@ type {{ camel .RepoName }} interface {
 {{- end -}}
 ) ({{ .ReturnPrefix }}{{ camel .ReturnType }}, error)
 {{- end -}}
-
-
-
 
 
 {{ define "Interface" }}
@@ -78,93 +76,3 @@ func (t *{{ .Struct }}) Get{{ .Model }}By
 {{ define "Header" }}
 // Generated file DO NOT EDIT {{ now }}
 {{- end }}
-
-{{/*
-{{ define "ModelSignature" }}
-{{ comment .Field.Description }}
-{{ if .Field.IsDeprecated }}{{ comment .Field.DeprecationReason }}{{ end }}
-func (t *{{ .Name }}Resolver) {{ .Field.Name | camel }}(ctx context.Context 
-  {{- if .Field.Args -}}
-    , args struct{
-    {{ range $a := .Field.Args -}}
-	  {{ $a.Name }} {{ $a.Type }}
-    {{ end -}}
- }{{ end -}}
-) ({{ .Field.Type }}, error)
-{{- end -}}
-
-
-{{ define "ResolverMethod" }}
-	return t.obj.{{ camel .Name }}
-	
-{{ end }}
-
-
-{{ define "ResolverConnectionMethod" }}
-	return &{{ camel .Name }}Resolver{
-		t.aggregator,
-		t.obj.{{ camel .Name }},
-	}
-{{ end }}
-
-
-{{ define "ConnectionMethod" }}
-	ConnectionMethod
-{{ end }}
-
-
-{{ define "EdgeMethod" }}
-	EdgeMethod
-{{ end }}
-
-
-{{- define "PageInfoMethod" -}}
-	return t.{{ lcamel .Name }}
-{{- end -}}
-
-
-{{ define "ModelFields" }}
-{{ range $f := .Fields -}}
-	{{ lcamel $f.Name }} {{ $f.Type }} `db:"{{ $f.Internal }}" json:"{{ $f.Internal }}"`
-{{ end }}{{ end }}
-
-
-{{/*
-{{ define "ResolverMapping" }}
-	{{ if .IsList }}
-		resolvers := make([]*{{ .ResolverName }}, 0, len(obj)
-		for _, o := range obj {
-			resolvers = append(resolvers, &{{ .ResolverName }} {t.aggregator,  &o}
-		}
-		return resolvers
-	{{ else }}
-		return &{{ .ResolverName }}{t.aggregator,  obj}
-	{{ end }}
-{{ end }}
-
-
-// import aggregator
-// import context
-// import errors
-
-
-{{ range $q := .Queries }}
-func (t *Resolver) {{ $q.Name }}(ctx context.Context 
-{{ if  $q.Args }}
-args struct{
-{{- range $a := $q.Args }}
-$a.Name $a.Type
-{{ end }}
-}) ($q.Return, error) {
-	{{ $q.Name }}, err := t.aggregator.{{ $q.Aggregator }}(ctx context.Context)
-	if err != nil {
-		return nil, err
-	}
-
-	{{ template "ResolverMapping" $q }}	
-}
-{{ end }}
-{{ end }}
-*/}}
-
-

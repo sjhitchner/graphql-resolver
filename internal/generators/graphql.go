@@ -10,13 +10,12 @@ import (
 )
 
 type GraphQLTemplate struct {
-	Model         domain.Model
-	Relationships []Relationship
+	Models []Model
 }
 
-type Relationship struct {
-	Name string
-	Type string
+type Model struct {
+	Name    string
+	Methods []domain.Method
 }
 
 type GraphQLGenerator struct {
@@ -39,28 +38,53 @@ func (t *GraphQLGenerator) Generate(config *config.Config) error {
 
 	fmt.Println(relationships)
 
+	computedModels := make([]Model, 0, len(models))
 	for _, model := range models {
+		methods := make([]domain.Method, 0, len(model.Fields))
 
-		rs := make([]Relationship, 0, len(models))
+		for _, field := range model.Fields {
+			returnType := GraphQLTypeInternal(field.Type, field.Primative)
+			if field.Relationship != "" {
+				if field.Type == "manytomany" {
+					returnType = fmt.Sprintf("[%s!]", strcase.UpperCamelCase(field.Relationship))
+				} else {
+					returnType = strcase.UpperCamelCase(field.Relationship)
+				}
+			}
+
+			methods = append(methods, domain.Method{
+				Name:         field.Name,
+				ReturnType:   returnType,
+				ReturnPrefix: "",
+			})
+		}
+
 		for _, r := range relationships {
-			if r.Models[0].Name == model.Name {
-			} else if r.Models[1].Name == model.Name {
-				rs = append(rs, Relationship{
-					Name: r.Models[0].Name + "s",
-					Type: fmt.Sprintf("[%s!]!", strcase.UpperCamelCase(r.Models[1].Name)),
+			if r.Models[1].Name == model.Name {
+				name := strcase.UpperCamelCase(r.Models[0].Name + "s")
+				returnType := fmt.Sprintf("[%s!]", strcase.UpperCamelCase(r.Models[0].Name))
+
+				methods = append(methods, domain.Method{
+					Name:         name,
+					ReturnType:   returnType,
+					ReturnPrefix: "",
 				})
 			}
 		}
 
-		if err := GenerateFile(
-			t.Filename("schema_"+model.Name),
-			"schema.tmpl",
-			GraphQLTemplate{
-				Model:         model,
-				Relationships: rs,
-			}); err != nil {
-			return errors.Wrapf(err, "Error generating graphql schema")
-		}
+		computedModels = append(computedModels, Model{
+			Name:    model.Name,
+			Methods: methods,
+		})
+	}
+
+	if err := GenerateFile(
+		t.Filename("schema"),
+		"schema.tmpl",
+		GraphQLTemplate{
+			Models: computedModels,
+		}); err != nil {
+		return errors.Wrapf(err, "Error generating graphql schema")
 	}
 
 	return nil

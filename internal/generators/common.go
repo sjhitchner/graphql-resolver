@@ -139,21 +139,25 @@ func GraphQLType(values ...interface{}) (string, error) {
 	if !ok {
 		return "", errors.Errorf("Invalud argument '%s'", values[0])
 	}
-	switch f.Type {
+	return GraphQLTypeInternal(f.Type, f.Primative), nil
+}
+
+func GraphQLTypeInternal(typ, primative string) string {
+	switch typ {
 	case "id":
-		return "ID", nil
+		return "ID"
 	case "integer":
-		return "Int", nil
+		return "Int"
 	case "string":
-		return "String", nil
+		return "String"
 	case "float":
-		return "Float", nil
+		return "Float"
 	case "boolean":
-		return "Boolean", nil
+		return "Boolean"
 	case "timestamp":
-		return "String", nil
+		return "String"
 	default:
-		return strcase.UpperCamelCase(f.Primative), nil
+		return strcase.UpperCamelCase(primative)
 	}
 }
 
