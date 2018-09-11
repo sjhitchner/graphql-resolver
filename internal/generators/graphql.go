@@ -38,13 +38,23 @@ func (t *GraphQLGenerator) Generate(config *config.Config) error {
 
 	fmt.Println(relationships)
 
+	query := Model{
+		Name: "query",
+		Methods: []domain.Method{
+			Name: "ping",
+			Type: "String",
+		},
+	}
+
 	computedModels := make([]Model, 0, len(models))
 	for _, model := range models {
 		methods := make([]domain.Method, 0, len(model.Fields))
 
 		for _, field := range model.Fields {
+			name := field.Name
 			returnType := GraphQLTypeInternal(field.Type, field.Primative)
 			if field.Relationship != "" {
+				name = field.Name + "_list"
 				if field.Type == "manytomany" {
 					returnType = fmt.Sprintf("[%s!]", strcase.UpperCamelCase(field.Relationship))
 				} else {
@@ -53,7 +63,7 @@ func (t *GraphQLGenerator) Generate(config *config.Config) error {
 			}
 
 			methods = append(methods, domain.Method{
-				Name:         field.Name,
+				Name:         name,
 				ReturnType:   returnType,
 				ReturnPrefix: "",
 			})
@@ -61,12 +71,9 @@ func (t *GraphQLGenerator) Generate(config *config.Config) error {
 
 		for _, r := range relationships {
 			if r.Models[1].Name == model.Name {
-				name := strcase.UpperCamelCase(r.Models[0].Name + "s")
-				returnType := fmt.Sprintf("[%s!]", strcase.UpperCamelCase(r.Models[0].Name))
-
 				methods = append(methods, domain.Method{
-					Name:         name,
-					ReturnType:   returnType,
+					Name:         r.Models[0].Name + "_list",
+					ReturnType:   fmt.Sprintf("[%s!]", strcase.UpperCamelCase(r.Models[0].Name)),
 					ReturnPrefix: "",
 				})
 			}
@@ -76,7 +83,13 @@ func (t *GraphQLGenerator) Generate(config *config.Config) error {
 			Name:    model.Name,
 			Methods: methods,
 		})
+
+		query.Methods = append(query.Methods, domain.Method{
+			Name: model.Name + "_list",
+		})
+
 	}
+	computedModels = append(computedModels, query)
 
 	if err := GenerateFile(
 		t.Filename("schema"),
