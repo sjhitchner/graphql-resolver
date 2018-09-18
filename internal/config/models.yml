@@ -3,13 +3,17 @@ generate:
   - sql
   - graphql
   - resolvers
+
 graphql:
   package: "resolvers"
+
 sql:
   package: "db"
   dialect: "postgres"
+
 resolvers:
   package: "resolvers"
+
 custom_types:
   - name: id
     primative: integer
@@ -19,122 +23,254 @@ custom_types:
     primative: string
   - name: password
     primative: string
+
 models:
   - name: "user"
     description: "A Slack User"
     fields: 
       - name: "id"
-        internal: "id"
         description: "The ID of the User"
+        expose: true
         deprecated: false
         type: id 
         indexes: 
           - primary
+
       - name: "username"
-        internal: "username"
         description: "The Username of the User"
+        expose: true
         type: username
         indexes:
          - username_unique
+
       - name: "email"
-        internal: "email"
         description: "Email of the User"
+        expose: true
         type: email
         indexes:
           - email_unique
+
       - name: "password"
-        internal: "password"
         description: "Password of the User"
         type: password
+
+      - name: "team_list"
+        description: "Teams users"
+        expose: true
+        relationship:
+          to: "team"
+          through: "team_member"
+          field: "user_id"
+          type: "many2many"
+
+    actions:
+      - create
+      - update
+      - delete
+
+    queries:
+      - name: user_list
+        returns: user_multi
+      - name: user
+        args: 
+            - "id"
+        returns: user  
+
 
   - name: "team"
     description: "A Slack Team"
     fields:
       - name: "id"
-        internal: "id"
         description: "The ID of the Team"
+        expose: true
         type: id 
         indexes: 
           - primary
+
       - name: "owner"
-        internal: "owner_id"
         description: "Owner of the Team"
-        type: id
-        relationship: user 
+        expose: true
+        relationship:
+          to: "user" 
         indexes: 
           - owner_index
+
       - name: "name"
-        internal: "name"
         description: "Name of the Team"
+        expose: true
         type: string 
-      - name: "members"
-        description: "members of the team"
-        type: "manytomany"
-        relationship: user
-   
-  - name: "channel"
-    description: "A slack Channel"
+        indexes: 
+          - name_unique
+
+      - name: "member_list"
+        description: "Members of the team"
+        expose: true
+        relationship:
+          to: "user"
+          through: "team_member"
+          field: "team_id"
+          type: "many2many"
+
+    actions:
+      - create
+      - update
+      - delete
+
+    queries:
+      - name: team_list
+        returns: team_multi
+      - name: team
+        args: 
+            - "id"
+        returns: team  
+          
+  
+  - name: "team_member"
+    description: "A Team Member"
     fields:
       - name: "id"
-        internal: "id"
+        type: id
+        indexes:
+          - primary
+
+      - name: "team"
+        type: id
+        indexes:
+          - team_user_index
+
+      - name: "user"
+        type: id
+        indexes:
+          - team_user_index
+
+    actions:
+      - create
+      - delete
+
+
+  - name: "channel"
+    description: "A Slack Channel"
+    fields:
+      - name: "id"
         description: "id of the channel"
+        expose: true
         type: id 
         indexes: 
           - primary
+
       - name: "owner"
-        internal: "owner_id"
-        description: "owner of the channel"
-        type: id
-        relationship: user 
+        description: "Owner of the channel"
+        expose: true
+        relationship:
+          to: "user"
         indexes: 
           - onwer_index
+
       - name: "team"
-        internal: "team_id"
-        description: "team of the channel"
-        type: id
-        relationship: team
+        description: "Team of the channel"
+        expose: true
+        relationship: 
+          to: "team"
         indexes: 
           - team_index
+
       - name: "name"
         internal: "name"
         description: "name of the channel"
+        expose: true
         type: string 
+
       - name: "is_public"
         description: "whether the channel is public"
         type: boolean 
-      - name: "members"
-        description: "members of the channel"
-        type: "manytomany"
-        relationship: user
-    
-    
+
+      - name: "member_list"
+        description: "Members of the channel"
+        expose: true
+        relationship:
+          to: "user"
+          through: "channel_member"
+          field: "user_id"
+          type: "manytomany"
+
+    actions:
+      - create
+      - update
+      - delete
+
+    queries:
+      - name: channel_list
+        args:
+          - "team"
+        returns: channel_multi
+      - name: channel
+        args: 
+          - "id"
+        returns: channel  
+ 
+
+  - name: "channel_member"
+    description: "A Channel Member"
+    fields:
+      - name: "id"
+        type: id
+        indexes:
+          - primary
+      - name: "channel"
+        type: id
+        indexes:
+          - channel_user_index
+      - name: "user"
+        type: id
+        indexes:
+          - channel_user_index
+
+    actions:
+      - create
+      - delete
+  
+
   - name: "message"
     description: "A Slack Message"
     fields:
       - name: "id"
-        internal: "id"
         description: "the id of the channel"
+        expose: true
         type: id 
         indexes: 
           - primary
+
       - name: "user"
-        internal: "user_id"
         description: "Owner of the channel"
-        type: id
-        relationship: user 
+        relationship:
+          to: "user"
         indexes: 
           - onwer_index
+
       - name: "channel"
-        internal: "channel_id"
         description: "Channel of Message"
-        type: id
-        relationship: channel
+        relationship:
+            to: "channel"
         indexes: 
           - channel_index
+
       - name: "text"
-        internal: "text"
         description: "Text of Message"
+        expose: true
         type: string 
+
       - name: "timestamp"
         description: "Timestamp of Message"
+        expose: true
         type: timestamp
+
+    actions:
+      - create
+      - update
+      - delete
+
+    queries:
+      - name: channel_message_list
+        args:
+          - "channel"
+        returns: message_multi

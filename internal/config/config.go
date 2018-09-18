@@ -12,6 +12,7 @@ password
 
 import (
 	"bytes"
+	//"fmt"
 	"io"
 	"os"
 
@@ -38,6 +39,7 @@ func LoadConfig(r io.Reader) (*Config, error) {
 		return nil, errors.Wrapf(err, "Unable to load config")
 	}
 
+	validateConfig(&m)
 	return &m, nil
 }
 
@@ -51,6 +53,12 @@ type Config struct {
 	SQL       *SQLModule       `yaml:"sql,omitempty"`
 }
 
+func validateConfig(c *Config) {
+	for i := range c.Models {
+		validateModel(&c.Models[i])
+	}
+}
+
 func (t Config) FindModelByName(name string) Model {
 	for _, model := range t.Models {
 		if model.Name == name {
@@ -60,6 +68,7 @@ func (t Config) FindModelByName(name string) Model {
 	panic("Model Name " + name + " Not Found")
 }
 
+/*
 func (t Config) FindModelByInternal(internal string) Model {
 	for _, model := range t.Models {
 		if model.Internal == internal {
@@ -68,6 +77,7 @@ func (t Config) FindModelByInternal(internal string) Model {
 	}
 	panic("Model Internal " + internal + " Not Found")
 }
+*/
 
 // type and import
 func (t Config) TypePrimative(base string) (string, string) {
@@ -82,10 +92,8 @@ func (t Config) TypePrimative(base string) (string, string) {
 		return "string", ""
 	case "timestamp":
 		return "time.Time", "time"
-	case "time.Time":
-		return "time.Time", "time"
-	case "manytomany":
-		return "manytomany", ""
+	//case "time.Time":
+	//	return "time.Time", "time"
 	default:
 		for _, b := range t.Types {
 			if base == b.Name {
@@ -106,21 +114,53 @@ func (t Config) ShouldGenerate(str string) bool {
 }
 
 type Model struct {
-	Name        string  `yaml:"name"`
-	Internal    string  `yaml:"internal,omitempty"`
-	Description string  `yaml:"description,omitempty"`
-	Fields      []Field `yaml:"fields"`
-	Deprecated  string  `yaml:"deprecated,omitempty"`
+	Name        string   `yaml:"name"`
+	Internal    string   `yaml:"internal,omitempty"`
+	Description string   `yaml:"description,omitempty"`
+	Fields      []Field  `yaml:"fields"`
+	Deprecated  string   `yaml:"deprecated,omitempty"`
+	Actions     []string `yaml:"actions,omitempty"`
+	Queries     []Query  `yaml:"queries,omitempty"`
+}
+
+func validateModel(m *Model) {
+	if m.Internal == "" {
+		m.Internal = m.Name
+	}
+
+	for i := range m.Fields {
+		validateField(&m.Fields[i])
+	}
 }
 
 type Field struct {
-	Name         string   `yaml:"name"`
-	Internal     string   `yaml:"internal,omitempty"`
-	Description  string   `yaml:"description,omitempty"`
-	Type         string   `yaml:"type"`
-	Indexes      []string `yaml:"indexes,omitempty"`
-	Deprecated   string   `yaml:"deprecated,omitempty"`
-	Relationship string   `yaml:"relationship,omitempty"`
+	Name         string       `yaml:"name"`
+	Internal     string       `yaml:"internal,omitempty"`
+	Description  string       `yaml:"description,omitempty"`
+	Expose       bool         `yaml:"expose,omitempty"`
+	Type         string       `yaml:"type"`
+	Indexes      []string     `yaml:"indexes,omitempty"`
+	Deprecated   string       `yaml:"deprecated,omitempty"`
+	Relationship Relationship `yaml:"relationship,omitempty"`
+}
+
+func validateField(f *Field) {
+	if f.Internal == "" {
+		f.Internal = f.Name
+	}
+}
+
+type Relationship struct {
+	To      string `yaml:"to,omitempty"`
+	Through string `yaml:"through,omitempty"`
+	Field   string `yaml:"field,omitempty"`
+	Type    string `yaml:"type,omitempty"`
+}
+
+type Query struct {
+	Name    string   `yaml:"name,omitempty"`
+	Args    []string `yaml:"args,omitempty"`
+	Returns string   `yaml:"returns,omitempty"`
 }
 
 type Type struct {
