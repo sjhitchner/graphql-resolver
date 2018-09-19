@@ -24,13 +24,14 @@ func NewResolverGenerator(path string) *ResolverGenerator {
 	return &ResolverGenerator{path}
 }
 
-func (t *ResolverGenerator) Generate(config *config.Config) error {
+func (t *ResolverGenerator) Generate(cfg *config.Config) error {
 
-	if !config.ShouldGenerate(ResolverModule) {
+	if !cfg.ShouldGenerate(ResolverModule) {
 		return nil
 	}
 
-	models, _, _, imports := domain.ProcessConfig(config)
+	models := domain.BuildModels(cfg)
+	//models, _, _, imports := domain.ProcessConfig(config)
 
 	for _, model := range models {
 		if err := GenerateGoFile(
@@ -38,7 +39,7 @@ func (t *ResolverGenerator) Generate(config *config.Config) error {
 			t.Filename(model.Name),
 			"resolver.tmpl",
 			ResolverTemplate{
-				Imports: imports,
+				Imports: []string{}, //models.Imports,
 				Model:   model,
 			}); err != nil {
 			return errors.Wrapf(err, "Error generating resolver %s", model.Name)

@@ -1,11 +1,11 @@
 package generators
 
 import (
-	"fmt"
-	"github.com/pkg/errors"
-	"github.com/stoewer/go-strcase"
+	//"fmt"
+	//"github.com/pkg/errors"
+	//"github.com/stoewer/go-strcase"
 
-	"github.com/sjhitchner/graphql-resolver/internal/config"
+	//"github.com/sjhitchner/graphql-resolver/internal/config"
 	"github.com/sjhitchner/graphql-resolver/internal/domain"
 )
 
@@ -26,13 +26,14 @@ func NewGraphQLGenerator(path string) *GraphQLGenerator {
 	return &GraphQLGenerator{path}
 }
 
+/*
 func (t *GraphQLGenerator) Generate(config *config.Config) error {
 
 	/*
 		if !config.ShouldGenerate(QueryModule) {
 			return nil
 		}
-	*/
+	*
 
 	models, relationships, _, _ := domain.ProcessConfig(config)
 
@@ -42,7 +43,7 @@ func (t *GraphQLGenerator) Generate(config *config.Config) error {
 		Name: "query",
 		Methods: []domain.Method{
 			Name: "ping",
-			Type: "String",
+			ReturnType: "String",
 		},
 	}
 
@@ -86,6 +87,7 @@ func (t *GraphQLGenerator) Generate(config *config.Config) error {
 
 		query.Methods = append(query.Methods, domain.Method{
 			Name: model.Name + "_list",
+			ReturnType: fmt.Sprintf("[%s!]", strcase.UpperCamelCase(
 		})
 
 	}
@@ -106,3 +108,4 @@ func (t *GraphQLGenerator) Generate(config *config.Config) error {
 func (t *GraphQLGenerator) Filename(name string) string {
 	return SchemaPath(t.path, "", name)
 }
+*/

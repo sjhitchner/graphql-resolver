@@ -3,9 +3,9 @@ package generators
 import (
 	//"fmt"
 
-	"github.com/pkg/errors"
+	//"github.com/pkg/errors"
 
-	"github.com/sjhitchner/graphql-resolver/internal/config"
+	//"github.com/sjhitchner/graphql-resolver/internal/config"
 	"github.com/sjhitchner/graphql-resolver/internal/domain"
 )
 
@@ -23,13 +23,14 @@ func NewQueryGenerator(path string) *QueryGenerator {
 	return &QueryGenerator{path}
 }
 
+/*
 func (t *QueryGenerator) Generate(config *config.Config) error {
 
 	/*
 		if !config.ShouldGenerate(QueryModule) {
 			return nil
 		}
-	*/
+	*
 
 	models, _, types, imports := domain.ProcessConfig(config)
 
@@ -47,6 +48,7 @@ func (t *QueryGenerator) Generate(config *config.Config) error {
 
 	return nil
 }
+*/
 
 func (t *QueryGenerator) Filename(name string) string {
 	return TemplatePath(t.path, "interfaces/resolvers", name)

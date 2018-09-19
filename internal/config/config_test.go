@@ -29,7 +29,7 @@ func (s *ConfigSuite) SetUpSuite(c *C) {
 }
 
 func (s *ConfigSuite) Test_Parsing(c *C) {
-	c.Skip("skipping")
+	//c.Skip("skipping")
 
 	b, err := json.MarshalIndent(s.Config, "", "  ")
 	c.Assert(err, IsNil)
@@ -40,7 +40,7 @@ func (s *ConfigSuite) Test_Parsing(c *C) {
 
 func (s *ConfigSuite) Test_Types(c *C) {
 	for _, typ := range s.Config.Types {
-		primative, impt := s.Config.TypePrimative(typ.Name)
+		primative, impt := s.Config.Primative(typ.Name)
 		c.Assert(primative, Equals, typ.Primative)
 
 		if primative == "time.Time" {
@@ -49,34 +49,34 @@ func (s *ConfigSuite) Test_Types(c *C) {
 	}
 
 	{
-		primative, impt := s.Config.TypePrimative("integer")
+		primative, impt := s.Config.Primative("integer")
 		c.Assert(primative, Equals, "int64")
 		c.Assert(impt, Equals, "")
 	}
 	{
-		primative, impt := s.Config.TypePrimative("float")
+		primative, impt := s.Config.Primative("float")
 		c.Assert(primative, Equals, "float64")
 		c.Assert(impt, Equals, "")
 	}
 
 	{
-		primative, impt := s.Config.TypePrimative("boolean")
+		primative, impt := s.Config.Primative("boolean")
 		c.Assert(primative, Equals, "bool")
 		c.Assert(impt, Equals, "")
 	}
 	{
-		primative, impt := s.Config.TypePrimative("string")
+		primative, impt := s.Config.Primative("string")
 		c.Assert(primative, Equals, "string")
 		c.Assert(impt, Equals, "")
 	}
 	{
-		primative, impt := s.Config.TypePrimative("timestamp")
+		primative, impt := s.Config.Primative("timestamp")
 		c.Assert(primative, Equals, "time.Time")
 		c.Assert(impt, Equals, "time")
 	}
 
 	c.Assert(func() {
-		s.Config.TypePrimative("asdf")
+		s.Config.Primative("asdf")
 	}, PanicMatches, "No type definition for asdf")
 }
 

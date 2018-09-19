@@ -12,9 +12,10 @@ password
 
 import (
 	"bytes"
-	//"fmt"
+	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
@@ -42,6 +43,21 @@ func LoadConfig(r io.Reader) (*Config, error) {
 	validateConfig(&m)
 	return &m, nil
 }
+
+const (
+	ID           = "id"
+	One2One      = "one2one"
+	Many2Many    = "many2many"
+	UniqueIndex  = "unique"
+	PrimaryIndex = "primary"
+	MultiIndex   = "index"
+
+	Integer   = "integer"
+	Float     = "float"
+	String    = "string"
+	Boolean   = "boolean"
+	Timestamp = "timestamp"
+)
 
 type Config struct {
 	Generate []string `yaml:"generate"`
@@ -80,17 +96,17 @@ func (t Config) FindModelByInternal(internal string) Model {
 */
 
 // type and import
-func (t Config) TypePrimative(base string) (string, string) {
+func (t Config) Primative(base string) (string, string) {
 	switch base {
-	case "integer":
+	case Integer:
 		return "int64", ""
-	case "float":
+	case Float:
 		return "float64", ""
-	case "boolean":
+	case Boolean:
 		return "bool", ""
-	case "string":
+	case String:
 		return "string", ""
-	case "timestamp":
+	case Timestamp:
 		return "time.Time", "time"
 	//case "time.Time":
 	//	return "time.Time", "time"
@@ -101,7 +117,7 @@ func (t Config) TypePrimative(base string) (string, string) {
 			}
 		}
 	}
-	panic("No type definition for " + base)
+	panic("No type definition for '" + base + "'")
 }
 
 func (t Config) ShouldGenerate(str string) bool {
@@ -115,6 +131,7 @@ func (t Config) ShouldGenerate(str string) bool {
 
 type Model struct {
 	Name        string   `yaml:"name"`
+	Plural      string   `yaml:"plural"`
 	Internal    string   `yaml:"internal,omitempty"`
 	Description string   `yaml:"description,omitempty"`
 	Fields      []Field  `yaml:"fields"`
@@ -124,6 +141,10 @@ type Model struct {
 }
 
 func validateModel(m *Model) {
+	if m.Plural == "" {
+		m.Plural = m.Name + "s"
+	}
+
 	if m.Internal == "" {
 		m.Internal = m.Name
 	}
@@ -134,19 +155,31 @@ func validateModel(m *Model) {
 }
 
 type Field struct {
-	Name         string       `yaml:"name"`
-	Internal     string       `yaml:"internal,omitempty"`
-	Description  string       `yaml:"description,omitempty"`
-	Expose       bool         `yaml:"expose,omitempty"`
-	Type         string       `yaml:"type"`
-	Indexes      []string     `yaml:"indexes,omitempty"`
-	Deprecated   string       `yaml:"deprecated,omitempty"`
-	Relationship Relationship `yaml:"relationship,omitempty"`
+	Name         string        `yaml:"name"`
+	Internal     string        `yaml:"internal,omitempty"`
+	Description  string        `yaml:"description,omitempty"`
+	Expose       bool          `yaml:"expose,omitempty"`
+	Type         string        `yaml:"type"`
+	Indexes      []string      `yaml:"indexes,omitempty"`
+	Deprecated   string        `yaml:"deprecated,omitempty"`
+	Relationship *Relationship `yaml:"relationship,omitempty"`
 }
 
 func validateField(f *Field) {
+	if f.Type == "" {
+		f.Type = ID
+	}
+
 	if f.Internal == "" {
 		f.Internal = f.Name
+	}
+
+	if f.Relationship != nil {
+		if f.Relationship.Type == "" {
+			f.Relationship.Type = One2One
+		} else {
+			f.Relationship.Type = Many2Many
+		}
 	}
 }
 
@@ -166,6 +199,12 @@ type Query struct {
 type Type struct {
 	Name      string `yaml:"name"`
 	Primative string `yaml:"primative"`
+}
+
+type Index struct {
+	Name   string
+	Type   string
+	Fields []string
 }
 
 func (t Config) String() string {
@@ -205,4 +244,48 @@ func (t Model) FindFieldByInternal(internal string) Field {
 		}
 	}
 	panic("No field " + internal + " in model " + t.Internal)
+}
+
+func (t Model) Indexes() []Index {
+	indexMap := make(map[string][]string)
+	for _, field := range t.Fields {
+		for _, index := range field.Indexes {
+			_, found := indexMap[index]
+			if !found {
+				indexMap[index] = make([]string, 0, 10)
+			}
+			indexMap[index] = append(indexMap[index], field.Internal)
+		}
+	}
+
+	indexes := make([]Index, 0, len(indexMap))
+	for n, fields := range indexMap {
+		name, typ := ParseIndex(n)
+		typ = Validate(typ, MultiIndex, UniqueIndex, PrimaryIndex)
+		indexes = append(indexes, Index{
+			Name:   name,
+			Type:   typ,
+			Fields: fields,
+		})
+	}
+	return indexes
+}
+
+func ParseIndex(index string) (string, string) {
+	s := strings.Split(index, "_")
+
+	if len(s) == 1 {
+		return ID, PrimaryIndex
+	}
+
+	return strings.Join(s[0:len(s)-1], "_"), s[len(s)-1]
+}
+
+func Validate(input string, valid ...string) string {
+	for _, v := range valid {
+		if v == input {
+			return input
+		}
+	}
+	panic(fmt.Sprintf("Invalid Input Not Valid '%s' %v", input, valid))
 }

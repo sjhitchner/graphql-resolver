@@ -21,7 +21,7 @@ func NewSQLGenerator(path string) *SQLGenerator {
 	return &SQLGenerator{path}
 }
 
-func (t *SQLGenerator) Generate(config *config.Config) error {
+func (t *SQLGenerator) Generate(cfg *config.Config) error {
 
 	/* TODO
 	if !model.ShouldGenerate(SQL) {
@@ -39,7 +39,7 @@ func (t *SQLGenerator) Generate(config *config.Config) error {
 	}
 	*/
 
-	models, _, _, imports := domain.ProcessConfig(config)
+	models := domain.BuildModels(cfg)
 
 	fmt.Println(t.path)
 
@@ -49,7 +49,7 @@ func (t *SQLGenerator) Generate(config *config.Config) error {
 			t.Filename(model.Name),
 			"sql.tmpl",
 			SQLTemplate{
-				Imports: imports,
+				Imports: []string{}, //imports,
 				Model:   model,
 			}); err != nil {
 			return err

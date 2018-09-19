@@ -21,12 +21,16 @@ func NewDomainGenerator(path string) *DomainGenerator {
 	return &DomainGenerator{path}
 }
 
-func (t *DomainGenerator) Generate(config *config.Config) error {
+func (t *DomainGenerator) Generate(cfg *config.Config) error {
 
-	models, _, _, imports := domain.ProcessConfig(config)
-	imports = append(imports, "context")
+	/*
+		models, _, _, imports := domain.ProcessConfig(config)
+	*/
+	models := domain.BuildModels(cfg)
 
 	for _, model := range models {
+		model.Imports = append(model.Imports, "context")
+
 		b, _ := json.MarshalIndent(model, "", "  ")
 		fmt.Println(string(b))
 
