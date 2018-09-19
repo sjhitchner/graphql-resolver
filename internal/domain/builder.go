@@ -55,7 +55,7 @@ func BuildModel(cfg *config.Config, model config.Model) Model {
 		Fields:      BuildFields(cfg, model, imports),
 		Repo: Repo{
 			Name:    fmt.Sprintf("%s_repo", model.Name),
-			Methods: BuildMethods(cfg, model),
+			Methods: BuildRepoMethods(cfg, model),
 		},
 		Imports: imports,
 	}
@@ -88,7 +88,7 @@ func BuildFields(cfg *config.Config, model config.Model, imports []string) []Fie
 	return fields
 }
 
-func BuildMethods(cfg *config.Config, model config.Model) []Method {
+func BuildRepoMethods(cfg *config.Config, model config.Model) []Method {
 	methods := make([]Method, 0, len(model.Fields))
 
 	for _, idx := range model.Indexes() {
@@ -96,7 +96,7 @@ func BuildMethods(cfg *config.Config, model config.Model) []Method {
 		methods = append(methods, Method{
 			Name: func() string {
 				if idx.Type == config.MultiIndex {
-					return fmt.Sprintf("list_%s_by_%s", model.Name, idx.Name)
+					return fmt.Sprintf("list_%s_by_%s", model.Plural, idx.Name)
 				}
 				return fmt.Sprintf("get_%s_by_%s", model.Name, idx.Name)
 			}(),
@@ -104,7 +104,6 @@ func BuildMethods(cfg *config.Config, model config.Model) []Method {
 				args := make([]Arg, 0, len(idx.Fields))
 				for _, fieldName := range idx.Fields {
 					field := model.FindFieldByName(fieldName)
-					//typ, _ := cfg.Primative(field.Type)
 					args = append(args, Arg{
 						Name: fieldName,
 						Type: field.Type,
@@ -138,6 +137,24 @@ func BuildMethods(cfg *config.Config, model config.Model) []Method {
 	})
 
 	return methods
+}
+
+func BuildTypes(cfg *config.Config) ([]Type, []string) {
+	imports := []string{}
+	types := make([]Type, 0, len(cfg.Types))
+	for _, t := range cfg.Types {
+		typ, impt := cfg.Primative(t.Primative)
+
+		types = append(types, Type{
+			Name: t.Name,
+			Type: typ,
+		})
+
+		if impt != "" {
+			imports = append(imports, impt)
+		}
+	}
+	return types, imports
 }
 
 /*
@@ -241,23 +258,6 @@ func ManyToManyRelationship(m Model, f Field, thruModel Model) Relationship {
 			},
 		},
 	}
-}
-
-func ProcessTypes(config *config.Config, ct []config.Type, imports *[]string) []Type {
-	types := make([]Type, 0, len(ct))
-	for _, t := range ct {
-		typ, impt := config.TypePrimative(t.Primative)
-
-		types = append(types, Type{
-			Name: t.Name,
-			Type: typ,
-		})
-
-		if impt != "" {
-			*imports = append(*imports, impt)
-		}
-	}
-	return types
 }
 
 func ProcessModel(config *config.Config, model config.Model) Model {

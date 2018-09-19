@@ -387,7 +387,7 @@ func Now() (interface{}, error) {
 
 func Find(values ...interface{}) (interface{}, error) {
 	if len(values) != 2 {
-		return "", errors.Errorf("Invalud argument '%s'", values[0])
+		return "", errors.Errorf("Invalid argument '%s'", values[0])
 	}
 
 	name := values[1].(string)
@@ -415,6 +415,19 @@ func Find(values ...interface{}) (interface{}, error) {
 		}
 	}
 	panic("Invalid find type")
+}
+
+func MethodReturn(value interface{}) (interface{}, error) {
+	methodReturn, ok := value.(domain.Return)
+	if !ok {
+		return "", errors.Errorf("Invalid argument type")
+	}
+
+	if methodReturn.Multi {
+		return fmt.Sprintf("[]*%s", methodReturn.Type), nil
+	}
+
+	return fmt.Sprintf("*%s", methodReturn.Type), nil
 }
 
 /*

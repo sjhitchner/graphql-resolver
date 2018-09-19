@@ -42,6 +42,7 @@ func init() {
 				"gotype":  GoType,
 				"gqltype": GraphQLType,
 				"find":    Find,
+				"return":  MethodReturn,
 				/*
 					"allFields":    AllFields,
 					"typeName":     TypeName,

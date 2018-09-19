@@ -23,13 +23,12 @@ func NewTypesGenerator(path string) *TypesGenerator {
 func (t *TypesGenerator) Generate(config *config.Config) error {
 
 	//_, _, types, imports := domain.ProcessConfig(config)
-	var types []domain.Type
-	var imports []string
+	types, imports := domain.BuildTypes(config)
 
 	if len(types) > 0 {
 		if err := GenerateGoFile(
 			//if err := GenerateFile(
-			t.Filename("common"),
+			t.Filename("types"),
 			"types.tmpl",
 			TypesTemplate{
 				Imports: imports,

@@ -164,7 +164,7 @@ models:
         relationship:
           to: "user"
         indexes: 
-          - onwer_index
+          - owner_index
 
       - name: "team"
         description: "Team of the channel"
@@ -245,7 +245,7 @@ models:
         relationship:
           to: "user"
         indexes: 
-          - onwer_index
+          - owner_index
 
       - name: "channel"
         description: "Channel of Message"

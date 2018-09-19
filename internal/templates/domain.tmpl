@@ -9,7 +9,7 @@ package domain
 
 {{ template "Struct" $m }}
 
-{{ range $sm := $m.Relationships }}
+{{/* range $sm := $m.Relationships }}
 {{ template "Struct" $sm }}
-{{ end}}
+{{ end */}}
 {{ end }}
