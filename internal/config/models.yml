@@ -121,12 +121,13 @@ models:
         returns: team_multi
       - name: team
         args: 
-            - "id"
+          - "id"
         returns: team  
           
   
   - name: "team_member"
     description: "A Team Member"
+    type: link
     fields:
       - name: "id"
         type: id
@@ -137,11 +138,13 @@ models:
         type: id
         indexes:
           - team_user_index
+          - team_index
 
       - name: "user"
         type: id
         indexes:
           - team_user_index
+          - user_index  
 
     actions:
       - create
@@ -211,6 +214,7 @@ models:
 
   - name: "channel_member"
     description: "A Channel Member"
+    type: link
     fields:
       - name: "id"
         type: id

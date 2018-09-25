@@ -400,12 +400,12 @@ func Find(values ...interface{}) (interface{}, error) {
 			}
 		}
 
-	case []domain.Relationship:
-		for _, m := range v {
-			if m.Name == name {
-				return m, nil
-			}
-		}
+	//case []domain.Relationship:
+	//	for _, m := range v {
+	//		if m.Name == name {
+	//			return m, nil
+	//		}
+	//	}
 
 	case []domain.Field:
 		for _, m := range v {
@@ -423,11 +423,13 @@ func MethodReturn(value interface{}) (interface{}, error) {
 		return "", errors.Errorf("Invalid argument type")
 	}
 
+	str := strcase.UpperCamelCase(methodReturn.Type)
+
 	if methodReturn.Multi {
-		return fmt.Sprintf("[]*%s", methodReturn.Type), nil
+		return fmt.Sprintf("[]*%s", str), nil
 	}
 
-	return fmt.Sprintf("*%s", methodReturn.Type), nil
+	return fmt.Sprintf("*%s", str), nil
 }
 
 /*

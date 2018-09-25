@@ -42,6 +42,7 @@ type Model struct {
 	Imports []string
 }
 
+/*
 type Relationship struct {
 	Name        string
 	Description string
@@ -51,13 +52,21 @@ type Relationship struct {
 	Through     string
 	Models      []Model
 }
+*/
+
+type Relationship struct {
+	To      string
+	Through string
+	Field   string
+	Type    string
+}
 
 type Field struct {
 	Name         string
 	Type         string
 	Primative    string
 	Internal     string // Snake Case
-	Relationship string
+	Relationship *Relationship
 }
 
 type Type struct {
@@ -74,6 +83,7 @@ func FindModel(models []Model, name string) Model {
 	panic("No model named " + name)
 }
 
+/*
 func FindRelationship(relationships []Relationship, name string) Relationship {
 	for _, relationship := range relationships {
 		for _, model := range relationship.Models {
@@ -84,6 +94,7 @@ func FindRelationship(relationships []Relationship, name string) Relationship {
 	}
 	return Relationship{}
 }
+*/
 
 func (t Model) String() string {
 	b, err := json.MarshalIndent(t, "", "  ")

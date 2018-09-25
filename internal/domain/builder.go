@@ -2,62 +2,42 @@ package domain
 
 import (
 	"fmt"
-	//"strings"
+	"strings"
 
 	"github.com/sjhitchner/graphql-resolver/internal/config"
 )
 
-func BuildModels(config *config.Config) []Model {
+func BuildModels(cfg *config.Config) []Model {
+	repoMap := BuildRepoMethods(cfg)
 
-	models := make([]Model, 0, len(config.Models))
+	models := make([]Model, 0, len(cfg.Models))
 
-	for _, m := range config.Models {
-		models = append(models, BuildModel(config, m))
+	for _, m := range cfg.Models {
+
+		if m.Type == config.Link {
+			continue
+		}
+
+		model := BuildModel(cfg, m)
+		model.Repo = Repo{
+			Name:    fmt.Sprintf("%s_repo", model.Name),
+			Methods: repoMap[model.Name],
+		}
+		models = append(models, model)
 	}
 
 	return models
 }
 
 func BuildModel(cfg *config.Config, model config.Model) Model {
-
 	//indexes := make([]Index, 0, len(model.Fields))
 	imports := make([]string, 0, len(model.Fields))
-
-	/*
-		for _, f := range model.Fields {
-			fields = append(fields, Field{
-				Name:
-				Type:
-				Primative:
-				Internal:
-			})
-
-			methods = append(methods, Method{
-				Name:
-				Args: func() []Arg{
-					args := make([]Arg, 0, 5)
-
-
-					args = append(args, Arg{
-					})
-				}
-				Return: Return{
-					Type:
-					Multi:
-				},
-			})
-		}
-	*/
 
 	return Model{
 		Name:        model.Name,
 		Description: model.Description,
 		Fields:      BuildFields(cfg, model, imports),
-		Repo: Repo{
-			Name:    fmt.Sprintf("%s_repo", model.Name),
-			Methods: BuildRepoMethods(cfg, model),
-		},
-		Imports: imports,
+		Imports:     imports,
 	}
 }
 
@@ -66,77 +46,133 @@ func BuildFields(cfg *config.Config, model config.Model, imports []string) []Fie
 
 	for _, f := range model.Fields {
 
-		if f.Relationship != nil {
-			if f.Relationship.Type == config.Many2Many {
-				continue
-			}
-		}
-
 		primative, impt := cfg.Primative(f.Type)
 		if impt != "" {
 			imports = append(imports, impt)
 		}
 
-		fields = append(fields, Field{
+		internal := f.Internal
+		if f.Type == config.ID &&
+			!strings.HasSuffix(f.Internal, "id") {
+			internal = f.Internal + "_id"
+		}
+
+		field := Field{
 			Name:      f.Name,
 			Type:      f.Type,
 			Primative: primative,
-			Internal:  f.Internal,
-		})
+			Internal:  internal,
+		}
+
+		if f.Relationship != nil {
+			to := cfg.FindModel(f.Relationship.To)
+
+			field.Relationship = &Relationship{
+				To: to.Name,
+				Through: func() string {
+					if f.Relationship.Through == "" {
+						return ""
+					}
+					through := cfg.FindModel(f.Relationship.Through)
+
+					return through.Plural
+				}(),
+				Field: f.Relationship.Field,
+				Type:  f.Relationship.Type,
+			}
+		}
+
+		fields = append(fields, field)
 	}
 
 	return fields
 }
 
-func BuildRepoMethods(cfg *config.Config, model config.Model) []Method {
-	methods := make([]Method, 0, len(model.Fields))
+func BuildRepoMethods(cfg *config.Config) map[string][]Method {
+	methodMap := make(map[string][]Method, len(cfg.Models))
+	for _, model := range cfg.Models {
+		buildRepoMethods(cfg, model, methodMap)
+	}
+	return methodMap
+}
 
+func buildRepoMethods(cfg *config.Config, model config.Model, methodMap map[string][]Method) {
+	//methods := make([]Method, 0, len(model.Fields))
 	for _, idx := range model.Indexes() {
-
-		methods = append(methods, Method{
-			Name: func() string {
-				if idx.Type == config.MultiIndex {
-					return fmt.Sprintf("list_%s_by_%s", model.Plural, idx.Name)
-				}
-				return fmt.Sprintf("get_%s_by_%s", model.Name, idx.Name)
-			}(),
-			Args: func() []Arg {
-				args := make([]Arg, 0, len(idx.Fields))
-				for _, fieldName := range idx.Fields {
-					field := model.FindFieldByName(fieldName)
-					args = append(args, Arg{
-						Name: fieldName,
-						Type: field.Type,
-					})
-				}
-				return args
-			}(),
-			Return: Return{
-				Type:  model.Name,
-				Multi: idx.Type == config.MultiIndex,
-			},
-		})
+		methodMap[model.Name] = append(
+			methodMap[model.Name],
+			Method{
+				Name: func() string {
+					if idx.Type == config.MultiIndex {
+						return fmt.Sprintf("list_%s_by_%s", model.Plural, idx.NameWithIds())
+					}
+					return fmt.Sprintf("get_%s_by_%s", model.Name, idx.NameWithIds())
+				}(),
+				Args: func() []Arg {
+					args := make([]Arg, 0, len(idx.Fields))
+					for _, fieldName := range idx.Fields {
+						field := model.FindFieldByName(fieldName)
+						args = append(args, Arg{
+							Name: fieldName,
+							Type: field.Type,
+						})
+					}
+					return args
+				}(),
+				Return: Return{
+					Type:  model.Name,
+					Multi: idx.Type == config.MultiIndex,
+				},
+			})
 	}
 
-	methods = append(methods, Method{
-		Name: "list_" + model.Plural,
-		Args: []Arg{
-			Arg{
-				Name: "first",
-				Type: config.Integer,
-			},
-			Arg{
-				Name: "after",
-				Type: config.ID,
-			},
-		},
-		Return: Return{
-			Type:  model.Name,
-			Multi: true,
-		},
-	})
+	for _, f := range model.Fields {
+		if f.Relationship == nil {
+			continue
+		}
 
-	return methods
+		if f.Relationship.Type != config.Many2Many {
+			continue
+		}
+
+		to := cfg.FindModel(f.Relationship.To)
+
+		methodMap[f.Relationship.To] = append(
+			methodMap[f.Relationship.To],
+			Method{
+				Name: fmt.Sprintf("list_%s_by_%s", to.Plural, f.Relationship.Field),
+				Args: []Arg{
+					Arg{
+						Name: f.Relationship.Field,
+						Type: config.ID,
+					},
+				},
+				Return: Return{
+					Type:  f.Relationship.To,
+					Multi: true,
+				},
+			})
+	}
+
+	methodMap[model.Name] = append(
+		methodMap[model.Name],
+		Method{
+			Name: "list_" + model.Plural,
+			Args: []Arg{
+				Arg{
+					Name: "first",
+					Type: config.Integer,
+				},
+				Arg{
+					Name: "after",
+					Type: config.ID,
+				},
+			},
+			Return: Return{
+				Type:  model.Name,
+				Multi: true,
+			},
+		})
 }
 
 func BuildTypes(cfg *config.Config) ([]Type, []string) {

@@ -57,6 +57,9 @@ const (
 	String    = "string"
 	Boolean   = "boolean"
 	Timestamp = "timestamp"
+
+	Link   = "link"
+	Domain = "domain"
 )
 
 type Config struct {
@@ -75,10 +78,10 @@ func validateConfig(c *Config) {
 	}
 }
 
-func (t Config) FindModelByName(name string) Model {
+func (t Config) FindModel(name string) *Model {
 	for _, model := range t.Models {
 		if model.Name == name {
-			return model
+			return &model
 		}
 	}
 	panic("Model Name " + name + " Not Found")
@@ -132,6 +135,7 @@ func (t Config) ShouldGenerate(str string) bool {
 type Model struct {
 	Name        string   `yaml:"name"`
 	Plural      string   `yaml:"plural"`
+	Type        string   `yaml:"type"`
 	Internal    string   `yaml:"internal,omitempty"`
 	Description string   `yaml:"description,omitempty"`
 	Fields      []Field  `yaml:"fields"`
@@ -147,6 +151,10 @@ func validateModel(m *Model) {
 
 	if m.Internal == "" {
 		m.Internal = m.Name
+	}
+
+	if m.Type == "" {
+		m.Type = Domain
 	}
 
 	for i := range m.Fields {
@@ -207,6 +215,16 @@ type Index struct {
 	Fields []string
 }
 
+func (t Index) NameWithIds() string {
+	s := strings.Split(t.Name, "_")
+	for i := range s {
+		if !strings.HasSuffix(s[i], ID) {
+			s[i] = s[i] + "_id"
+		}
+	}
+	return strings.Join(s, "_")
+}
+
 func (t Config) String() string {
 	buf := &bytes.Buffer{}
 	if err := yaml.NewEncoder(buf).Encode(t); err != nil {
@@ -248,6 +266,7 @@ func (t Model) FindFieldByInternal(internal string) Field {
 
 func (t Model) Indexes() []Index {
 	indexMap := make(map[string][]string)
+
 	for _, field := range t.Fields {
 		for _, index := range field.Indexes {
 			_, found := indexMap[index]

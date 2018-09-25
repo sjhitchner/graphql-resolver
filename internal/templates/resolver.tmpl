@@ -26,18 +26,18 @@ package resolver
 {{ end }}
 
 
-{{ define "MethodRelationship" }} (*{{ camel .Field.Relationship }}Resolver, error) {
-	obj, err := Interactor(ctx).Get{{ camel .Field.Relationship }}ById(ctx, t.obj.{{ camel .Field.Internal }})
-	return &{{ camel .Field.Relationship }}Resolver{obj}, errors.Wrapf(err, "Failed Getting {{ camel .Field.Name }} '%v'", t.obj.{{ camel .Field.Internal }})
+{{ define "MethodOneToOne" }} (*{{ camel .Field.Relationship.To }}Resolver, error) {
+	obj, err := Interactor(ctx).Get{{ camel .Field.Relationship.To }}ById(ctx, t.obj.{{ camel .Field.Internal }})
+	return &{{ camel .Field.Relationship.To }}Resolver{obj}, errors.Wrapf(err, "Failed Getting {{ camel .Field.Name }} '%v'", t.obj.{{ camel .Field.Internal }})
 }
 {{ end }}
 
 
-{{ define "MethodManyToMany" }} ([]*{{ camel .Field.Relationship }}Resolver, error) {
-	list, err := Interactor(ctx).List{{ camel .Model.Name }}{{ camel .Field.Name }}By{{ camel .Field.Relationship }}Id(ctx, t.obj.Id)
-	resolvers := make([]*{{ camel .Field.Relationship }}Resolver, len(list))
+{{ define "MethodManyToMany" }} ([]*{{ camel .Field.Relationship.To }}Resolver, error) {
+	list, err := Interactor(ctx).List{{ camel .Field.Relationship.To }}sBy{{ camel .Field.Relationship.Field }}(ctx, t.obj.Id)
+	resolvers := make([]*{{ camel .Field.Relationship.To }}Resolver, len(list))
 	for i := range resolvers {
-		resolvers[i] = &{{ camel .Field.Relationship }}Resolver{list[i]}
+		resolvers[i] = &{{ camel .Field.Relationship.To }}Resolver{list[i]}
 	}
 	return resolvers, errors.Wrapf(err, "Failed Getting {{ camel .Field.Name }} By '%v'", t.obj.Id)
 }
@@ -59,12 +59,12 @@ func New{{ camel $m.Name }}Resolver(obj *domain.{{ camel $m.Name }}) *{{ camel $
 }
 
 {{ range $f := $m.Fields }}
-func (t *{{ camel $m.Name }}Resolver) {{ camel $f.Name }}() 
-{{- if ne $f.Relationship "" -}}
-	{{- if eq $f.Type "manytomany" -}}
+func (t *{{ camel $m.Name }}Resolver) {{ camel $f.Name }}(ctx context.Context) 
+{{- if $f.Relationship -}}
+	{{- if eq $f.Relationship.Type "many2many" -}}
 		{{ template "MethodManyToMany" args "Model" $m "Field" $f }}
 	{{- else -}}
-		{{ template "MethodRelationship" args "Model" $m "Field" $f }}
+		{{ template "MethodOneToOne" args "Model" $m "Field" $f }}
 	{{- end -}}
 {{- else if eq $f.Type "id" -}}
 	{{ template "MethodID" args "Model" $m "Field" $f }}
