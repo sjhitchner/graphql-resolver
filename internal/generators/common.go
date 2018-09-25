@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"github.com/sjhitchner/graphql-resolver/internal/config"
 	"github.com/sjhitchner/graphql-resolver/internal/domain"
 	"github.com/stoewer/go-strcase"
 )
@@ -430,6 +431,23 @@ func MethodReturn(value interface{}) (interface{}, error) {
 	}
 
 	return fmt.Sprintf("*%s", str), nil
+}
+
+func IsMany2Many(value interface{}) (bool, error) {
+	relationship, ok := value.(*domain.Relationship)
+	if !ok {
+		return false, errors.Errorf("Invalid argument type")
+	}
+
+	if relationship == nil {
+		return false, nil
+	}
+
+	if relationship.Type == config.Many2Many {
+		return true, nil
+	}
+
+	return false, nil
 }
 
 /*

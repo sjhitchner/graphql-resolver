@@ -136,16 +136,22 @@ func buildRepoMethods(cfg *config.Config, model config.Model, methodMap map[stri
 		}
 
 		to := cfg.FindModel(f.Relationship.To)
-
 		methodMap[f.Relationship.To] = append(
 			methodMap[f.Relationship.To],
 			Method{
 				Name: fmt.Sprintf("list_%s_by_%s", to.Plural, f.Relationship.Field),
 				Args: []Arg{
 					Arg{
-						Name: f.Relationship.Field,
+						Name: fmt.Sprintf("%s.%s", f.Relationship.Through, f.Relationship.Field),
+						//Name: f.Relationship.Field,
 						Type: config.ID,
 					},
+				},
+				Relationship: &Relationship{
+					To:      model.Name,
+					Through: f.Relationship.Through,
+					Field:   f.Relationship.Field,
+					Type:    f.Relationship.Type,
 				},
 				Return: Return{
 					Type:  f.Relationship.To,

@@ -87,17 +87,6 @@ func (t Config) FindModel(name string) *Model {
 	panic("Model Name " + name + " Not Found")
 }
 
-/*
-func (t Config) FindModelByInternal(internal string) Model {
-	for _, model := range t.Models {
-		if model.Internal == internal {
-			return model
-		}
-	}
-	panic("Model Internal " + internal + " Not Found")
-}
-*/
-
 // type and import
 func (t Config) Primative(base string) (string, string) {
 	switch base {
@@ -217,11 +206,14 @@ type Index struct {
 
 func (t Index) NameWithIds() string {
 	s := strings.Split(t.Name, "_")
-	for i := range s {
-		if !strings.HasSuffix(s[i], ID) {
-			s[i] = s[i] + "_id"
+	/*
+		for i := range s {
+			fmt.Println("XXXXX", t.Name, t.Type, s[i])
+			if t.Type == ID && !strings.HasSuffix(s[i], ID) {
+				s[i] = s[i] + "_id"
+			}
 		}
-	}
+	*/
 	return strings.Join(s, "_")
 }
 

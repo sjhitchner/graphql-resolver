@@ -22,10 +22,6 @@ func NewDomainGenerator(path string) *DomainGenerator {
 }
 
 func (t *DomainGenerator) Generate(cfg *config.Config) error {
-
-	/*
-		models, _, _, imports := domain.ProcessConfig(config)
-	*/
 	models := domain.BuildModels(cfg)
 
 	for _, model := range models {

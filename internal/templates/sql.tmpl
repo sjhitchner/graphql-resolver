@@ -11,7 +11,7 @@ import (
 
 {{ define "Select" }}
 SELECT {{ range $i, $f := .Fields }}
-{{- if ne $f.Type "manytomany" }}
+{{- if not (many2many $f.Relationship) }}
 	{{- if gt $i 0 }}, {{ end -}}{{ $.Name }}.{{ $f.Internal }} {{ $f.Internal }}
 {{ end }}
 {{- end -}}
@@ -50,24 +50,31 @@ type {{ camel $m.Name }}DB struct {
 	db db.DBHandler
 }
 
-{{ range $method := .Methods }}
+{{ range $method := .Repo.Methods }}
 
 const Select{{ camel $method.Name }} = `
-{{- template "Select" $m }} WHERE {{ range $i, $arg := $method.Args -}}
-{{- if gt $i 0 }}AND {{ end -}}
+{{- template "Select" $m }}
+{{- if many2many $method.Relationship -}}
+JOIN {{ $method.Relationship.Through }}
+ON {{ $method.Relationship.To }}.id = {{ $method.Relationship.Through }}.{{ $method.Relationship.Field }}
+{{- end }}
+WHERE {{ range $i, $arg := $method.Args -}}
+{{- if gt $i 0 }} AND {{ end -}}
 {{ $arg.Name }} = ${{ add $i 1 }}
 {{- end }}
 `
 
 func (t *{{ camel $m.Name}}DB) {{ template "RepoMethod" $method }} {
-{{- if eq $method.ReturnPrefix "*" }}
-	{{ template "GetQuery" args "Model" $m "Method" $method }}
-{{- else }}
+{{- if $method.Return.Multi }}
 	{{ template "ListQuery" args "Model" $m "Method" $method }}
+{{- else }}
+	{{ template "GetQuery" args "Model" $m "Method" $method }}
 {{- end }}
 }
 
 {{ end }}
+
+{{/*
 {{ range $rm := $m.Relationships }}
 {{ range $method := $rm.Methods }}
 
@@ -90,4 +97,6 @@ func (t *{{ camel $m.Name}}DB) {{ template "RepoMethod" $method }} {
 
 {{ end }}
 {{ end }}
+*/}}
+
 {{ end }}

@@ -49,7 +49,7 @@ func main() {
 		generators.NewTypesGenerator(outputPath),
 		generators.NewDomainGenerator(outputPath),
 		generators.NewResolverGenerator(outputPath),
-		//generators.NewSQLGenerator(outputPath),
+		generators.NewSQLGenerator(outputPath),
 		//generators.NewQueryGenerator(outputPath),
 		//generators.NewGraphQLGenerator(outputPath),
 	}

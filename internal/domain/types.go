@@ -18,9 +18,10 @@ type Repo struct {
 }
 
 type Method struct {
-	Name   string
-	Args   []Arg
-	Return Return
+	Name         string
+	Args         []Arg
+	Relationship *Relationship
+	Return       Return
 }
 
 type Arg struct {
@@ -38,21 +39,8 @@ type Model struct {
 	Description string
 	Fields      []Field
 	Repo        Repo
-	//	Methods     []Method
-	Imports []string
+	Imports     []string
 }
-
-/*
-type Relationship struct {
-	Name        string
-	Description string
-	Fields      []Field
-	RepoName    string
-	Methods     []Method
-	Through     string
-	Models      []Model
-}
-*/
 
 type Relationship struct {
 	To      string
