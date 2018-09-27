@@ -142,9 +142,9 @@ func buildRepoMethods(cfg *config.Config, model config.Model, methodMap map[stri
 				Name: fmt.Sprintf("list_%s_by_%s", to.Plural, f.Relationship.Field),
 				Args: []Arg{
 					Arg{
-						Name: fmt.Sprintf("%s.%s", f.Relationship.Through, f.Relationship.Field),
-						//Name: f.Relationship.Field,
-						Type: config.ID,
+						Name:   f.Relationship.Field,
+						Parent: f.Relationship.Through,
+						Type:   config.ID,
 					},
 				},
 				Relationship: &Relationship{

@@ -55,12 +55,11 @@ type {{ camel $m.Name }}DB struct {
 const Select{{ camel $method.Name }} = `
 {{- template "Select" $m }}
 {{- if many2many $method.Relationship -}}
-JOIN {{ $method.Relationship.Through }}
-ON {{ $method.Relationship.To }}.id = {{ $method.Relationship.Through }}.{{ $method.Relationship.Field }}
+JOIN {{ $method.Relationship.Through }} ON {{ $method.Relationship.To }}.id = {{ $method.Relationship.Through }}.{{ $method.Relationship.Field }}
 {{- end }}
 WHERE {{ range $i, $arg := $method.Args -}}
 {{- if gt $i 0 }} AND {{ end -}}
-{{ $arg.Name }} = ${{ add $i 1 }}
+{{ $arg.Parent}}.{{ $arg.Name }} = ${{ add $i 1 }}
 {{- end }}
 `
 

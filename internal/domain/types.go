@@ -25,8 +25,9 @@ type Method struct {
 }
 
 type Arg struct {
-	Name string
-	Type string
+	Name   string
+	Parent string
+	Type   string
 }
 
 type Return struct {
