@@ -1,0 +1,21 @@
+{{ template "Header" }}
+package resolvers
+
+{{ template "Imports" unique .Imports "fmt" }}
+
+
+func ToID(id {{ camel .Id.Name }}) graphql.ID {
+{{- if eq .Id.Type "string" }}
+	return toStringID(id)
+{{- else -}}
+	return toIntegerID(id)
+{{- end }}
+}
+
+func toIntegerID(id {{ camel .Id.Name }}) graphql.ID {
+	return graphql.ID(id)
+}
+
+func toStringID(id {{ camel .Id.Name }}) graphql.ID {
+	return graphql(fmt.Sprintf("%d", id))
+}

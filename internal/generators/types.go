@@ -20,10 +20,10 @@ func NewTypesGenerator(path string) *TypesGenerator {
 	return &TypesGenerator{path}
 }
 
-func (t *TypesGenerator) Generate(config *config.Config) error {
+func (t *TypesGenerator) Generate(cfg *config.Config) error {
 
 	//_, _, types, imports := domain.ProcessConfig(config)
-	types, imports := domain.BuildTypes(config)
+	types, imports := domain.BuildTypes(cfg)
 
 	if len(types) > 0 {
 		if err := GenerateGoFile(

@@ -25,8 +25,6 @@ func (t *DomainGenerator) Generate(cfg *config.Config) error {
 	models := domain.BuildModels(cfg)
 
 	for _, model := range models {
-		model.Imports = append(model.Imports, "context")
-
 		b, _ := json.MarshalIndent(model, "", "  ")
 		fmt.Println(string(b))
 
@@ -35,7 +33,7 @@ func (t *DomainGenerator) Generate(cfg *config.Config) error {
 			t.Filename(model.Name),
 			"domain.tmpl",
 			DomainTemplate{
-				Imports: model.Imports,
+				Imports: model.Imports.AsSlice(),
 				Model:   model,
 			}); err != nil {
 			return err

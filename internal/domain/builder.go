@@ -31,25 +31,24 @@ func BuildModels(cfg *config.Config) []Model {
 
 func BuildModel(cfg *config.Config, model config.Model) Model {
 	//indexes := make([]Index, 0, len(model.Fields))
-	imports := make([]string, 0, len(model.Fields))
+	fields, imports := BuildFields(cfg, model)
 
 	return Model{
 		Name:        model.Name,
 		Description: model.Description,
-		Fields:      BuildFields(cfg, model, imports),
+		Fields:      fields,
 		Imports:     imports,
 	}
 }
 
-func BuildFields(cfg *config.Config, model config.Model, imports []string) []Field {
+func BuildFields(cfg *config.Config, model config.Model) ([]Field, Imports) {
 	fields := make([]Field, 0, len(model.Fields))
+	imports := NewImports()
 
 	for _, f := range model.Fields {
 
 		primative, impt := cfg.Primative(f.Type)
-		if impt != "" {
-			imports = append(imports, impt)
-		}
+		imports.Add(impt)
 
 		internal := f.Internal
 		if f.Type == config.ID &&
@@ -85,7 +84,7 @@ func BuildFields(cfg *config.Config, model config.Model, imports []string) []Fie
 		fields = append(fields, field)
 	}
 
-	return fields
+	return fields, imports
 }
 
 func BuildRepoMethods(cfg *config.Config) map[string][]Method {
@@ -113,8 +112,9 @@ func buildRepoMethods(cfg *config.Config, model config.Model, methodMap map[stri
 					for _, fieldName := range idx.Fields {
 						field := model.FindFieldByName(fieldName)
 						args = append(args, Arg{
-							Name: fieldName,
-							Type: field.Type,
+							Parent: model.Internal,
+							Name:   fieldName,
+							Type:   field.Type,
 						})
 					}
 					return args
@@ -135,11 +135,11 @@ func buildRepoMethods(cfg *config.Config, model config.Model, methodMap map[stri
 			continue
 		}
 
-		to := cfg.FindModel(f.Relationship.To)
+		through := cfg.FindModel(f.Relationship.Through)
 		methodMap[f.Relationship.To] = append(
 			methodMap[f.Relationship.To],
 			Method{
-				Name: fmt.Sprintf("list_%s_by_%s", to.Plural, f.Relationship.Field),
+				Name: fmt.Sprintf("list_%s_by_%s", through.Plural, f.Relationship.Field),
 				Args: []Arg{
 					Arg{
 						Name:   f.Relationship.Field,

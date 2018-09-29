@@ -1,5 +1,7 @@
 package generators
 
+// "encoding/base64"
+
 import (
 	//"fmt"
 
@@ -31,19 +33,48 @@ func (t *ResolverGenerator) Generate(cfg *config.Config) error {
 	}
 
 	models := domain.BuildModels(cfg)
-	//models, _, _, imports := domain.ProcessConfig(config)
+	imports := []string{
+		"github.com/sjhitchner/graphql-resolver/generated/domain",
+	}
 
 	for _, model := range models {
+		model.Imports.Add(imports...)
+
 		if err := GenerateGoFile(
 			//if err := GenerateFile(
 			t.Filename(model.Name),
 			"resolver.tmpl",
 			ResolverTemplate{
-				Imports: []string{}, //models.Imports,
+				Imports: model.Imports.AsSlice(),
 				Model:   model,
 			}); err != nil {
 			return errors.Wrapf(err, "Error generating resolver %s", model.Name)
 		}
+	}
+
+	types, imports := domain.BuildTypes(cfg)
+	idType := domain.Type{
+		Name: "id",
+		Type: "integer",
+	}
+	for _, t := range types {
+		if t.Name == "id" {
+			idType = t
+		}
+	}
+
+	if err := GenerateGoFile(
+		//if err := GenerateFile(
+		t.Filename("common"),
+		"resolver_common.tmpl",
+		struct {
+			Id      domain.Type
+			Imports []string
+		}{
+			Id:      idType,
+			Imports: imports,
+		}); err != nil {
+		return errors.Wrapf(err, "Error generating common resolver functions")
 	}
 
 	return nil

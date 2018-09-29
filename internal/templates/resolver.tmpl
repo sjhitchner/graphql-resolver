@@ -1,17 +1,17 @@
 {{ template "Header" }}
 package resolver
 
-{{ template "Imports" unique .Imports "context" "encoding/base64" "github.com/graph-gophers/graphql-go" }}
+{{ template "Imports" unique .Imports "context" "github.com/graph-gophers/graphql-go" "github.com/pkg/errors" }}
 
 
 {{ define "MethodID" }} graphql.ID {
-	return domain.ToID(t.obj.{{ camel .Field.Name }})
+	return ToID(t.obj.{{ camel .Field.Name }})
 }
 {{ end }}
 
 
 {{ define "MethodTimestamp" }} string {
-	return t.obj.{{ .Field.Name }}.Format(time.RFC3339)
+	return t.obj.{{ camel .Field.Name }}.Format(time.RFC3339)
 }
 {{ end }}
 

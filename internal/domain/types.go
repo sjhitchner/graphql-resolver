@@ -40,7 +40,7 @@ type Model struct {
 	Description string
 	Fields      []Field
 	Repo        Repo
-	Imports     []string
+	Imports     Imports
 }
 
 type Relationship struct {
