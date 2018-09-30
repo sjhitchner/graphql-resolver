@@ -31,39 +31,13 @@ func (t *TypesGenerator) Generate(cfg *config.Config) error {
 			t.Filename("types"),
 			"types.tmpl",
 			TypesTemplate{
-				Imports: imports,
+				Imports: imports.AsSlice(),
 				Types:   types,
 			}); err != nil {
 			return err
 		}
 	}
 	return nil
-	/*
-		args := make([]domain.Arg, 0, len(config.Types))
-		for _, typ := range config.Types {
-			args = append(args, domain.Arg{
-				Name: strcase.UpperCamelCase(typ.Name),
-				Type: domain.Type{
-					Type:      "",
-					Primative: config.TypePrimative(typ.Primative),
-				},
-			})
-		}
-
-		if len(args) > 0 {
-			if err := GenerateGoFile(
-				//if err := GenerateFile(
-				t.Filename("common"),
-				"types.tmpl",
-				TypesTemplate{
-					Imports: imports,
-					Types:   args,
-				}); err != nil {
-				return err
-			}
-		}
-		return nil
-	*/
 }
 
 func (t *TypesGenerator) Filename(name string) string {

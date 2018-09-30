@@ -131,7 +131,11 @@ func GoType(values ...interface{}) (string, error) {
 	case "timestamp":
 		return "time.Time", nil
 	default:
-		return strcase.UpperCamelCase(s), nil
+		str := strcase.UpperCamelCase(s)
+		if len(values) == 2 {
+			str = values[1].(string) + "." + str
+		}
+		return str, nil
 	}
 }
 
@@ -418,13 +422,17 @@ func Find(values ...interface{}) (interface{}, error) {
 	panic("Invalid find type")
 }
 
-func MethodReturn(value interface{}) (interface{}, error) {
-	methodReturn, ok := value.(domain.Return)
+func MethodReturn(values ...interface{}) (interface{}, error) {
+	methodReturn, ok := values[0].(domain.Return)
 	if !ok {
 		return "", errors.Errorf("Invalid argument type")
 	}
 
 	str := strcase.UpperCamelCase(methodReturn.Type)
+
+	if len(values) == 2 {
+		str = values[1].(string) + "." + str
+	}
 
 	if methodReturn.Multi {
 		return fmt.Sprintf("[]*%s", str), nil

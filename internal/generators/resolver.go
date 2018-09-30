@@ -33,12 +33,12 @@ func (t *ResolverGenerator) Generate(cfg *config.Config) error {
 	}
 
 	models := domain.BuildModels(cfg)
-	imports := []string{
+	globalImports := []string{
 		"github.com/sjhitchner/graphql-resolver/generated/domain",
 	}
 
 	for _, model := range models {
-		model.Imports.Add(imports...)
+		model.Imports.Add(globalImports...)
 
 		if err := GenerateGoFile(
 			//if err := GenerateFile(
@@ -53,6 +53,7 @@ func (t *ResolverGenerator) Generate(cfg *config.Config) error {
 	}
 
 	types, imports := domain.BuildTypes(cfg)
+	imports.Add(globalImports...)
 	idType := domain.Type{
 		Name: "id",
 		Type: "integer",
@@ -72,7 +73,7 @@ func (t *ResolverGenerator) Generate(cfg *config.Config) error {
 			Imports []string
 		}{
 			Id:      idType,
-			Imports: imports,
+			Imports: imports.AsSlice(),
 		}); err != nil {
 		return errors.Wrapf(err, "Error generating common resolver functions")
 	}

@@ -1,12 +1,17 @@
+{{ template "Header" }}
 package db
 
-import (
-	"context"
-	"github.com/pkg/errors"
+{{ template "Imports" unique .Imports "context" "github.com/pkg/errors" "github.com/sjhitchner/graphql-resolver/lib/db" }}
 
-	"github.com/sjhitchner/graphql-resolver/generated/domain"
-	"github.com/sjhitchner/graphql-resolver/lib/db"
-)
+//"github.com/sjhitchner/graphql-resolver/generated/domain"
+
+{{- define "DBMethod" -}}
+{{ camel .Name }}(ctx context.Context
+{{- range $arg := .Args -}}
+, {{ lcamel $arg.Name }} {{ gotype $arg.Type "domain" }}
+{{- end -}}
+) ({{ return .Return "domain" }}, error)
+{{- end -}}
 
 
 {{ define "Select" }}
@@ -62,7 +67,7 @@ JOIN {{ $method.Relationship.Through }} ON {{ $method.Relationship.To }}.id = {{
 {{- end }}
 `
 
-func (t *{{ camel $m.Name}}DB) {{ template "RepoMethod" $method }} {
+func (t *{{ camel $m.Name}}DB) {{ template "DBMethod" $method }} {
 {{- if $method.Return.Multi }}
 	{{ template "ListQuery" args "Model" $m "Method" $method }}
 {{- else }}

@@ -1,0 +1,24 @@
+{{ template "Header" }}
+package domain
+
+{{ template "Imports" unique .Imports }}
+
+
+type Aggregator struct {
+{{- range $m := .Models }}
+	{{ lcamel $m.Repo.Name }} domain.{{ camel $m.Repo.Name }}
+{{- end }}
+}
+
+func NewAggregator(
+{{- range $m := .Models }}
+	{{ lcamel $m.Repo.Name }} domain.{{ camel $m.Repo.Name }},
+{{- end }}
+	) *Aggregator {
+	return &Aggregator{
+{{- range $m := .Models }}
+	{{ lcamel $m.Repo.Name }}: {{ lcamel $m.Repo.Name }},
+{{- end }}
+	}
+}
+

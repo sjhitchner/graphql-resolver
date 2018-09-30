@@ -23,6 +23,10 @@ func NewSQLGenerator(path string) *SQLGenerator {
 
 func (t *SQLGenerator) Generate(cfg *config.Config) error {
 
+	imports := []string{
+		"github.com/sjhitchner/graphql-resolver/generated/domain",
+	}
+
 	/* TODO
 	if !model.ShouldGenerate(SQL) {
 		return nil
@@ -33,10 +37,6 @@ func (t *SQLGenerator) Generate(cfg *config.Config) error {
 			return errors.Errorf("Model '%s' set to generate SQL but no sql block configured", model.Name)
 		}
 
-	imports := []string{
-		"context",
-		"github.com/graph-gophers/graphql-go",
-	}
 	*/
 
 	models := domain.BuildModels(cfg)
@@ -49,7 +49,7 @@ func (t *SQLGenerator) Generate(cfg *config.Config) error {
 			t.Filename(model.Name),
 			"sql.tmpl",
 			SQLTemplate{
-				Imports: []string{}, //imports,
+				Imports: imports,
 				Model:   model,
 			}); err != nil {
 			return err

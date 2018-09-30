@@ -181,8 +181,8 @@ func buildRepoMethods(cfg *config.Config, model config.Model, methodMap map[stri
 		})
 }
 
-func BuildTypes(cfg *config.Config) ([]Type, []string) {
-	imports := []string{}
+func BuildTypes(cfg *config.Config) ([]Type, Imports) {
+	imports := NewImports()
 	types := make([]Type, 0, len(cfg.Types))
 	for _, t := range cfg.Types {
 		typ, impt := cfg.Primative(t.Primative)
@@ -192,9 +192,7 @@ func BuildTypes(cfg *config.Config) ([]Type, []string) {
 			Type: typ,
 		})
 
-		if impt != "" {
-			imports = append(imports, impt)
-		}
+		imports.Add(impt)
 	}
 	return types, imports
 }
