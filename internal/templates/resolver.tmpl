@@ -1,0 +1,77 @@
+{{ template "Header" }}
+package resolvers
+
+{{ template "Imports" unique .Imports "context" "github.com/graph-gophers/graphql-go" "github.com/pkg/errors" }}
+
+
+{{ define "MethodID" }} graphql.ID {
+	return ToID(t.obj.{{ camel .Field.Name }})
+}
+{{ end }}
+
+
+{{ define "MethodTimestamp" }} string {
+	return t.obj.{{ camel .Field.Name }}.Format(time.RFC3339)
+}
+{{ end }}
+
+
+{{ define "MethodPrimative" }} {{ .Field.Primative }} {
+	{{ if eq .Field.Type .Field.Primative -}}
+	return t.obj.{{ camel .Field.Name }}
+	{{- else -}}
+	return {{ .Field.Primative }}(t.obj.{{ camel .Field.Name }})
+	{{- end }}
+}
+{{ end }}
+
+
+{{ define "MethodOneToOne" }} (*{{ camel .Field.Relationship.To }}Resolver, error) {
+	obj, err := Interactor(ctx).Get{{ camel .Field.Relationship.To }}ById(ctx, t.obj.{{ camel .Field.Internal }})
+	return &{{ camel .Field.Relationship.To }}Resolver{obj}, errors.Wrapf(err, "Failed Getting {{ camel .Field.Name }} '%v'", t.obj.{{ camel .Field.Internal }})
+}
+{{ end }}
+
+
+{{ define "MethodManyToMany" }} ([]*{{ camel .Field.Relationship.To }}Resolver, error) {
+	list, err := Interactor(ctx).List{{ camel .Field.Relationship.To }}sBy{{ camel .Field.Relationship.Field }}(ctx, t.obj.Id)
+	resolvers := make([]*{{ camel .Field.Relationship.To }}Resolver, len(list))
+	for i := range resolvers {
+		resolvers[i] = &{{ camel .Field.Relationship.To }}Resolver{list[i]}
+	}
+	return resolvers, errors.Wrapf(err, "Failed Getting {{ camel .Field.Name }} By '%v'", t.obj.Id)
+}
+{{ end }}
+
+
+
+{{ with $m := .Model }}
+{{ comment $m.Description }}
+type {{ camel $m.Name }}Resolver struct {
+	obj *domain.{{ camel $m.Name }}
+}
+
+func New{{ camel $m.Name }}Resolver(obj *domain.{{ camel $m.Name }}) *{{ camel $m.Name }}Resolver {
+	if obj == nil {
+		return nil
+	}
+	return &{{ camel $m.Name }}Resolver{obj}
+}
+
+{{ range $f := $m.Fields }}
+func (t *{{ camel $m.Name }}Resolver) {{ camel $f.Name }}(ctx context.Context) 
+{{- if $f.Relationship -}}
+	{{- if eq $f.Relationship.Type "many2many" -}}
+		{{ template "MethodManyToMany" args "Model" $m "Field" $f }}
+	{{- else -}}
+		{{ template "MethodOneToOne" args "Model" $m "Field" $f }}
+	{{- end -}}
+{{- else if eq $f.Type "id" -}}
+	{{ template "MethodID" args "Model" $m "Field" $f }}
+{{- else if eq $f.Type "timestamp" -}}
+	{{ template "MethodTimestamp" args "Model" $m "Field" $f }}
+{{- else -}}
+	{{ template "MethodPrimative" args "Model" $m "Field" $f }}
+{{- end -}}
+{{ end }}
+{{ end }}

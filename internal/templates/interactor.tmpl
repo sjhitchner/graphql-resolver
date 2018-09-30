@@ -1,0 +1,13 @@
+{{ template "Header" }}
+package interactor
+
+{{ template "Imports" unique .Imports }}
+
+
+type Interactor struct {
+	domain.Aggregator
+}
+
+func NewInteractor(a domain.Aggregator) *Interactor {
+	return &Interactor{a}
+}

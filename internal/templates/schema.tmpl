@@ -1,0 +1,25 @@
+{{ range $m := .Models }}
+type {{ camel $m.Name }} {
+{{- range $f := $m.Methods }}
+	{{ lcamel $f.Name }}: {{ $f.ReturnType }}!
+{{- end }}
+}
+{{ end }}
+
+type Query {
+	ping: String!
+
+	userList: [User!]!
+
+	userTeamList(userId: ID!): [Team!]!
+	channelMessageList(channelId: ID!): [Message!]!
+	teamChannelList(teamId: ID!): [Channel!]!
+
+	team(id: ID!): Team!
+	channel(id: ID!): Channel!
+	user(id: ID!): User!
+}
+
+schema {
+	query: Query
+}

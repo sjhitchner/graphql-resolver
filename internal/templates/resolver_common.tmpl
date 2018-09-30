@@ -1,0 +1,21 @@
+{{ template "Header" }}
+package resolvers
+
+{{ template "Imports" unique .Imports "fmt" "github.com/graph-gophers/graphql-go" }}
+
+
+func ToID(id domain.{{ camel .Id.Name }}) graphql.ID {
+{{- if eq .Id.Type "string" }}
+	return toStringID(id)
+{{- else -}}
+	return toIntegerID(id)
+{{- end }}
+}
+
+func toIntegerID(id domain.{{ camel .Id.Name }}) graphql.ID {
+	return graphql.ID(id)
+}
+
+func toStringID(id domain.{{ camel .Id.Name }}) graphql.ID {
+	return graphql.ID(fmt.Sprintf("%d", id))
+}

@@ -2,55 +2,64 @@ package main
 
 import (
 	"flag"
-	"fmt"
-	"io/ioutil"
+	//"fmt"
+	//"os"
 
-	"github.com/graph-gophers/graphql-go"
+	//"github.com/graph-gophers/graphql-go"
 
-	"github.com/sjhitchner/graphql-resolver/generate"
-	//"io"
+	"github.com/sjhitchner/graphql-resolver/internal/config"
+	//"github.com/sjhitchner/graphql-resolver/internal/domain"
+	"github.com/sjhitchner/graphql-resolver/internal/generators"
 )
 
+// GraphQL Schema
+// Resolvers
+// DB
+// Aggregator
+// Interactor
+// Generate Aggregator
+// Generate Resolvers
+// Library for various functions
+
+// Data Structures
+
+// DB Models
+// RepoMethod
+
 var (
-	schemaPath string
+	configPath string
 	outputPath string
 )
 
 func init() {
-	flag.StringVar(&schemaPath, "schema", "", "Path to schema")
-	flag.StringVar(&outputPath, "path", "", "Path to output directory")
+	flag.StringVar(&configPath, "config", "", "Path to config")
+	flag.StringVar(&outputPath, "path", "generated", "Path to output directory")
 }
 
 func main() {
 	flag.Parse()
 
-	schema, err := LoadSchema(schemaPath)
+	config, err := config.LoadConfigFile(configPath)
 	CheckError(err)
 
-	b, err := schema.ToJSON()
-	fmt.Println(string(b))
+	//b, err := schema.ToJSON()
+	//fmt.Println(config)
 
-	resolver := generate.NewResolverGenerator()
-
-	// Generate Aggregator
-	// Generate Resolvers
-	// Library for various functions
-	err = resolver.Generate(schema.Inspect())
-	CheckError(err)
-}
-
-func LoadSchema(schemaPath string) (*graphql.Schema, error) {
-	b, err := ioutil.ReadFile(schemaPath)
-	if err != nil {
-		return nil, err
+	generators := []generators.Generator{
+		generators.NewTypesGenerator(outputPath),
+		generators.NewDomainGenerator(outputPath),
+		generators.NewResolverGenerator(outputPath),
+		generators.NewSQLGenerator(outputPath),
+		generators.NewInteractorGenerator(outputPath),
+		generators.NewAggregatorGenerator(outputPath),
+		//generators.NewQueryGenerator(outputPath),
+		//generators.NewGraphQLGenerator(outputPath),
 	}
 
-	schema, err := graphql.ParseSchema(string(b), nil)
-	if err != nil {
-		return nil, err
+	for _, generator := range generators {
+		err = generator.Generate(config)
+		CheckError(err)
 	}
-
-	return schema, nil
 }
 
 func CheckError(err error) {
@@ -60,7 +69,6 @@ func CheckError(err error) {
 }
 
 /*
-
 func (s *GraphQLSuite) Test_GraphQL(c *C) {
 	schema, err := graphql.ParseSchema(Schema, nil)
 	c.Assert(err, IsNil)

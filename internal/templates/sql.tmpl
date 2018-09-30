@@ -1,0 +1,105 @@
+{{ template "Header" }}
+package db
+
+{{ template "Imports" unique .Imports "context" "github.com/pkg/errors" "github.com/sjhitchner/graphql-resolver/lib/db" }}
+
+//"github.com/sjhitchner/graphql-resolver/generated/domain"
+
+{{- define "DBMethod" -}}
+{{ camel .Name }}(ctx context.Context
+{{- range $arg := .Args -}}
+, {{ lcamel $arg.Name }} {{ gotype $arg.Type "domain" }}
+{{- end -}}
+) ({{ return .Return "domain" }}, error)
+{{- end -}}
+
+
+{{ define "Select" }}
+SELECT {{ range $i, $f := .Fields }}
+{{- if not (many2many $f.Relationship) }}
+	{{- if gt $i 0 }}, {{ end -}}{{ $.Name }}.{{ $f.Internal }} {{ $f.Internal }}
+{{ end }}
+{{- end -}}
+FROM {{ .Name }}
+{{ end }}
+
+
+{{- define "QueryError" -}}
+errors.Wrapf(err, "Error Getting {{ .Model.Name }} {{ range $arg := .Method.Args -}} {{ lcamel $arg.Name }}='%v'{{- end -}}" 
+{{- range $arg := .Method.Args -}}, {{ lcamel $arg.Name }}{{- end -}})
+{{- end -}}
+
+
+{{- define "GetQuery" -}}
+var obj domain.{{ camel .Model.Name }}
+err := t.db.GetById(ctx, &obj, Select{{ camel .Method.Name }}
+{{- range $arg := .Method.Args -}}
+	, {{ lcamel $arg.Name }}
+{{- end -}})
+return &obj, {{- template "QueryError" args "Model" .Model "Method" .Method }}
+{{- end -}}
+
+
+{{- define "ListQuery" -}}
+var list []*domain.{{ camel .Model.Name }}
+err := t.db.Select(ctx, &list, Select{{ camel .Method.Name }}
+{{- range $arg := .Method.Args -}}
+	, {{ lcamel $arg.Name }}
+{{- end -}})
+return list, {{- template "QueryError" args "Model" .Model "Method" .Method }}
+{{- end -}}
+
+
+{{ with $m := .Model }}
+type {{ camel $m.Name }}DB struct {
+	db db.DBHandler
+}
+
+{{ range $method := .Repo.Methods }}
+
+const Select{{ camel $method.Name }} = `
+{{- template "Select" $m }}
+{{- if many2many $method.Relationship -}}
+JOIN {{ $method.Relationship.Through }} ON {{ $method.Relationship.To }}.id = {{ $method.Relationship.Through }}.{{ $method.Relationship.Field }}
+{{- end -}} WHERE {{ range $i, $arg := $method.Args -}}
+{{- if gt $i 0 }} AND {{ end -}}
+{{ $arg.Parent}}.{{ $arg.Name }} = ${{ add $i 1 }}
+{{- end }}
+`
+
+func (t *{{ camel $m.Name}}DB) {{ template "DBMethod" $method }} {
+{{- if $method.Return.Multi }}
+	{{ template "ListQuery" args "Model" $m "Method" $method }}
+{{- else }}
+	{{ template "GetQuery" args "Model" $m "Method" $method }}
+{{- end }}
+}
+
+{{ end }}
+
+{{/*
+{{ range $rm := $m.Relationships }}
+{{ range $method := $rm.Methods }}
+
+const Select{{ camel $method.Name }} = `
+{{- template "Select" $rm.Model }}JOIN {{ $rm.Name }}
+ON {{ $rm.Name }}.{{ $rm.Model.Name }}_id = {{ $rm.Model.Name }}.id
+WHERE {{ range $i, $arg := $method.Args -}}
+{{- if gt $i 0 }}AND {{ end -}}
+{{ $rm.Name }}.{{ $arg.Name }} = ${{ add $i 1 }}
+{{- end }}
+`
+
+func (t *{{ camel $m.Name}}DB) {{ template "RepoMethod" $method }} {
+{{- if eq $method.ReturnPrefix "*" }}
+	{{ template "GetQuery" args "Model" $rm "Method" $method }}
+{{- else }}
+	{{ template "ListQuery" args "Model" $rm "Method" $method }}
+{{- end }}
+}
+
+{{ end }}
+{{ end }}
+*/}}
+
+{{ end }}

@@ -2,34 +2,45 @@ package generate
 
 import (
 	"os"
+	"path/filepath"
+
+	"github.com/stoewer/go-strcase"
 
 	. "github.com/sjhitchner/graphql-resolver/domain"
-
-	//"github.com/graph-gophers/graphql-go"
-	"github.com/graph-gophers/graphql-go/introspection"
 )
 
 type ResolverTemplate struct {
-	Imports   []string
-	Mutations []string
-	Models    []Model
-	Enums     []Enum
+	Imports []string
+	Model   Model
 }
 
 type ResolverGenerator struct {
+	path string
 }
 
-func NewResolverGenerator() *ResolverGenerator {
-	return &ResolverGenerator{}
+func NewResolverGenerator(path string) *ResolverGenerator {
+	return &ResolverGenerator{path}
 }
 
-func (t *ResolverGenerator) Generate(schema *introspection.Schema) error {
+func (t *ResolverGenerator) Generate(schema *ParsedSchema) error {
+	for _, model := range schema.Models {
+		f, err := os.Create(t.Filename(model.Name))
+		if err != nil {
+			return err
+		}
 
-	models := Models(schema)
-	enums := Enums(schema)
+		if err := ExecuteTemplate(f, "resolver.tmpl", ResolverTemplate{
+			Model: model,
+		}); err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
-	return ExecuteTemplate(os.Stdout, "resolver.tmpl", ResolverTemplate{
-		Models: models,
-		Enums:  enums,
-	})
+func (t *ResolverGenerator) Filename(name string) string {
+	if err := os.MkdirAll(filepath.Join(t.path, "resolvers"), os.ModePerm); err != nil {
+		panic(err)
+	}
+	return filepath.Join(t.path, "resolvers", strcase.SnakeCase(name)+".go")
 }

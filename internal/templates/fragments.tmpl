@@ -1,0 +1,70 @@
+{{ define "Imports" }}
+{{ if . }}
+import (
+{{- range $import := . }}
+	"{{ $import }}"
+{{- end }}
+){{ end }}
+{{ end }}
+
+
+{{ define "RepoInterface" }}
+type {{ camel .Repo.Name }} interface {
+{{- range $method := .Repo.Methods }}
+	{{ template "RepoMethod" $method }}
+{{- end }}
+{{/* - range $model := .Relationships -}}
+	{{- range $method := $model.Methods }}
+		{{ template "RepoMethod" $method }}
+	{{- end }}
+{{- end - */}}
+}
+{{ end }}
+
+
+{{- define "RepoMethod" -}}
+{{ camel .Name }}(ctx context.Context
+{{- range $arg := .Args -}}
+, {{ lcamel $arg.Name }} {{ gotype $arg.Type }}
+{{- end -}}
+) ({{ return .Return }}, error)
+{{- end -}}
+
+
+{{ define "Interface" }}
+type {{ camel .Name }} interface {
+{{- range $method := .Methods }}
+	{{ camel $method.Name }}(ctx context.Context
+{{- range $arg := $method.Args -}}
+, {{ lcamel $arg.Name }} {{ gotype $arg.Type }}
+{{- end -}}
+) ({{ return $method.Return }}, error)
+{{- end }}
+}
+{{ end }}
+
+
+{{ define "Struct" }}
+type {{ camel .Name }} struct {
+{{- range $field := .Fields }}
+	{{- if ne $field.Type "manytomany" }}
+	{{ camel $field.Internal }} {{ gotype $field.Type }} `db:"{{ $field.Internal }}" json:"{{ $field.Internal }}"`
+    {{- end }}
+{{- end }}
+}
+{{ end }}
+
+
+{{ define "RepoSignature" }} 
+func (t *{{ .Struct }}) Get{{ .Model }}By
+{{- range $i, $f := .Index.Fields -}}
+  {{- if gt $i 0 }}And{{ end -}}
+  {{- camel $f.Name -}}
+{{- end -}}(ctx context.Context
+{{- range $f := .Index.Fields }}, {{ $f.Name }} {{ $f.Type }}{{ end }})(*{{ .Model }}, error)
+{{- end }}
+
+
+{{ define "Header" }}
+// Generated file DO NOT EDIT {{ now }}
+{{- end }}

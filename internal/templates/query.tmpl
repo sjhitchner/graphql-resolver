@@ -1,0 +1,37 @@
+package resolver
+
+{{ template "Imports" unique .Imports "context" "encoding/base64" "github.com/graph-gophers/graphql-go" }}
+
+{{ range $type := .Types }}
+	{{- if eq $type.Name "id" -}}
+	func ToID(id Id) graphql.ID {
+	{{ if eq $type.Type "integer" -}}
+		return graphql.ID(fmt.Sprintf("%d", id))
+	{{- else -}}
+		return graphql.ID(id)
+	{{- end }}
+	}
+{{ end }}
+{{ end }}
+
+
+{{ define "QueryArgs" }}
+, args struct {
+{{- range $arg := .Args }}
+	{{ camel $arg.Name }} {{ $arg.Type }}
+{{- end }}
+})
+{{ end }}
+
+type QueryResolver struct {
+}
+
+{{ range $model := .Models }}
+{{ range $m := $model.Methods }}
+func (t *QueryResolver) {{ camel $m.Name }}(ctx context.Context, {{ template "QueryArgs" $m }} 
+
+
+) (*{{ camel $m.Name }}Resolver, error) {
+}
+{{ end }}
+{{ end }}
