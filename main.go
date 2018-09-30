@@ -50,6 +50,7 @@ func main() {
 		generators.NewDomainGenerator(outputPath),
 		generators.NewResolverGenerator(outputPath),
 		generators.NewSQLGenerator(outputPath),
+		generators.NewInteractorGenerator(outputPath),
 		generators.NewAggregatorGenerator(outputPath),
 		//generators.NewQueryGenerator(outputPath),
 		//generators.NewGraphQLGenerator(outputPath),

@@ -7,3 +7,29 @@ package domain
 //go:generate sqltype -type={{ $type.Name }} -primative={{ $type.Type }}
 type {{ camel $type.Name }} {{ $type.Type }}
 {{ end }}
+
+
+type Aggregator interface {
+{{- range $m := .Models }}
+	{{ camel $m.Repo.Name }}
+{{- end }}
+}
+
+type Interactor interface {
+	Aggregator
+}
+
+/*
+	CreateUser(ctx context.Context, user *User) (*User, error)
+	RemoveUser(ctx context.Context, user *User) error
+	CreateTeam(ctx context.Context, team *Team) (*Team, error)
+	RemoveTeam(ctx context.Context, team *Team) error
+	CreateChannel(ctx context.Context, channel *Channel) (*Channel, error)
+	RemoveChannel(ctx context.Context, channel *Channel) error
+	AddTeamMember(ctx context.Context, teamMember *TeamMember) error
+	RemoveTeamMember(ctx context.Context, teamMember *TeamMember) error
+	AddChannelMember(ctx context.Context, channelMember *ChannelMember) error
+	RemoveChannelMember(ctx context.Context, channelMember *ChannelMember) error
+	SendMessage(ctx context.Context, message *Message) error
+}
+*/

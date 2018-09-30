@@ -1,8 +1,6 @@
 package generators
 
 import (
-	//"github.com/stoewer/go-strcase"
-
 	"github.com/sjhitchner/graphql-resolver/internal/config"
 	"github.com/sjhitchner/graphql-resolver/internal/domain"
 )
@@ -10,6 +8,7 @@ import (
 type TypesTemplate struct {
 	Imports []string
 	Types   []domain.Type
+	Models  []domain.Model
 }
 
 type TypesGenerator struct {
@@ -21,8 +20,7 @@ func NewTypesGenerator(path string) *TypesGenerator {
 }
 
 func (t *TypesGenerator) Generate(cfg *config.Config) error {
-
-	//_, _, types, imports := domain.ProcessConfig(config)
+	models := domain.BuildModels(cfg)
 	types, imports := domain.BuildTypes(cfg)
 
 	if len(types) > 0 {
@@ -33,6 +31,7 @@ func (t *TypesGenerator) Generate(cfg *config.Config) error {
 			TypesTemplate{
 				Imports: imports.AsSlice(),
 				Types:   types,
+				Models:  models,
 			}); err != nil {
 			return err
 		}
