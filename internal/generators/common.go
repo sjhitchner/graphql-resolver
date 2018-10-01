@@ -144,6 +144,18 @@ func GraphQLType(values ...interface{}) (string, error) {
 	if !ok {
 		return "", errors.Errorf("Invalud argument '%s'", values[0])
 	}
+
+	if f.Relationship != nil {
+		switch f.Relationship.Type {
+		case config.Many2Many:
+			return fmt.Sprintf("[%s!]", strcase.UpperCamelCase(f.Relationship.To)), nil
+		case config.One2One:
+			return fmt.Sprintf("%s", strcase.UpperCamelCase(f.Relationship.To)), nil
+		default:
+			return "", errors.Errorf("Invalid relationship %s", f.Type)
+		}
+	}
+
 	return GraphQLTypeInternal(f.Type, f.Primative), nil
 }
 

@@ -1,7 +1,9 @@
 {{ range $m := .Models }}
 type {{ camel $m.Name }} {
-{{- range $f := $m.Methods }}
-	{{ lcamel $f.Name }}: {{ $f.ReturnType }}!
+{{- range $f := $m.Fields }}
+{{- if $f.ShouldExpose }}
+	{{ lcamel $f.Name }}: {{ gqltype $f }}!
+{{- end }}
 {{- end }}
 }
 {{ end }}

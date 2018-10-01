@@ -56,6 +56,7 @@ type Field struct {
 	Primative    string
 	Internal     string // Snake Case
 	Relationship *Relationship
+	ShouldExpose bool
 }
 
 type Type struct {

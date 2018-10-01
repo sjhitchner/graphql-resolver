@@ -53,7 +53,7 @@ func main() {
 		generators.NewInteractorGenerator(outputPath),
 		generators.NewAggregatorGenerator(outputPath),
 		//generators.NewQueryGenerator(outputPath),
-		//generators.NewGraphQLGenerator(outputPath),
+		generators.NewGraphQLGenerator(outputPath),
 	}
 
 	for _, generator := range generators {

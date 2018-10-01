@@ -59,6 +59,7 @@ func New{{ camel $m.Name }}Resolver(obj *domain.{{ camel $m.Name }}) *{{ camel $
 }
 
 {{ range $f := $m.Fields }}
+{{- if $f.ShouldExpose }}
 func (t *{{ camel $m.Name }}Resolver) {{ camel $f.Name }}(ctx context.Context) 
 {{- if $f.Relationship -}}
 	{{- if eq $f.Relationship.Type "many2many" -}}
@@ -73,5 +74,6 @@ func (t *{{ camel $m.Name }}Resolver) {{ camel $f.Name }}(ctx context.Context)
 {{- else -}}
 	{{ template "MethodPrimative" args "Model" $m "Field" $f }}
 {{- end -}}
+{{- end }}
 {{ end }}
 {{ end }}

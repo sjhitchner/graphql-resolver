@@ -57,10 +57,11 @@ func BuildFields(cfg *config.Config, model config.Model) ([]Field, Imports) {
 		}
 
 		field := Field{
-			Name:      f.Name,
-			Type:      f.Type,
-			Primative: primative,
-			Internal:  internal,
+			Name:         f.Name,
+			Type:         f.Type,
+			Primative:    primative,
+			Internal:     internal,
+			ShouldExpose: f.Expose,
 		}
 
 		if f.Relationship != nil {
