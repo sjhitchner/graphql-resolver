@@ -13,7 +13,6 @@ func BuildModels(cfg *config.Config) []Model {
 	models := make([]Model, 0, len(cfg.Models))
 
 	for _, m := range cfg.Models {
-
 		if m.Type == config.Link {
 			continue
 		}
@@ -35,6 +34,7 @@ func BuildModel(cfg *config.Config, model config.Model) Model {
 
 	return Model{
 		Name:        model.Name,
+		Plural:      model.Plural,
 		Description: model.Description,
 		Fields:      fields,
 		Imports:     imports,
@@ -74,7 +74,6 @@ func BuildFields(cfg *config.Config, model config.Model) ([]Field, Imports) {
 						return ""
 					}
 					through := cfg.FindModel(f.Relationship.Through)
-
 					return through.Plural
 				}(),
 				Field: f.Relationship.Field,
@@ -132,33 +131,56 @@ func buildRepoMethods(cfg *config.Config, model config.Model, methodMap map[stri
 			continue
 		}
 
-		if f.Relationship.Type != config.Many2Many {
-			continue
-		}
-
-		through := cfg.FindModel(f.Relationship.Through)
-		methodMap[f.Relationship.To] = append(
-			methodMap[f.Relationship.To],
-			Method{
-				Name: fmt.Sprintf("list_%s_by_%s", through.Plural, f.Relationship.Field),
-				Args: []Arg{
-					Arg{
-						Name:   f.Relationship.Field,
-						Parent: f.Relationship.Through,
-						Type:   config.ID,
+		switch f.Relationship.Type {
+		case config.One2Many:
+			to := cfg.FindModel(f.Relationship.To)
+			methodMap[f.Relationship.To] = append(
+				methodMap[f.Relationship.To],
+				Method{
+					Name: fmt.Sprintf("list_%s_by_%s", to.Plural, f.Relationship.Field),
+					Args: []Arg{
+						Arg{
+							Name:   f.Relationship.Field,
+							Parent: f.Relationship.To,
+							Type:   config.ID,
+						},
 					},
-				},
-				Relationship: &Relationship{
-					To:      model.Name,
-					Through: f.Relationship.Through,
-					Field:   f.Relationship.Field,
-					Type:    f.Relationship.Type,
-				},
-				Return: Return{
-					Type:  f.Relationship.To,
-					Multi: true,
-				},
-			})
+					Relationship: &Relationship{
+						To:    model.Name,
+						Field: f.Relationship.Field,
+						Type:  f.Relationship.Type,
+					},
+					Return: Return{
+						Type:  f.Relationship.To,
+						Multi: true,
+					},
+				})
+
+		case config.Many2Many:
+			through := cfg.FindModel(f.Relationship.Through)
+			methodMap[f.Relationship.To] = append(
+				methodMap[f.Relationship.To],
+				Method{
+					Name: fmt.Sprintf("list_%s_by_%s", through.Plural, f.Relationship.Field),
+					Args: []Arg{
+						Arg{
+							Name:   f.Relationship.Field,
+							Parent: f.Relationship.Through,
+							Type:   config.ID,
+						},
+					},
+					Relationship: &Relationship{
+						To:      model.Name,
+						Through: f.Relationship.Through,
+						Field:   f.Relationship.Field,
+						Type:    f.Relationship.Type,
+					},
+					Return: Return{
+						Type:  f.Relationship.To,
+						Multi: true,
+					},
+				})
+		}
 	}
 
 	methodMap[model.Name] = append(

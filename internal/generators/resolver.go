@@ -78,6 +78,20 @@ func (t *ResolverGenerator) Generate(cfg *config.Config) error {
 		return errors.Wrapf(err, "Error generating common resolver functions")
 	}
 
+	if err := GenerateGoFile(
+		//if err := GenerateFile(
+		t.Filename("query"),
+		"query.tmpl",
+		struct {
+			Imports []string
+			Models  []domain.Model
+		}{
+			Imports: imports.AsSlice(),
+			Models:  models,
+		}); err != nil {
+		return errors.Wrapf(err, "Error generating query resolver functions")
+	}
+
 	return nil
 }
 

@@ -37,6 +37,7 @@ type Return struct {
 
 type Model struct {
 	Name        string
+	Plural      string
 	Description string
 	Fields      []Field
 	Repo        Repo

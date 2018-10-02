@@ -10,16 +10,10 @@ type {{ camel $m.Name }} {
 
 type Query {
 	ping: String!
-
-	userList: [User!]!
-
-	userTeamList(userId: ID!): [Team!]!
-	channelMessageList(channelId: ID!): [Message!]!
-	teamChannelList(teamId: ID!): [Channel!]!
-
-	team(id: ID!): Team!
-	channel(id: ID!): Channel!
-	user(id: ID!): User!
+{{ range $m := .Models }}
+	{{ lcamel $m.Name }}(id: ID!): User!
+	{{ lcamel $m.Plural }}List(first Integer!, after ID!): [User!]!
+{{ end -}}
 }
 
 schema {

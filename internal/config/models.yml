@@ -63,18 +63,10 @@ models:
           field: "user_id"
           type: "many2many"
 
-    actions:
+    mutations:
       - create
       - update
       - delete
-
-    queries:
-      - name: user_list
-        returns: user_multi
-      - name: user
-        args: 
-            - "id"
-        returns: user  
 
 
   - name: "team"
@@ -92,6 +84,7 @@ models:
         expose: true
         relationship:
           to: "user" 
+          type: one2one
         indexes: 
           - owner_index
 
@@ -111,18 +104,18 @@ models:
           field: "team_id"
           type: "many2many"
 
-    actions:
+      - name: "channel_list"
+        description: "Channel of the team"
+        expose: true
+        relationship:
+          to: "channel"
+          field: "team_id"
+          type: "one2many"
+
+    mutations:
       - create
       - update
       - delete
-
-    queries:
-      - name: team_list
-        returns: team_multi
-      - name: team
-        args: 
-          - "id"
-        returns: team  
           
   
   - name: "team_member"
@@ -146,7 +139,7 @@ models:
           - team_user_index
           - user_index  
 
-    actions:
+    mutations:
       - create
       - delete
 
@@ -166,6 +159,7 @@ models:
         expose: true
         relationship:
           to: "user"
+          type: one2one
         indexes: 
           - owner_index
 
@@ -174,6 +168,7 @@ models:
         expose: true
         relationship: 
           to: "team"
+          type: one2one
         indexes: 
           - team_index
 
@@ -194,22 +189,20 @@ models:
           to: "user"
           through: "channel_member"
           field: "user_id"
-          type: "manytomany"
+          type: "many2many"
 
-    actions:
+      - name: "message_list"
+        description: "Messages of the channel"
+        expose: true
+        relationship:
+          to: "message"
+          field: "channel_id"
+          type: "one2many"
+
+    mutations:
       - create
       - update
       - delete
-
-    queries:
-      - name: channel_list
-        args:
-          - "team"
-        returns: channel_multi
-      - name: channel
-        args: 
-          - "id"
-        returns: channel  
  
 
   - name: "channel_member"
@@ -229,7 +222,7 @@ models:
         indexes:
           - channel_user_index
 
-    actions:
+    mutations:
       - create
       - delete
   
@@ -248,6 +241,7 @@ models:
         description: "Owner of the channel"
         relationship:
           to: "user"
+          type: one2one
         indexes: 
           - owner_index
 
@@ -255,6 +249,7 @@ models:
         description: "Channel of Message"
         relationship:
             to: "channel"
+            type: one2one
         indexes: 
           - channel_index
 
@@ -268,13 +263,7 @@ models:
         expose: true
         type: timestamp
 
-    actions:
+    mutations:
       - create
       - update
       - delete
-
-    queries:
-      - name: channel_message_list
-        args:
-          - "channel"
-        returns: message_multi

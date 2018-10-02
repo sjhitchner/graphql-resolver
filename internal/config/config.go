@@ -47,6 +47,7 @@ func LoadConfig(r io.Reader) (*Config, error) {
 const (
 	ID           = "id"
 	One2One      = "one2one"
+	One2Many     = "one2many"
 	Many2Many    = "many2many"
 	UniqueIndex  = "unique"
 	PrimaryIndex = "primary"
@@ -84,7 +85,7 @@ func (t Config) FindModel(name string) *Model {
 			return &model
 		}
 	}
-	panic("Model Name " + name + " Not Found")
+	panic("Model Name '" + name + "' Not Found")
 }
 
 // type and import
@@ -129,8 +130,7 @@ type Model struct {
 	Description string   `yaml:"description,omitempty"`
 	Fields      []Field  `yaml:"fields"`
 	Deprecated  string   `yaml:"deprecated,omitempty"`
-	Actions     []string `yaml:"actions,omitempty"`
-	Queries     []Query  `yaml:"queries,omitempty"`
+	Mutations   []string `yaml:"mutations,omitempty"`
 }
 
 func validateModel(m *Model) {
@@ -172,10 +172,18 @@ func validateField(f *Field) {
 	}
 
 	if f.Relationship != nil {
-		if f.Relationship.Type == "" {
-			f.Relationship.Type = One2One
-		} else {
+		switch f.Relationship.Type {
+		case Many2Many:
 			f.Relationship.Type = Many2Many
+
+		case One2Many:
+			f.Relationship.Type = One2Many
+
+		case One2One:
+			f.Relationship.Type = One2One
+
+		default:
+			panic("Invalid '" + f.Relationship.Type + "' Relationship Type")
 		}
 	}
 }
@@ -206,14 +214,6 @@ type Index struct {
 
 func (t Index) NameWithIds() string {
 	s := strings.Split(t.Name, "_")
-	/*
-		for i := range s {
-			fmt.Println("XXXXX", t.Name, t.Type, s[i])
-			if t.Type == ID && !strings.HasSuffix(s[i], ID) {
-				s[i] = s[i] + "_id"
-			}
-		}
-	*/
 	return strings.Join(s, "_")
 }
 

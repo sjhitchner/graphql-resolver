@@ -147,6 +147,8 @@ func GraphQLType(values ...interface{}) (string, error) {
 
 	if f.Relationship != nil {
 		switch f.Relationship.Type {
+		case config.One2Many:
+			return fmt.Sprintf("[%s!]", strcase.UpperCamelCase(f.Relationship.To)), nil
 		case config.Many2Many:
 			return fmt.Sprintf("[%s!]", strcase.UpperCamelCase(f.Relationship.To)), nil
 		case config.One2One:

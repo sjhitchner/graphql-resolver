@@ -77,3 +77,41 @@ func (t *{{ camel $m.Name }}Resolver) {{ camel $f.Name }}(ctx context.Context)
 {{- end }}
 {{ end }}
 {{ end }}
+
+
+type {{ camel .Model.Name }}QueryResolver struct {
+}
+
+func (t *{{ camel .Model.Name }}QueryResolver) {{ camel .Model.Name }}(ctx context.Context, args struct {
+Id graphql.ID
+}) (*{{ camel .Model.Name }}Resolver, error) {
+	id, err := FromID(args.Id)
+	if err != nil {
+		return nil, errors.Wrapf(err, "invalid id")
+	}
+
+	obj, err := Interactor(ctx).Get{{ camel .Model.Name }}ById(ctx, id)
+	return &{{ camel .Model.Name }}Resolver{obj}, errors.Wrapf(err, "error getting {{ .Model.Name }} '%v'", args.Id)
+}
+
+func (t *{{ camel .Model.Name }}QueryResolver) {{ camel .Model.Name }}List(ctx context.Context, args struct {
+First int32
+After graphql.ID
+}) ([]*{{ camel .Model.Name }}Resolver, error) {
+	id, err := FromID(args.After)
+	if err != nil {
+		return nil, errors.Wrapf(err, "invalid id")
+	}
+
+	list, err := Interactor(ctx).ListUsers(ctx, int64(args.First), id)
+
+	resolvers := make([]*{{ camel .Model.Name }}Resolver, len(list))
+	for i:= range resolvers {
+		resolvers[i] = &{{ camel .Model.Name }}Resolver{list[i]}
+	}
+
+	return resolvers, errors.Wrapf(err, "error getting {{ camel .Model.Plural }}")
+}
+
+
+
