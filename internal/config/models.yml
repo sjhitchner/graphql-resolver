@@ -188,7 +188,7 @@ models:
         relationship:
           to: "user"
           through: "channel_member"
-          field: "user_id"
+          field: "channel_id"
           type: "many2many"
 
       - name: "message_list"

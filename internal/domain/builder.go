@@ -157,11 +157,11 @@ func buildRepoMethods(cfg *config.Config, model config.Model, methodMap map[stri
 				})
 
 		case config.Many2Many:
-			through := cfg.FindModel(f.Relationship.Through)
+			to := cfg.FindModel(f.Relationship.To)
 			methodMap[f.Relationship.To] = append(
 				methodMap[f.Relationship.To],
 				Method{
-					Name: fmt.Sprintf("list_%s_by_%s", through.Plural, f.Relationship.Field),
+					Name: fmt.Sprintf("list_%s_by_%s", to.Plural, f.Relationship.Field),
 					Args: []Arg{
 						Arg{
 							Name:   f.Relationship.Field,

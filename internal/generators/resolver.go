@@ -35,6 +35,7 @@ func (t *ResolverGenerator) Generate(cfg *config.Config) error {
 	models := domain.BuildModels(cfg)
 	globalImports := []string{
 		"github.com/sjhitchner/graphql-resolver/generated/domain",
+		"github.com/sjhitchner/graphql-resolver/generated/interfaces/helpers",
 	}
 
 	for _, model := range models {
@@ -53,7 +54,7 @@ func (t *ResolverGenerator) Generate(cfg *config.Config) error {
 	}
 
 	types, imports := domain.BuildTypes(cfg)
-	imports.Add(globalImports...)
+	imports.Add(globalImports[0])
 	idType := domain.Type{
 		Name: "id",
 		Type: "integer",
@@ -86,7 +87,7 @@ func (t *ResolverGenerator) Generate(cfg *config.Config) error {
 			Imports []string
 			Models  []domain.Model
 		}{
-			Imports: imports.AsSlice(),
+			Imports: []string{}, //imports.AsSlice(),
 			Models:  models,
 		}); err != nil {
 		return errors.Wrapf(err, "Error generating query resolver functions")

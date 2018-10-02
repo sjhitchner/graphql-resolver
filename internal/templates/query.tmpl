@@ -1,6 +1,7 @@
-package resolver
+{{ template "Header" }}
+package resolvers
 
-{{ template "Imports" unique .Imports "context" "encoding/base64" "github.com/graph-gophers/graphql-go" }}
+{{ template "Imports" unique .Imports "context" }}
 
 type Resolver struct {
 {{ range $m := .Models }}

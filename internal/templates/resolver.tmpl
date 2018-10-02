@@ -26,15 +26,26 @@ package resolvers
 {{ end }}
 
 
-{{ define "MethodOneToOne" }} (*{{ camel .Field.Relationship.To }}Resolver, error) {
-	obj, err := Interactor(ctx).Get{{ camel .Field.Relationship.To }}ById(ctx, t.obj.{{ camel .Field.Internal }})
+{{ define "MethodOne2One" }} (*{{ camel .Field.Relationship.To }}Resolver, error) {
+	obj, err := helpers.Interactor(ctx).Get{{ camel .Field.Relationship.To }}ById(ctx, t.obj.{{ camel .Field.Internal }})
 	return &{{ camel .Field.Relationship.To }}Resolver{obj}, errors.Wrapf(err, "Failed Getting {{ camel .Field.Name }} '%v'", t.obj.{{ camel .Field.Internal }})
 }
 {{ end }}
 
 
-{{ define "MethodManyToMany" }} ([]*{{ camel .Field.Relationship.To }}Resolver, error) {
-	list, err := Interactor(ctx).List{{ camel .Field.Relationship.To }}sBy{{ camel .Field.Relationship.Field }}(ctx, t.obj.Id)
+{{ define "MethodOne2Many" }} ([]*{{ camel .Field.Relationship.To }}Resolver, error) {
+	list, err := helpers.Interactor(ctx).List{{ camel .Field.Relationship.To }}sBy{{ camel .Field.Relationship.Field }}(ctx, t.obj.Id)
+	resolvers := make([]*{{ camel .Field.Relationship.To }}Resolver, len(list))
+	for i := range resolvers {
+		resolvers[i] = &{{ camel .Field.Relationship.To }}Resolver{list[i]}
+	}
+	return resolvers, errors.Wrapf(err, "Failed Getting {{ camel .Field.Name }} By '%v'", t.obj.Id)
+}
+{{ end }}
+
+
+{{ define "MethodMany2Many" }} ([]*{{ camel .Field.Relationship.To }}Resolver, error) {
+	list, err := helpers.Interactor(ctx).List{{ camel .Field.Relationship.To }}sBy{{ camel .Field.Relationship.Field }}(ctx, t.obj.Id)
 	resolvers := make([]*{{ camel .Field.Relationship.To }}Resolver, len(list))
 	for i := range resolvers {
 		resolvers[i] = &{{ camel .Field.Relationship.To }}Resolver{list[i]}
@@ -63,9 +74,11 @@ func New{{ camel $m.Name }}Resolver(obj *domain.{{ camel $m.Name }}) *{{ camel $
 func (t *{{ camel $m.Name }}Resolver) {{ camel $f.Name }}(ctx context.Context) 
 {{- if $f.Relationship -}}
 	{{- if eq $f.Relationship.Type "many2many" -}}
-		{{ template "MethodManyToMany" args "Model" $m "Field" $f }}
+		{{ template "MethodMany2Many" args "Model" $m "Field" $f }}
+	{{- else if eq $f.Relationship.Type "one2many" -}}
+		{{ template "MethodOne2Many" args "Model" $m "Field" $f }}
 	{{- else -}}
-		{{ template "MethodOneToOne" args "Model" $m "Field" $f }}
+		{{ template "MethodOne2One" args "Model" $m "Field" $f }}
 	{{- end -}}
 {{- else if eq $f.Type "id" -}}
 	{{ template "MethodID" args "Model" $m "Field" $f }}
@@ -90,7 +103,7 @@ Id graphql.ID
 		return nil, errors.Wrapf(err, "invalid id")
 	}
 
-	obj, err := Interactor(ctx).Get{{ camel .Model.Name }}ById(ctx, id)
+	obj, err := helpers.Interactor(ctx).Get{{ camel .Model.Name }}ById(ctx, id)
 	return &{{ camel .Model.Name }}Resolver{obj}, errors.Wrapf(err, "error getting {{ .Model.Name }} '%v'", args.Id)
 }
 
@@ -103,7 +116,7 @@ After graphql.ID
 		return nil, errors.Wrapf(err, "invalid id")
 	}
 
-	list, err := Interactor(ctx).ListUsers(ctx, int64(args.First), id)
+	list, err := helpers.Interactor(ctx).List{{ camel .Model.Plural }}(ctx, int64(args.First), id)
 
 	resolvers := make([]*{{ camel .Model.Name }}Resolver, len(list))
 	for i:= range resolvers {
