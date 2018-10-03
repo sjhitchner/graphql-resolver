@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"text/template"
 
-	//"github.com/pkg/errors"
+	"github.com/pkg/errors"
 	"github.com/stoewer/go-strcase"
 
 	"github.com/sjhitchner/graphql-resolver/internal/config"
@@ -81,7 +81,7 @@ func GenerateGoFile(filename, template string, data interface{}) error {
 
 	buf := &bytes.Buffer{}
 	if err := ExecuteTemplate(buf, template, data); err != nil {
-		return err
+		return errors.Wrapf(err, "Template Error %s", filename)
 	}
 
 	fset := token.NewFileSet()
@@ -92,7 +92,8 @@ func GenerateGoFile(filename, template string, data interface{}) error {
 		parser.AllErrors|parser.ParseComments,
 	)
 	if err != nil {
-		return err
+		f.Write(buf.Bytes())
+		return errors.Wrapf(err, "Template Compile Error %s", filename)
 	}
 
 	return format.Node(f, fset, out)

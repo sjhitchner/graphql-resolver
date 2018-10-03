@@ -61,6 +61,10 @@ const (
 
 	Link   = "link"
 	Domain = "domain"
+
+	Create = "create"
+	Update = "update"
+	Delete = "delete"
 )
 
 type Config struct {
@@ -131,6 +135,13 @@ type Model struct {
 	Fields      []Field  `yaml:"fields"`
 	Deprecated  string   `yaml:"deprecated,omitempty"`
 	Mutations   []string `yaml:"mutations,omitempty"`
+}
+
+type Mutation struct {
+	Name         string   `yaml:"name"`
+	Type         string   `yaml:"type"`
+	InputFields  []string `yaml:"inputs"`
+	OutputFields []string `yaml:"outputs"`
 }
 
 func validateModel(m *Model) {

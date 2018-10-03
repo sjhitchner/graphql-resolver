@@ -1,8 +1,8 @@
 package domain
 
 import (
-	"encoding/json"
-	"fmt"
+	//"encoding/json"
+	//"fmt"
 	"testing"
 
 	. "gopkg.in/check.v1"
@@ -33,17 +33,18 @@ func (s *DomainSuite) SetUpSuite(c *C) {
 func (s *DomainSuite) Test_Parse(c *C) {
 	c.Assert(s.Config, NotNil)
 
-	models, repos, types := ProcessConfig(s.Config)
+	/*
+		models, repos, types := ProcessConfig(s.Config)
 
-	b, _ := json.MarshalIndent(models, "", "  ")
-	fmt.Println(string(b))
+		b, _ := json.MarshalIndent(models, "", "  ")
+		fmt.Println(string(b))
 
-	b, _ = json.MarshalIndent(repos, "", "  ")
-	fmt.Println(string(b))
+		b, _ = json.MarshalIndent(repos, "", "  ")
+		fmt.Println(string(b))
 
-	b, _ = json.MarshalIndent(types, "", "  ")
-	fmt.Println(string(b))
-
+		b, _ = json.MarshalIndent(types, "", "  ")
+		fmt.Println(string(b))
+	*/
 	/*
 		c.Assert(models, HasLen, 0)
 		c.Assert(repos, HasLen, 0)

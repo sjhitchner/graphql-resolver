@@ -8,7 +8,7 @@ package db
 {{- define "DBMethod" -}}
 {{ camel .Name }}(ctx context.Context
 {{- range $arg := .Args -}}
-, {{ lcamel $arg.Name }} {{ gotype $arg.Type "domain" }}
+, {{ lcamel $arg.Name }} {{- if $arg.Deref -}}*{{- end -}}{{ gotype $arg.Type "domain" }}
 {{- end -}}
 ) ({{ return .Return "domain" }}, error)
 {{- end -}}
@@ -21,6 +21,25 @@ SELECT {{ range $i, $f := .Fields }}
 {{ end }}
 {{- end -}}
 FROM {{ .Name }}
+{{ end }}
+
+
+{{ define "Insert" }}
+INSERT INTO {{ .Name }} (
+{{ range $i, $f := .Fields }}
+	{{- if gt $i 0 }}, {{ end -}}{{ $f.Internal }}
+{{ end }}
+{{ range $i, $f := .Fields }}
+	{{- if gt $i 0 }}, {{ end -}}{{ add $i 1 }}
+{{ end }}
+{{ end }}
+
+
+{{ define "Update" }}
+{{ end }}
+
+
+{{ define "Delete" }}
 {{ end }}
 
 
@@ -50,6 +69,18 @@ return list, {{- template "QueryError" args "Model" .Model "Method" .Method }}
 {{- end -}}
 
 
+{{- define "InsertMethod" -}}
+{{- end -}}
+
+
+{{- define "UpdateMethod" -}}
+{{- end -}}
+
+
+{{- define "DeleteMethod" -}}
+{{- end -}}
+
+
 {{ with $m := .Model }}
 type {{ camel $m.Name }}DB struct {
 	db db.DBHandler
@@ -68,38 +99,18 @@ JOIN {{ $method.Relationship.Through }} ON {{ $method.Relationship.To }}.id = {{
 `
 
 func (t *{{ camel $m.Name}}DB) {{ template "DBMethod" $method }} {
-{{- if $method.Return.Multi }}
+{{- if eq $method.Type "list" }}
 	{{ template "ListQuery" args "Model" $m "Method" $method }}
-{{- else }}
+{{- if eq $method.Type "get" }}
 	{{ template "GetQuery" args "Model" $m "Method" $method }}
+{{- else if eq $method.Type "create" }}
+	{{ template "InsertQuery" args "Model" $m "Method" $method }}
+{{- else if eq $method.Type "update" }}
+	{{ template "UpdateQuery" args "Model" $m "Method" $method }}
+{{- else if eq $method.Type "delete" }}
+	{{ template "DeleteQuery" args "Model" $m "Method" $method }}
 {{- end }}
 }
 
 {{ end }}
-
-{{/*
-{{ range $rm := $m.Relationships }}
-{{ range $method := $rm.Methods }}
-
-const Select{{ camel $method.Name }} = `
-{{- template "Select" $rm.Model }}JOIN {{ $rm.Name }}
-ON {{ $rm.Name }}.{{ $rm.Model.Name }}_id = {{ $rm.Model.Name }}.id
-WHERE {{ range $i, $arg := $method.Args -}}
-{{- if gt $i 0 }}AND {{ end -}}
-{{ $rm.Name }}.{{ $arg.Name }} = ${{ add $i 1 }}
-{{- end }}
-`
-
-func (t *{{ camel $m.Name}}DB) {{ template "RepoMethod" $method }} {
-{{- if eq $method.ReturnPrefix "*" }}
-	{{ template "GetQuery" args "Model" $rm "Method" $method }}
-{{- else }}
-	{{ template "ListQuery" args "Model" $rm "Method" $method }}
-{{- end }}
-}
-
-{{ end }}
-{{ end }}
-*/}}
-
 {{ end }}

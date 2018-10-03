@@ -18,6 +18,7 @@ type Repo struct {
 }
 
 type Method struct {
+	Type         string
 	Name         string
 	Args         []Arg
 	Relationship *Relationship
@@ -28,6 +29,7 @@ type Arg struct {
 	Name   string
 	Parent string
 	Type   string
+	Deref  bool
 }
 
 type Return struct {
@@ -42,6 +44,13 @@ type Model struct {
 	Fields      []Field
 	Repo        Repo
 	Imports     Imports
+	Mutations   []Mutation
+}
+
+type Mutation struct {
+	Name  string
+	Type  string
+	Field []Field
 }
 
 type Relationship struct {

@@ -16,6 +16,17 @@ type Query {
 {{ end -}}
 }
 
+{{- range $m := .Models }}
+{{ template "ModelMutations" $m}}
+{{- end }}
+
+type Mutation {
+{{- range $m := .Models }}
+	{{ template "ModelMutationDefinitions" $m}}
+{{- end }}
+}
+
 schema {
 	query: Query
+	mutation: Mutation
 }

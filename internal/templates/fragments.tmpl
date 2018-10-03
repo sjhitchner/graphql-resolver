@@ -68,3 +68,55 @@ func (t *{{ .Struct }}) Get{{ .Model }}By
 {{ define "Header" }}
 // Generated file DO NOT EDIT {{ now }}
 {{- end }}
+
+
+{{- define "ModelMutationCreate" -}}
+type {{ camel .Mutation.Name }}Input {
+}
+
+type {{ camel .Mutation.Name }}Output {
+	{{ lcamel .Model.Name }}: {{ camel .Model.Name }}!
+}
+{{- end -}}
+
+
+{{- define "ModelMutationDelete" -}}
+type {{ camel .Mutation.Name }}Input {
+}
+
+type {{ camel .Mutation.Name }}Output {
+	ok: Boolean!
+}
+{{- end -}}
+
+
+{{- define "ModelMutationUpdate" -}}
+type {{ camel .Mutation.Name }}Input {
+}
+
+type {{ camel .Mutation.Name }}Output {
+	ok: Boolean!
+}
+{{- end -}}
+
+
+{{- define "ModelMutations" -}}
+{{ with $model := . }}
+{{- range $m := $model.Mutations }}
+{{- if eq $m.Type "create" }} 
+{{ template "ModelMutationCreate" args "Model" $model "Mutation" $m }}
+{{- else if eq $m.Type "create" }} 
+{{ template "ModelMutationDelete" args "Model" $model "Mutation" $m }}
+{{- else }}
+{{ template "ModelMutationUpdate" args "Model" $model "Mutation" $m }}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+
+{{- define "ModelMutationDefinitions" -}}
+{{- range $m := .Mutations }}
+	{{ lcamel $m.Name }}(input: {{ camel $m.Name }}Input!): {{ camel $m.Name }}Output!  
+{{- end }}
+{{- end -}}

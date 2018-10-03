@@ -118,32 +118,6 @@ models:
       - delete
           
   
-  - name: "team_member"
-    description: "A Team Member"
-    type: link
-    fields:
-      - name: "id"
-        type: id
-        indexes:
-          - primary
-
-      - name: "team"
-        type: id
-        indexes:
-          - team_user_index
-          - team_index
-
-      - name: "user"
-        type: id
-        indexes:
-          - team_user_index
-          - user_index  
-
-    mutations:
-      - create
-      - delete
-
-
   - name: "channel"
     description: "A Slack Channel"
     fields:
@@ -205,28 +179,6 @@ models:
       - delete
  
 
-  - name: "channel_member"
-    description: "A Channel Member"
-    type: link
-    fields:
-      - name: "id"
-        type: id
-        indexes:
-          - primary
-      - name: "channel"
-        type: id
-        indexes:
-          - channel_user_index
-      - name: "user"
-        type: id
-        indexes:
-          - channel_user_index
-
-    mutations:
-      - create
-      - delete
-  
-
   - name: "message"
     description: "A Slack Message"
     fields:
@@ -265,5 +217,4 @@ models:
 
     mutations:
       - create
-      - update
-      - delete
+
