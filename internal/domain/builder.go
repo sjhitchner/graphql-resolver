@@ -99,65 +99,81 @@ func BuildModel(cfg *config.Config, model config.Model) Model {
 		Plural:      model.Plural,
 		Description: model.Description,
 		Fields:      fields,
+		Internal:    model.Internal,
 		Imports:     imports,
-		Mutations: func() []Mutation {
-			mutations := make([]Mutation, 0, len(model.Mutations))
-			for _, m := range model.Mutations {
-				mutations = append(mutations, Mutation{
-					Name:  fmt.Sprintf("%s_%s", m, model.Name),
-					Type:  m,
-					Field: fields,
-				})
-			}
-			return mutations
-		}(),
+		Mutations:   BuildMutations(cfg, model),
 	}
+}
+
+func BuildMutations(cfg *config.Config, model config.Model) []Mutation {
+	mutations := make([]Mutation, 0, len(model.Mutations))
+	for _, m := range model.Mutations {
+		mutations = append(mutations, Mutation{
+			Name: fmt.Sprintf("%s_%s", m.Name, model.Name),
+			Type: m.Type,
+			Fields: func() []Field {
+				fields := make([]Field, 0, len(model.Fields))
+
+				for _, name := range m.Fields {
+					field, _ := BuildField(cfg, model.FindFieldByName(name))
+					fields = append(fields, field)
+				}
+				return fields
+			}(),
+			Key: m.Key,
+		})
+	}
+	return mutations
 }
 
 func BuildFields(cfg *config.Config, model config.Model) ([]Field, Imports) {
 	fields := make([]Field, 0, len(model.Fields))
 	imports := NewImports()
 
-	for _, f := range model.Fields {
-
-		primative, impt := cfg.Primative(f.Type)
-		imports.Add(impt)
-
-		internal := f.Internal
-		if f.Type == config.ID &&
-			!strings.HasSuffix(f.Internal, "id") {
-			internal = f.Internal + "_id"
-		}
-
-		field := Field{
-			Name:         f.Name,
-			Type:         f.Type,
-			Primative:    primative,
-			Internal:     internal,
-			ShouldExpose: f.Expose,
-		}
-
-		if f.Relationship != nil {
-			to := cfg.FindModel(f.Relationship.To)
-
-			field.Relationship = &Relationship{
-				To: to.Name,
-				Through: func() string {
-					if f.Relationship.Through == "" {
-						return ""
-					}
-					through := cfg.FindModel(f.Relationship.Through)
-					return through.Plural
-				}(),
-				Field: f.Relationship.Field,
-				Type:  f.Relationship.Type,
-			}
-		}
-
+	for _, field := range model.Fields {
+		field, imprt := BuildField(cfg, field)
+		imports.Add(imprt)
 		fields = append(fields, field)
 	}
 
 	return fields, imports
+}
+
+func BuildField(cfg *config.Config, f config.Field) (Field, string) {
+	primative, imprt := cfg.Primative(f.Type)
+
+	internal := f.Internal
+	if f.Type == config.ID &&
+		!strings.HasSuffix(f.Internal, "id") {
+		internal = f.Internal + "_id"
+	}
+
+	field := Field{
+		Name:         f.Name,
+		Type:         f.Type,
+		Primative:    primative,
+		Internal:     internal,
+		ShouldExpose: f.Expose,
+	}
+
+	if f.Relationship != nil {
+		to := cfg.FindModelByName(f.Relationship.To)
+
+		field.Relationship = &Relationship{
+			To: to.Name,
+			Through: func() string {
+				if f.Relationship.Through == "" {
+					return ""
+				}
+				through := cfg.FindModelByName(f.Relationship.Through)
+				return through.Plural
+			}(),
+			Field: f.Relationship.Field,
+			Type:  f.Relationship.Type,
+		}
+	}
+
+	return field, imprt
 }
 
 func BuildRepoMethods(cfg *config.Config) map[string][]Method {
@@ -189,7 +205,7 @@ func buildRepoMethods(cfg *config.Config, model config.Model, methodMap map[stri
 				Args: func() []Arg {
 					args := make([]Arg, 0, len(idx.Fields))
 					for _, fieldName := range idx.Fields {
-						field := model.FindFieldByName(fieldName)
+						field := model.FindFieldByInternal(fieldName)
 						args = append(args, Arg{
 							Parent: model.Internal,
 							Name:   fieldName,
@@ -212,7 +228,7 @@ func buildRepoMethods(cfg *config.Config, model config.Model, methodMap map[stri
 
 		switch f.Relationship.Type {
 		case config.One2Many:
-			to := cfg.FindModel(f.Relationship.To)
+			to := cfg.FindModelByName(f.Relationship.To)
 			methodMap[f.Relationship.To] = append(
 				methodMap[f.Relationship.To],
 				Method{
@@ -238,7 +254,7 @@ func buildRepoMethods(cfg *config.Config, model config.Model, methodMap map[stri
 			)
 
 		case config.Many2Many:
-			to := cfg.FindModel(f.Relationship.To)
+			to := cfg.FindModelByName(f.Relationship.To)
 			methodMap[f.Relationship.To] = append(
 				methodMap[f.Relationship.To],
 				Method{
@@ -295,50 +311,6 @@ func buildRepoMethods(cfg *config.Config, model config.Model, methodMap map[stri
 			Return: Return{
 				Type:  model.Name,
 				Multi: true,
-			},
-		})
-
-	methodMap[model.Name] = append(
-		methodMap[model.Name],
-		Method{
-			Name: "create_" + model.Name,
-			Args: []Arg{
-				Arg{
-					Name:  model.Name,
-					Type:  model.Name,
-					Deref: true,
-				},
-			},
-			Return: Return{
-				Type:  model.Name,
-				Multi: false,
-			},
-		},
-		Method{
-			Name: "update_" + model.Name,
-			Args: []Arg{
-				Arg{
-					Name:  model.Name,
-					Type:  model.Name,
-					Deref: true,
-				},
-			},
-			Return: Return{
-				Type:  model.Name,
-				Multi: false,
-			},
-		},
-		Method{
-			Name: "delete_" + model.Name,
-			Args: []Arg{
-				Arg{
-					Name: "id",
-					Type: config.ID,
-				},
-			},
-			Return: Return{
-				Type:  model.Name,
-				Multi: false,
 			},
 		})
 }

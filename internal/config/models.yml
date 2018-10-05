@@ -130,12 +130,12 @@ models:
         type: insert
         fields:
           - name
-          - owner_id
+          - owner
       - name: update
         type: update
         fields: 
           - name
-          - owner_id
+          - owner
         key: id
       - name: delete
         type: delete
@@ -167,8 +167,8 @@ models:
       - name: add
         type: insert
         fields:
-          - team_id
-          - user_id
+          - team
+          - user
       - name: delete
         type: delete
         key: id
@@ -235,15 +235,15 @@ models:
         fields:
           - name
           - is_public
-          - owner_id
-          - team_id
+          - owner
+          - team
       - name: update
         type: update
         fields: 
           - name
           - is_public
-          - owner_id
-          - team_id
+          - owner
+          - team
         key: id
       - name: delete
         type: delete
@@ -271,8 +271,8 @@ models:
       - name: add
         type: insert
         fields:
-            - channel_id
-            - user_id
+            - channel
+            - user
       - name: delete
         type: delete
         key: id
@@ -318,6 +318,6 @@ models:
       - name: send
         type: insert
         fields:
-          - user_id
-          - channel_id
+          - user
+          - channel
           - text

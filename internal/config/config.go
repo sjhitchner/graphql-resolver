@@ -177,6 +177,11 @@ func validateField(f *Field) {
 
 	if f.Internal == "" {
 		f.Internal = f.Name
+		if f.Relationship != nil {
+			if f.Internal != "id" && !strings.HasSuffix(f.Internal, "_id") {
+				f.Internal = f.Name + "_id"
+			}
+		}
 	}
 
 	if f.Relationship != nil {
@@ -270,7 +275,7 @@ func (t Model) FindFieldByName(name string) Field {
 			return field
 		}
 	}
-	panic("No field " + name + " in model " + t.Name)
+	panic("No field named " + name + " in model " + t.Name)
 }
 
 func (t Model) FindFieldByInternal(internal string) Field {
@@ -279,7 +284,7 @@ func (t Model) FindFieldByInternal(internal string) Field {
 			return field
 		}
 	}
-	panic("No field " + internal + " in model " + t.Internal)
+	panic("No field internal " + internal + " in model " + t.Name)
 }
 
 func (t Model) Indexes() []Index {

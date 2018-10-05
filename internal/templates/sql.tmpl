@@ -24,22 +24,35 @@ FROM {{ .Name }}
 {{ end }}
 
 
-{{ define "Insert" }}
-INSERT INTO {{ .Name }} (
-{{ range $i, $f := .Fields }}
+{{ define "InsertQuery" }}
+const {{ camel .Mutation.Name }}Query = `
+INSERT INTO {{ .Model.Internal }} (
+{{- range $i, $f := .Mutation.Fields }}
 	{{- if gt $i 0 }}, {{ end -}}{{ $f.Internal }}
-{{ end }}
-{{ range $i, $f := .Fields }}
-	{{- if gt $i 0 }}, {{ end -}}{{ add $i 1 }}
-{{ end }}
-{{ end }}
-
-
-{{ define "Update" }}
+{{- end }} ) VALUES (
+{{- range $i, $f := .Mutation.Fields }}
+	{{- if gt $i 0 }}, {{ end -}}${{ add $i 1 }}
+{{- end -}}
+)
+`
 {{ end }}
 
 
-{{ define "Delete" }}
+{{ define "UpdateQuery" }}
+const {{ camel .Mutation.Name }}Query = `
+UPDATE {{ .Model.Internal }} SET
+{{ range $i, $f := .Mutation.Fields }}
+	{{- if gt $i 0 }}, {{ end -}}{{ $f.Internal }} = ${{ add $i 2 }}
+{{- end }}
+WHERE id = $1 
+`
+{{ end }}
+
+
+{{ define "DeleteQuery" }}
+const {{ camel .Mutation.Name }}Query = `
+DELETE FROM {{ .Model.Internal }} WHERE id = $1
+`
 {{ end }}
 
 
@@ -49,7 +62,7 @@ errors.Wrapf(err, "Error Getting {{ .Model.Name }} {{ range $arg := .Method.Args
 {{- end -}}
 
 
-{{- define "GetQuery" -}}
+{{- define "GetMethod" -}}
 var obj domain.{{ camel .Model.Name }}
 err := t.db.GetById(ctx, &obj, Select{{ camel .Method.Name }}
 {{- range $arg := .Method.Args -}}
@@ -59,7 +72,7 @@ return &obj, {{- template "QueryError" args "Model" .Model "Method" .Method }}
 {{- end -}}
 
 
-{{- define "ListQuery" -}}
+{{- define "ListMethod" -}}
 var list []*domain.{{ camel .Model.Name }}
 err := t.db.Select(ctx, &list, Select{{ camel .Method.Name }}
 {{- range $arg := .Method.Args -}}
@@ -69,15 +82,41 @@ return list, {{- template "QueryError" args "Model" .Model "Method" .Method }}
 {{- end -}}
 
 
-{{- define "InsertMethod" -}}
+{{- define "InsertMutation" -}}
+func (t *{{ camel .Model.Name }}DB) {{ camel .Mutation.Name }}(ctx context.Context, obj *domain.{{ camel .Model.Name }})(*domain.{{ camel .Model.Name }}, error) {
+id, err := t.db.InsertWithId(
+		ctx,
+		{{ camel .Mutation.Name }}Query,
+		{{- range $f := .Mutation.Fields }} 
+		obj.{{ camel $f.Internal }},
+	    {{- end }}
+		)
+	obj.Id = id
+	return obj, errors.Wrapf(err, "Unable to {{ camel .Mutation.Name }} {{ .Model.Name }}")
+}
 {{- end -}}
 
 
-{{- define "UpdateMethod" -}}
+{{- define "UpdateMutation" -}}
+func (t *{{ camel .Model.Name }}DB) {{ camel .Mutation.Name }}(ctx context.Context, obj *domain.{{ camel .Model.Name }}) error {
+_, err := t.db.Update(
+		ctx,
+		{{ camel .Mutation.Name }}Query,
+		obj.{{ camel .Mutation.Key }},
+		{{- range $f := .Mutation.Fields }} 
+		obj.{{ camel $f.Internal }},
+	    {{- end }}
+		)
+	return errors.Wrapf(err, "Unable to {{ camel .Mutation.Name }} {{ .Model.Name }}")
+}
 {{- end -}}
 
 
-{{- define "DeleteMethod" -}}
+{{- define "DeleteMutation" -}}
+func (t *{{ camel .Model.Name }}DB) {{ camel .Mutation.Name }}(ctx context.Context, obj *domain.{{ camel .Model.Name }}) error {
+_, err := t.db.Delete( ctx, {{ camel .Mutation.Name }}Query, obj.{{ camel .Mutation.Key }})
+	return errors.Wrapf(err, "Unable to {{ camel .Mutation.Name }} {{ .Model.Name }}")
+}
 {{- end -}}
 
 
@@ -86,7 +125,7 @@ type {{ camel $m.Name }}DB struct {
 	db db.DBHandler
 }
 
-{{ range $method := .Repo.Methods }}
+{{ range $method := $m.Repo.Methods }}
 
 const Select{{ camel $method.Name }} = `
 {{- template "Select" $m }}
@@ -100,16 +139,26 @@ JOIN {{ $method.Relationship.Through }} ON {{ $method.Relationship.To }}.id = {{
 
 func (t *{{ camel $m.Name}}DB) {{ template "DBMethod" $method }} {
 {{- if eq $method.Type "list" }}
-	{{ template "ListQuery" args "Model" $m "Method" $method }}
+	{{ template "ListMethod" args "Model" $m "Method" $method }}
 {{- else if eq $method.Type "get" }}
-	{{ template "GetQuery" args "Model" $m "Method" $method }}
-{{- else if eq $method.Type "create" }}
-	{{ template "InsertQuery" args "Model" $m "Method" $method }}
-{{- else if eq $method.Type "update" }}
-	{{ template "UpdateQuery" args "Model" $m "Method" $method }}
-{{- else if eq $method.Type "delete" }}
-	{{ template "DeleteQuery" args "Model" $m "Method" $method }}
-{{- end }}
+	{{ template "GetMethod" args "Model" $m "Method" $method }}
+{{- end -}}
 }
 {{ end }}
+
+{{ range $mutation := $m.Mutations }}
+{{- if eq $mutation.Type "insert" }}
+	{{- template "InsertQuery" args "Model" $m "Mutation" $mutation }}
+	{{- template "InsertMutation" args "Model" $m "Mutation" $mutation }}
+{{- else if eq $mutation.Type "update" }}
+	{{- template "UpdateQuery" args "Model" $m "Mutation" $mutation }}
+	{{- template "UpdateMutation" args "Model" $m "Mutation" $mutation }}
+{{- else if eq $mutation.Type "delete" }}
+	{{- template "DeleteQuery" args "Model" $m "Mutation" $mutation }}
+	{{- template "DeleteMutation" args "Model" $m "Mutation" $mutation }}
+{{- end }}
 {{ end }}
+
+{{ end }}
+
+

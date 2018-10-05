@@ -42,15 +42,17 @@ type Model struct {
 	Plural      string
 	Description string
 	Fields      []Field
+	Internal    string
 	Repo        Repo
 	Imports     Imports
 	Mutations   []Mutation
 }
 
 type Mutation struct {
-	Name  string
-	Type  string
-	Field []Field
+	Name   string
+	Type   string
+	Fields []Field
+	Key    string
 }
 
 type Relationship struct {
