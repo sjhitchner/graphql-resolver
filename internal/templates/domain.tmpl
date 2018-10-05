@@ -4,6 +4,34 @@ package domain
 {{ template "Imports" unique .Imports "context" "encoding/json" }}
 
 
+{{- define "RepoMethod" -}}
+{{ camel .Name }}(ctx context.Context
+{{- range $arg := .Args -}}
+, {{ lcamel $arg.Name }} {{ gotype $arg.Type }}
+{{- end -}}
+) ({{ return .Return }}, error)
+{{- end -}}
+
+
+{{ define "RepoInterface" }}
+{{ with $m := . }}
+type {{ camel $m.Repo.Name }} interface {
+{{- range $method := $m.Repo.Methods }}
+	{{ template "RepoMethod" $method }}
+{{- end }}
+
+{{ range $mutation := $m.Mutations }}
+{{- if eq $mutation.Type "insert" }}
+{{ camel $mutation.Name }}(ctx context.Context, obj *{{ camel $m.Name }}) (*{{ camel $m.Name }}, error)
+{{- else }}
+{{ camel $mutation.Name }}(ctx context.Context, obj *{{ camel $m.Name }}) error
+{{- end }}
+{{- end }}
+}
+{{ end }}
+{{ end }}
+
+
 {{ define "ModelStruct" }}
 type {{ camel .Name }} struct {
 {{- range $field := .Fields }}

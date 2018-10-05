@@ -1,4 +1,5 @@
 {{ range $m := .Models }}
+{{- if ne $m.Type "link" -}}
 type {{ camel $m.Name }} {
 {{- range $f := $m.Fields }}
 {{- if $f.ShouldExpose }}
@@ -7,22 +8,25 @@ type {{ camel $m.Name }} {
 {{- end }}
 }
 {{ end }}
+{{ end }}
 
 type Query {
 	ping: String!
 {{ range $m := .Models }}
+{{- if ne $m.Type "link" }}
 	{{ lcamel $m.Name }}(id: ID!): User!
 	{{ lcamel $m.Plural }}List(first Integer!, after ID!): [User!]!
 {{ end -}}
+{{ end -}}
 }
 
-{{- range $m := .Models }}
-{{ template "ModelMutations" $m}}
+{{- range $m := .Models -}}
+{{ template "ModelMutations" $m }}
 {{- end }}
 
 type Mutation {
 {{- range $m := .Models }}
-	{{ template "ModelMutationDefinitions" $m}}
+	{{ template "ModelMutationDefinitions" $m }}
 {{- end }}
 }
 

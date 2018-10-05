@@ -79,7 +79,8 @@ models:
         key: id
       - name: delete
         type: delete
-        key: id
+        fields:
+          - id
 
 
   - name: "team"
@@ -139,7 +140,8 @@ models:
         key: id
       - name: delete
         type: delete
-        key: id
+        fields:
+          - id
  
   
   - name: "team_member"
@@ -169,9 +171,10 @@ models:
         fields:
           - team
           - user
-      - name: delete
+      - name: remove
         type: delete
-        key: id
+        fields:
+          - id
 
 
   - name: "channel"
@@ -247,7 +250,8 @@ models:
         key: id
       - name: delete
         type: delete
-        key: id
+        fields:
+          - id
 
 
   - name: "channel_member"
@@ -271,11 +275,13 @@ models:
       - name: add
         type: insert
         fields:
-            - channel
-            - user
-      - name: delete
+          - channel
+          - user
+      - name: remove 
         type: delete
-        key: id
+        fields:
+          - channel
+          - user
   
 
   - name: "message"

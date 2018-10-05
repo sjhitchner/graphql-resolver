@@ -29,7 +29,7 @@ const {{ camel .Mutation.Name }}Query = `
 INSERT INTO {{ .Model.Internal }} (
 {{- range $i, $f := .Mutation.Fields }}
 	{{- if gt $i 0 }}, {{ end -}}{{ $f.Internal }}
-{{- end }} ) VALUES (
+{{- end }}) VALUES (
 {{- range $i, $f := .Mutation.Fields }}
 	{{- if gt $i 0 }}, {{ end -}}${{ add $i 1 }}
 {{- end -}}
@@ -51,7 +51,9 @@ WHERE id = $1
 
 {{ define "DeleteQuery" }}
 const {{ camel .Mutation.Name }}Query = `
-DELETE FROM {{ .Model.Internal }} WHERE id = $1
+DELETE FROM {{ .Model.Internal }} WHERE {{ range $i, $f := .Mutation.Fields -}}
+	{{- if gt $i 0 }} AND {{ end -}}{{ $f.Internal }} = ${{ add $i 1 }}
+{{- end }}
 `
 {{ end }}
 
@@ -114,7 +116,13 @@ _, err := t.db.Update(
 
 {{- define "DeleteMutation" -}}
 func (t *{{ camel .Model.Name }}DB) {{ camel .Mutation.Name }}(ctx context.Context, obj *domain.{{ camel .Model.Name }}) error {
-_, err := t.db.Delete( ctx, {{ camel .Mutation.Name }}Query, obj.{{ camel .Mutation.Key }})
+_, err := t.db.Delete(
+		ctx,
+		{{ camel .Mutation.Name }}Query,
+		{{- range $f := .Mutation.Fields }} 
+		obj.{{ camel $f.Internal }},
+	    {{- end }}
+		)
 	return errors.Wrapf(err, "Unable to {{ camel .Mutation.Name }} {{ .Model.Name }}")
 }
 {{- end -}}

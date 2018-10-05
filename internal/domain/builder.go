@@ -76,10 +76,6 @@ func BuildModels(cfg *config.Config) []Model {
 	models := make([]Model, 0, len(cfg.Models))
 
 	for _, m := range cfg.Models {
-		if m.Type == config.Link {
-			continue
-		}
-
 		model := BuildModel(cfg, m)
 		model.Repo = Repo{
 			Name:    fmt.Sprintf("%s_repo", model.Name),
@@ -96,6 +92,7 @@ func BuildModel(cfg *config.Config, model config.Model) Model {
 
 	return Model{
 		Name:        model.Name,
+		Type:        model.Type,
 		Plural:      model.Plural,
 		Description: model.Description,
 		Fields:      fields,

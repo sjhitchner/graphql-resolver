@@ -8,20 +8,6 @@ import (
 {{ end }}
 
 
-{{ define "RepoInterface" }}
-type {{ camel .Repo.Name }} interface {
-{{- range $method := .Repo.Methods }}
-	{{ template "RepoMethod" $method }}
-{{- end }}
-{{/* - range $model := .Relationships -}}
-	{{- range $method := $model.Methods }}
-		{{ template "RepoMethod" $method }}
-	{{- end }}
-{{- end - */}}
-}
-{{ end }}
-
-
 {{- define "RepoMethod" -}}
 {{ camel .Name }}(ctx context.Context
 {{- range $arg := .Args -}}
@@ -70,8 +56,11 @@ func (t *{{ .Struct }}) Get{{ .Model }}By
 {{- end }}
 
 
-{{- define "ModelMutationCreate" -}}
+{{- define "ModelMutationCreate" }}
 type {{ camel .Mutation.Name }}Input {
+{{- range $f := .Mutation.Fields }}
+	{{ lcamel $f.Internal }}: {{ gqltype $f }}!
+{{- end }}
 }
 
 type {{ camel .Mutation.Name }}Output {
@@ -80,8 +69,11 @@ type {{ camel .Mutation.Name }}Output {
 {{- end -}}
 
 
-{{- define "ModelMutationDelete" -}}
+{{- define "ModelMutationDelete" }}
 type {{ camel .Mutation.Name }}Input {
+{{- range $f := .Mutation.Fields }}
+	{{ lcamel $f.Internal }}: {{ gqltype $f }}!
+{{- end }}
 }
 
 type {{ camel .Mutation.Name }}Output {
@@ -90,8 +82,12 @@ type {{ camel .Mutation.Name }}Output {
 {{- end -}}
 
 
-{{- define "ModelMutationUpdate" -}}
+{{- define "ModelMutationUpdate" }}
 type {{ camel .Mutation.Name }}Input {
+	{{ lcamel .Mutation.Key }}: ID!
+{{- range $f := .Mutation.Fields }}
+	{{ lcamel $f.Internal }}: {{ gqltype $f }}!
+{{- end }}
 }
 
 type {{ camel .Mutation.Name }}Output {
@@ -101,13 +97,13 @@ type {{ camel .Mutation.Name }}Output {
 
 
 {{- define "ModelMutations" -}}
-{{ with $model := . }}
-{{- range $m := $model.Mutations }}
-{{- if eq $m.Type "create" }} 
+{{- with $model := . -}}
+{{- range $m := $model.Mutations -}}
+{{- if eq $m.Type "insert" }} 
 {{ template "ModelMutationCreate" args "Model" $model "Mutation" $m }}
-{{- else if eq $m.Type "create" }} 
+{{- else if eq $m.Type "delete" }} 
 {{ template "ModelMutationDelete" args "Model" $model "Mutation" $m }}
-{{- else }}
+{{- else if eq $m.Type "update" }}
 {{ template "ModelMutationUpdate" args "Model" $model "Mutation" $m }}
 {{- end -}}
 {{- end -}}
@@ -118,5 +114,5 @@ type {{ camel .Mutation.Name }}Output {
 {{- define "ModelMutationDefinitions" -}}
 {{- range $m := .Mutations }}
 	{{ lcamel $m.Name }}(input: {{ camel $m.Name }}Input!): {{ camel $m.Name }}Output!  
-{{- end }}
+{{- end -}}
 {{- end -}}

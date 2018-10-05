@@ -39,6 +39,7 @@ type Return struct {
 
 type Model struct {
 	Name        string
+	Type        string
 	Plural      string
 	Description string
 	Fields      []Field
