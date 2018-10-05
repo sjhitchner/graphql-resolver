@@ -4,11 +4,12 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pkg/errors"
+	//"github.com/pkg/errors"
 	"github.com/sjhitchner/graphql-resolver/internal/config"
 	//"github.com/stoewer/go-strcase"
 )
 
+/*
 func Parse(cfg *config.Config) ([]*Model, []Type, error) {
 	models, err := ParseModels(cfg)
 
@@ -67,8 +68,8 @@ func ParseModels(cfg *config.Config) ([]*Model, error) {
 	}
 	return models, nil
 }
+*/
 
-/*
 func BuildModels(cfg *config.Config) []Model {
 	repoMap := BuildRepoMethods(cfg)
 
@@ -89,26 +90,27 @@ func BuildModels(cfg *config.Config) []Model {
 
 	return models
 }
-*/
 
-func BuildModel(cfg *config.Config, model config.Model) *Model {
-	return &Model{
+func BuildModel(cfg *config.Config, model config.Model) Model {
+	fields, imports := BuildFields(cfg, model)
+
+	return Model{
 		Name:        model.Name,
 		Plural:      model.Plural,
 		Description: model.Description,
-		/*
-			Mutations: func() []Mutation {
-				mutations := make([]Mutation, 0, len(model.Mutations))
-				for _, m := range model.Mutations {
-					mutations = append(mutations, Mutation{
-						Name:  fmt.Sprintf("%s_%s", m, model.Name),
-						Type:  m,
-						Field: fields,
-					})
-				}
-				return mutations
-			}(),
-		*/
+		Fields:      fields,
+		Imports:     imports,
+		Mutations: func() []Mutation {
+			mutations := make([]Mutation, 0, len(model.Mutations))
+			for _, m := range model.Mutations {
+				mutations = append(mutations, Mutation{
+					Name:  fmt.Sprintf("%s_%s", m, model.Name),
+					Type:  m,
+					Field: fields,
+				})
+			}
+			return mutations
+		}(),
 	}
 }
 

@@ -8,7 +8,7 @@ package db
 {{- define "DBMethod" -}}
 {{ camel .Name }}(ctx context.Context
 {{- range $arg := .Args -}}
-, {{ lcamel $arg.Name }} {{- if $arg.Deref -}}*{{- end -}}{{ gotype $arg.Type "domain" }}
+, {{ lcamel $arg.Name }} {{ if $arg.Deref -}}*{{- end -}}{{ gotype $arg.Type "domain" }}
 {{- end -}}
 ) ({{ return .Return "domain" }}, error)
 {{- end -}}
@@ -101,7 +101,7 @@ JOIN {{ $method.Relationship.Through }} ON {{ $method.Relationship.To }}.id = {{
 func (t *{{ camel $m.Name}}DB) {{ template "DBMethod" $method }} {
 {{- if eq $method.Type "list" }}
 	{{ template "ListQuery" args "Model" $m "Method" $method }}
-{{- if eq $method.Type "get" }}
+{{- else if eq $method.Type "get" }}
 	{{ template "GetQuery" args "Model" $m "Method" $method }}
 {{- else if eq $method.Type "create" }}
 	{{ template "InsertQuery" args "Model" $m "Method" $method }}
@@ -111,6 +111,5 @@ func (t *{{ camel $m.Name}}DB) {{ template "DBMethod" $method }} {
 	{{ template "DeleteQuery" args "Model" $m "Method" $method }}
 {{- end }}
 }
-
 {{ end }}
 {{ end }}

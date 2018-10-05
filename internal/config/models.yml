@@ -64,9 +64,22 @@ models:
           type: "many2many"
 
     mutations:
-      - create
-      - update
-      - delete
+      - name: create
+        type: insert
+        fields:
+          - username
+          - email
+          - password
+      - name: update
+        type: update
+        fields: 
+          - username
+          - email
+          - password
+        key: id
+      - name: delete
+        type: delete
+        key: id
 
 
   - name: "team"
@@ -113,11 +126,54 @@ models:
           type: "one2many"
 
     mutations:
-      - create
-      - update
-      - delete
-          
+      - name: create
+        type: insert
+        fields:
+          - name
+          - owner_id
+      - name: update
+        type: update
+        fields: 
+          - name
+          - owner_id
+        key: id
+      - name: delete
+        type: delete
+        key: id
+ 
   
+  - name: "team_member"
+    description: "A Team Member"
+    type: link
+    fields:
+      - name: "id"
+        type: id
+        indexes:
+          - primary
+
+      - name: "team"
+        type: id
+        indexes:
+          - team_user_index
+          - team_index
+
+      - name: "user"
+        type: id
+        indexes:
+          - team_user_index
+          - user_index  
+
+    mutations:
+      - name: add
+        type: insert
+        fields:
+          - team_id
+          - user_id
+      - name: delete
+        type: delete
+        key: id
+
+
   - name: "channel"
     description: "A Slack Channel"
     fields:
@@ -174,10 +230,53 @@ models:
           type: "one2many"
 
     mutations:
-      - create
-      - update
-      - delete
- 
+      - name: create
+        type: insert
+        fields:
+          - name
+          - is_public
+          - owner_id
+          - team_id
+      - name: update
+        type: update
+        fields: 
+          - name
+          - is_public
+          - owner_id
+          - team_id
+        key: id
+      - name: delete
+        type: delete
+        key: id
+
+
+  - name: "channel_member"
+    description: "A Channel Member"
+    type: link
+    fields:
+      - name: "id"
+        type: id
+        indexes:
+          - primary
+      - name: "channel"
+        type: id
+        indexes:
+          - channel_user_index
+      - name: "user"
+        type: id
+        indexes:
+          - channel_user_index
+
+    mutations:
+      - name: add
+        type: insert
+        fields:
+            - channel_id
+            - user_id
+      - name: delete
+        type: delete
+        key: id
+  
 
   - name: "message"
     description: "A Slack Message"
@@ -216,5 +315,9 @@ models:
         type: timestamp
 
     mutations:
-      - create
-
+      - name: send
+        type: insert
+        fields:
+          - user_id
+          - channel_id
+          - text

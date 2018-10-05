@@ -83,7 +83,7 @@ func validateConfig(c *Config) {
 	}
 }
 
-func (t Config) FindModel(name string) *Model {
+func (t Config) FindModelByName(name string) *Model {
 	for _, model := range t.Models {
 		if model.Name == name {
 			return &model
@@ -127,21 +127,14 @@ func (t Config) ShouldGenerate(str string) bool {
 }
 
 type Model struct {
-	Name        string   `yaml:"name"`
-	Plural      string   `yaml:"plural"`
-	Type        string   `yaml:"type"`
-	Internal    string   `yaml:"internal,omitempty"`
-	Description string   `yaml:"description,omitempty"`
-	Fields      []Field  `yaml:"fields"`
-	Deprecated  string   `yaml:"deprecated,omitempty"`
-	Mutations   []string `yaml:"mutations,omitempty"`
-}
-
-type Mutation struct {
-	Name         string   `yaml:"name"`
-	Type         string   `yaml:"type"`
-	InputFields  []string `yaml:"inputs"`
-	OutputFields []string `yaml:"outputs"`
+	Name        string     `yaml:"name"`
+	Plural      string     `yaml:"plural"`
+	Type        string     `yaml:"type"`
+	Internal    string     `yaml:"internal,omitempty"`
+	Description string     `yaml:"description,omitempty"`
+	Fields      []Field    `yaml:"fields"`
+	Deprecated  string     `yaml:"deprecated,omitempty"`
+	Mutations   []Mutation `yaml:"mutations,omitempty"`
 }
 
 func validateModel(m *Model) {
@@ -159,6 +152,10 @@ func validateModel(m *Model) {
 
 	for i := range m.Fields {
 		validateField(&m.Fields[i])
+	}
+
+	for i := range m.Mutations {
+		validateMutation(&m.Mutations[i])
 	}
 }
 
@@ -196,6 +193,24 @@ func validateField(f *Field) {
 		default:
 			panic("Invalid '" + f.Relationship.Type + "' Relationship Type")
 		}
+	}
+}
+
+type Mutation struct {
+	Name   string   `yaml:"name"`
+	Type   string   `yaml:"type"`
+	Fields []string `yaml:"fields"`
+	Key    string   `yaml:"key"`
+	//OutputFields []string `yaml:"outputs"`
+}
+
+func validateMutation(m *Mutation) {
+	if m.Key == "" {
+		m.Key = "id"
+	}
+
+	if !strings.Contains("insert|update|delete", m.Type) {
+		m.Type = "insert"
 	}
 }
 

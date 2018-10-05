@@ -77,7 +77,7 @@ func (s *ConfigSuite) Test_Types(c *C) {
 
 	c.Assert(func() {
 		s.Config.Primative("asdf")
-	}, PanicMatches, "No type definition for asdf")
+	}, PanicMatches, "No type definition for 'asdf'")
 }
 
 func (s *ConfigSuite) Test_FindModelByName(c *C) {
@@ -92,5 +92,5 @@ func (s *ConfigSuite) Test_FindModelByName(c *C) {
 
 	c.Assert(func() {
 		model.FindFieldByName("asdf")
-	}, PanicMatches, "No field asdf in model user")
+	}, PanicMatches, "No field 'asdf' in model user")
 }
