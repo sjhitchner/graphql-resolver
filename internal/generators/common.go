@@ -145,7 +145,15 @@ func GraphQLType(values ...interface{}) (string, error) {
 		return "", errors.Errorf("Invalud argument '%s'", values[0])
 	}
 
-	if f.Relationship != nil {
+	relationship := true
+	if len(values) == 2 {
+		v, ok := values[1].(bool)
+		if ok {
+			relationship = v
+		}
+	}
+
+	if f.Relationship != nil && relationship {
 		switch f.Relationship.Type {
 		case config.One2Many:
 			return fmt.Sprintf("[%s!]", strcase.UpperCamelCase(f.Relationship.To)), nil

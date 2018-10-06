@@ -294,6 +294,7 @@ func buildRepoMethods(cfg *config.Config, model config.Model, methodMap map[stri
 	methodMap[model.Name] = append(
 		methodMap[model.Name],
 		Method{
+			Type: "list",
 			Name: "list_" + model.Plural,
 			Args: []Arg{
 				Arg{

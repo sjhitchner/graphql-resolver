@@ -24,6 +24,12 @@ type Query {
 {{ template "ModelMutations" $m }}
 {{- end }}
 
+type Error {
+	type: String!
+	field: String!
+	message: String!
+}
+
 type Mutation {
 {{- range $m := .Models }}
 	{{ template "ModelMutationDefinitions" $m }}

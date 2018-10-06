@@ -1,0 +1,62 @@
+{{ template "Header" }}
+package resolvers
+
+{{ template "Imports" unique .Imports "context" "github.com/graph-gophers/graphql-go" }}
+
+{{ with $m := .Model }}
+{{ range $mutation := $m.Mutations }}
+
+type {{ camel $mutation.Name }}Input struct {
+{{- range $f := $mutation.Fields }}
+	{{ camel $f.Internal }} {{ $f.Type }}
+{{- end }}
+}
+
+type {{ camel $mutation.Name }}Resolver struct {
+	obj    *domain.{{ camel $m.Name }}
+	errors []error
+}
+
+func New{{ camel $mutation.Name }}Resolver(obj *domain.{{ camel $m.Name }}, err ...error) *{{ camel $mutation.Name }}Resolver {
+return &{{ camel $mutation.Name }}Resolver{
+		obj,
+		err,
+	}
+}
+
+func (t *{{ camel $mutation.Name }}Resolver) Ok() bool {
+	return len(t.errors) == 0
+}
+
+func (t *{{ camel $mutation.Name }}Resolver) User(ctx context.Context) (*{{ camel $m.Name }}Resolver, error) {
+return New{{ camel $m.Name }}Resolver(t.obj), nil
+}
+
+func (t *{{ camel $mutation.Name }}Resolver) Errors() *[]*ErrorResolver {
+	return Errors(t.errors...)
+}
+
+func (t *Mutation) {{ camel $mutation.Name }}(ctx context.Context, args struct {
+Input {{ camel $mutation.Name }}Input
+}) (*{{ camel $mutation.Name }}Resolver, error) {
+
+	obj := &domain.{{ camel $m.Name }}{
+	{{- range $f := $mutation.Fields }}
+		{{ camel $f.Name }}: domain.{{ camel $f.Name }}(args.Input.{{ camel $f.Name}}),
+	{{- end }}
+	}
+
+	_, ok := obj.(domain.Validator)
+	if ok {
+	if err := obj.Validate(); err != nil {
+	return New{{ camel $mutation.Name }}Resolver(nil, err), nil
+	}
+	}
+
+	var err error
+	obj, err = helpers.Interactor(ctx).{{ camel $mutation.Name }}(ctx, obj)
+	return New{{ camel $mutation.Name }}Resolver(obj, err), nil
+}
+
+{{ end }}
+{{ end }}

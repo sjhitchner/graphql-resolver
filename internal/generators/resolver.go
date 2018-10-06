@@ -42,7 +42,6 @@ func (t *ResolverGenerator) Generate(cfg *config.Config) error {
 		model.Imports.Add(globalImports...)
 
 		if err := GenerateGoFile(
-			//if err := GenerateFile(
 			t.Filename(model.Name),
 			"resolver.tmpl",
 			ResolverTemplate{
@@ -50,6 +49,16 @@ func (t *ResolverGenerator) Generate(cfg *config.Config) error {
 				Model:   model,
 			}); err != nil {
 			return errors.Wrapf(err, "Error generating resolver %s", model.Name)
+		}
+
+		if err := GenerateGoFile(
+			t.Filename(model.Name+"_mutation"),
+			"mutation.tmpl",
+			ResolverTemplate{
+				Imports: model.Imports.AsSlice(),
+				Model:   model,
+			}); err != nil {
+			return errors.Wrapf(err, "Error generating mutation resolver %s", model.Name)
 		}
 	}
 
@@ -66,7 +75,6 @@ func (t *ResolverGenerator) Generate(cfg *config.Config) error {
 	}
 
 	if err := GenerateGoFile(
-		//if err := GenerateFile(
 		t.Filename("common"),
 		"resolver_common.tmpl",
 		struct {
@@ -80,8 +88,7 @@ func (t *ResolverGenerator) Generate(cfg *config.Config) error {
 	}
 
 	if err := GenerateGoFile(
-		//if err := GenerateFile(
-		t.Filename("query"),
+		t.Filename("resolver"),
 		"query.tmpl",
 		struct {
 			Imports []string

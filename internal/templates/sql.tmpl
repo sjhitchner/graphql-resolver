@@ -93,7 +93,7 @@ id, err := t.db.InsertWithId(
 		obj.{{ camel $f.Internal }},
 	    {{- end }}
 		)
-	obj.Id = id
+	obj.Id = domain.Id(id)
 	return obj, errors.Wrapf(err, "Unable to {{ camel .Mutation.Name }} {{ .Model.Name }}")
 }
 {{- end -}}
@@ -150,7 +150,7 @@ func (t *{{ camel $m.Name}}DB) {{ template "DBMethod" $method }} {
 	{{ template "ListMethod" args "Model" $m "Method" $method }}
 {{- else if eq $method.Type "get" }}
 	{{ template "GetMethod" args "Model" $m "Method" $method }}
-{{- end -}}
+{{- end }}
 }
 {{ end }}
 

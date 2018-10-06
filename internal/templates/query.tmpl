@@ -4,11 +4,21 @@ package resolvers
 {{ template "Imports" unique .Imports "context" }}
 
 type Resolver struct {
-{{ range $m := .Models }}
+// Query Resolvers
+{{- range $m := .Models }}
 	*{{ camel $m.Name }}QueryResolver
 {{- end }}
+
+// Mutation Resolvers
+{{- range $m := .Models }}
+{{- range $mutation := $m.Mutations }}
+	*{{ camel $mutation.Name }}Resolver
+{{- end }}
+{{- end }}
+	
 }
 
 func (t *Resolver) Ping(ctx context.Context) string {
 	return "Pong"
 }
+
