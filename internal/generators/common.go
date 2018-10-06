@@ -139,6 +139,65 @@ func GoType(values ...interface{}) (string, error) {
 	}
 }
 
+//{{ camel $f.Name }}: {{ gql2gotype $f.Name }}(args.Input.{{ camel $f.Name}}),
+
+func GraphQL2GoType(values ...interface{}) (string, error) {
+	f, ok := values[0].(domain.Field)
+	if !ok {
+		return "", errors.Errorf("Invalud argument '%s'", values[0])
+	}
+
+	s := strcase.UpperCamelCase(f.Internal)
+
+	switch f.Type {
+	case "integer":
+		return fmt.Sprintf("int64(args.Input.%s)", s), nil
+	case "string":
+		return fmt.Sprintf("args.Input.%s", s), nil
+	case "float":
+		return fmt.Sprintf("float64(args.Input.%s)", s), nil
+	case "boolean":
+		return fmt.Sprintf("args.Input.%s", s), nil
+	case "timestamp":
+		return "time.Time", nil
+	case "id":
+		return strcase.LowerCamelCase(f.Internal), nil
+	default:
+		return fmt.Sprintf(
+			"domain.%s(args.Input.%s)",
+			strcase.UpperCamelCase(f.Type),
+			s,
+		), nil
+	}
+}
+
+func GraphQLInputType(values ...interface{}) (string, error) {
+	s, ok := values[0].(string)
+	if !ok {
+		return "", errors.Errorf("Invalud argument '%s'", values[0])
+	}
+	switch s {
+	case "integer":
+		return "int64", nil
+	case "string":
+		return "string", nil
+	case "float":
+		return "float64", nil
+	case "boolean":
+		return "bool", nil
+	case "timestamp":
+		return "time.Time", nil
+	case "id":
+		return "graphql.ID", nil
+	default:
+		str := strcase.UpperCamelCase(s)
+		if len(values) == 2 {
+			str = values[1].(string) + "." + str
+		}
+		return str, nil
+	}
+}
+
 func GraphQLType(values ...interface{}) (string, error) {
 	f, ok := values[0].(domain.Field)
 	if !ok {

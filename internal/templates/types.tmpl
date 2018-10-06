@@ -1,7 +1,7 @@
 {{ template "Header" }}
 package domain
 
-{{ template "Imports" unique .Imports }}
+{{ template "Imports" unique .Imports "fmt" }}
 
 {{ range $type := .Types }}
 //go:generate sqltype -type={{ $type.Name }} -primative={{ $type.Type }}
@@ -19,17 +19,15 @@ type Interactor interface {
 	Aggregator
 }
 
-/*
-	CreateUser(ctx context.Context, user *User) (*User, error)
-	RemoveUser(ctx context.Context, user *User) error
-	CreateTeam(ctx context.Context, team *Team) (*Team, error)
-	RemoveTeam(ctx context.Context, team *Team) error
-	CreateChannel(ctx context.Context, channel *Channel) (*Channel, error)
-	RemoveChannel(ctx context.Context, channel *Channel) error
-	AddTeamMember(ctx context.Context, teamMember *TeamMember) error
-	RemoveTeamMember(ctx context.Context, teamMember *TeamMember) error
-	AddChannelMember(ctx context.Context, channelMember *ChannelMember) error
-	RemoveChannelMember(ctx context.Context, channelMember *ChannelMember) error
-	SendMessage(ctx context.Context, message *Message) error
+type ValidationError struct {
+	Field string
+	Message string
 }
-*/
+
+func (t ValidationError) Error() string {
+	return fmt.Sprintf("%s: %s", t.Message, t.Field)
+}
+
+type Validator interface {
+	Validate() error
+}
