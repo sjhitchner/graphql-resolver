@@ -1,0 +1,235 @@
+type User {
+	id: ID!
+	username: String!
+	email: String!
+	teamList(first Integer!, after ID!): [Team!]!
+}
+
+type Team {
+	id: ID!
+	owner: User!
+	name: String!
+	memberList(first Integer!, after ID!): [User!]!
+	channelList(first Integer!, after ID!): [Channel!]!
+}
+
+
+type Channel {
+	id: ID!
+	owner: User!
+	team: Team!
+	name: String!
+	memberList(first Integer!, after ID!): [User!]!
+	messageList(first Integer!, after ID!): [Message!]!
+}
+
+
+type Message {
+	id: ID!
+	text: String!
+	timestamp: String!
+}
+
+
+
+type Query {
+	ping: String!
+
+	user(id: ID!): User!
+	usersList(first Integer!, after ID!): [User!]!
+
+	team(id: ID!): User!
+	teamsList(first Integer!, after ID!): [User!]!
+
+	channel(id: ID!): User!
+	channelsList(first Integer!, after ID!): [User!]!
+
+	message(id: ID!): User!
+	messagesList(first Integer!, after ID!): [User!]!
+} 
+
+type CreateUserInput {
+	username: String!
+	email: String!
+	password: String!
+}
+
+type CreateUserOutput {
+	ok: Boolean!
+	user: User!
+	errors: [Error!]
+}
+
+type UpdateUserInput {
+	id: ID!
+	username: String!
+	email: String!
+	password: String!
+}
+
+type UpdateUserOutput {
+	ok: Boolean!
+	errors: [Error!]
+} 
+
+type DeleteUserInput {
+	id: ID!
+}
+
+type DeleteUserOutput {
+	ok: Boolean!
+	errors: [Error!]
+} 
+
+type CreateTeamInput {
+	name: String!
+	ownerId: ID!
+}
+
+type CreateTeamOutput {
+	ok: Boolean!
+	team: Team!
+	errors: [Error!]
+}
+
+type UpdateTeamInput {
+	id: ID!
+	name: String!
+	ownerId: ID!
+}
+
+type UpdateTeamOutput {
+	ok: Boolean!
+	errors: [Error!]
+} 
+
+type DeleteTeamInput {
+	id: ID!
+}
+
+type DeleteTeamOutput {
+	ok: Boolean!
+	errors: [Error!]
+} 
+
+type AddTeamMemberInput {
+	teamId: ID!
+	userId: ID!
+}
+
+type AddTeamMemberOutput {
+	ok: Boolean!
+	teamMember: TeamMember!
+	errors: [Error!]
+} 
+
+type RemoveTeamMemberInput {
+	id: ID!
+}
+
+type RemoveTeamMemberOutput {
+	ok: Boolean!
+	errors: [Error!]
+} 
+
+type CreateChannelInput {
+	name: String!
+	isPublic: Boolean!
+	ownerId: ID!
+	teamId: ID!
+}
+
+type CreateChannelOutput {
+	ok: Boolean!
+	channel: Channel!
+	errors: [Error!]
+}
+
+type UpdateChannelInput {
+	id: ID!
+	name: String!
+	isPublic: Boolean!
+	ownerId: ID!
+	teamId: ID!
+}
+
+type UpdateChannelOutput {
+	ok: Boolean!
+	errors: [Error!]
+} 
+
+type DeleteChannelInput {
+	id: ID!
+}
+
+type DeleteChannelOutput {
+	ok: Boolean!
+	errors: [Error!]
+} 
+
+type AddChannelMemberInput {
+	channelId: ID!
+	userId: ID!
+}
+
+type AddChannelMemberOutput {
+	ok: Boolean!
+	channelMember: ChannelMember!
+	errors: [Error!]
+} 
+
+type RemoveChannelMemberInput {
+	channelId: ID!
+	userId: ID!
+}
+
+type RemoveChannelMemberOutput {
+	ok: Boolean!
+	errors: [Error!]
+} 
+
+type SendMessageInput {
+	userId: ID!
+	channelId: ID!
+	text: String!
+}
+
+type SendMessageOutput {
+	ok: Boolean!
+	message: Message!
+	errors: [Error!]
+}
+
+type Error {
+	type: String!
+	field: String!
+	message: String!
+}
+
+type Mutation {
+	
+	createUser(input: CreateUserInput!): CreateUserOutput!
+	updateUser(input: UpdateUserInput!): UpdateUserOutput!
+	deleteUser(input: DeleteUserInput!): DeleteUserOutput!
+	
+	createTeam(input: CreateTeamInput!): CreateTeamOutput!
+	updateTeam(input: UpdateTeamInput!): UpdateTeamOutput!
+	deleteTeam(input: DeleteTeamInput!): DeleteTeamOutput!
+	
+	addTeamMember(input: AddTeamMemberInput!): AddTeamMemberOutput!
+	removeTeamMember(input: RemoveTeamMemberInput!): RemoveTeamMemberOutput!
+	
+	createChannel(input: CreateChannelInput!): CreateChannelOutput!
+	updateChannel(input: UpdateChannelInput!): UpdateChannelOutput!
+	deleteChannel(input: DeleteChannelInput!): DeleteChannelOutput!
+	
+	addChannelMember(input: AddChannelMemberInput!): AddChannelMemberOutput!
+	removeChannelMember(input: RemoveChannelMemberInput!): RemoveChannelMemberOutput!
+	
+	sendMessage(input: SendMessageInput!): SendMessageOutput!
+}
+
+schema {
+	query: Query
+	mutation: Mutation
+}
