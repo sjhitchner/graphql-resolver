@@ -12,10 +12,14 @@ type InteractorTemplate struct {
 
 type InteractorGenerator struct {
 	path string
+	pkg  string
 }
 
 func NewInteractorGenerator(path string) *InteractorGenerator {
-	return &InteractorGenerator{path}
+	return &InteractorGenerator{
+		path: path,
+		pkg:  "usecases/interactor",
+	}
 }
 
 func (t *InteractorGenerator) Generate(cfg *config.Config) error {
@@ -26,8 +30,7 @@ func (t *InteractorGenerator) Generate(cfg *config.Config) error {
 	}
 
 	if err := GenerateGoFile(
-		//	if err := GenerateFile(
-		t.Filename("interactor"),
+		TemplatePath(t.path, t.pkg, "interactor"),
 		"interactor.tmpl",
 		InteractorTemplate{
 			Imports: imports,
@@ -36,8 +39,4 @@ func (t *InteractorGenerator) Generate(cfg *config.Config) error {
 		return err
 	}
 	return nil
-}
-
-func (t *InteractorGenerator) Filename(name string) string {
-	return TemplatePath(t.path, "usecases/interactor", name)
 }

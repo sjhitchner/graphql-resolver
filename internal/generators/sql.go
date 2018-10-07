@@ -15,10 +15,14 @@ type SQLTemplate struct {
 
 type SQLGenerator struct {
 	path string
+	pkg  string
 }
 
 func NewSQLGenerator(path string) *SQLGenerator {
-	return &SQLGenerator{path}
+	return &SQLGenerator{
+		path: path,
+		pkg:  "interfaces/db",
+	}
 }
 
 func (t *SQLGenerator) Generate(cfg *config.Config) error {
@@ -45,8 +49,7 @@ func (t *SQLGenerator) Generate(cfg *config.Config) error {
 
 	for _, model := range models {
 		if err := GenerateGoFile(
-			//if err := GenerateFile(
-			t.Filename(model.Name),
+			TemplatePath(t.path, t.pkg, model.Name),
 			"sql.tmpl",
 			SQLTemplate{
 				Imports: imports,
@@ -57,8 +60,4 @@ func (t *SQLGenerator) Generate(cfg *config.Config) error {
 	}
 
 	return nil
-}
-
-func (t *SQLGenerator) Filename(name string) string {
-	return TemplatePath(t.path, "interfaces/db", name)
 }

@@ -12,20 +12,6 @@ import (
 	"github.com/sjhitchner/graphql-resolver/internal/generators"
 )
 
-// GraphQL Schema
-// Resolvers
-// DB
-// Aggregator
-// Interactor
-// Generate Aggregator
-// Generate Resolvers
-// Library for various functions
-
-// Data Structures
-
-// DB Models
-// RepoMethod
-
 var (
 	configPath string
 	outputPath string
@@ -46,13 +32,11 @@ func main() {
 	//fmt.Println(config)
 
 	generators := []generators.Generator{
-		generators.NewTypesGenerator(outputPath),
 		generators.NewDomainGenerator(outputPath),
 		generators.NewResolverGenerator(outputPath),
 		generators.NewSQLGenerator(outputPath),
 		generators.NewInteractorGenerator(outputPath),
 		generators.NewAggregatorGenerator(outputPath),
-		//generators.NewQueryGenerator(outputPath),
 		generators.NewGraphQLGenerator(outputPath),
 		generators.NewContextGenerator(outputPath),
 	}

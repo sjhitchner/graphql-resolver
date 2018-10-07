@@ -13,24 +13,34 @@ type DomainTemplate struct {
 	Model   domain.Model
 }
 
+type TypesTemplate struct {
+	Imports []string
+	Types   []domain.Type
+	Models  []domain.Model
+}
+
 type DomainGenerator struct {
 	path string
+	pkg  string
 }
 
 func NewDomainGenerator(path string) *DomainGenerator {
-	return &DomainGenerator{path}
+	return &DomainGenerator{
+		path: path,
+		pkg:  "domain",
+	}
 }
 
 func (t *DomainGenerator) Generate(cfg *config.Config) error {
 	models := domain.BuildModels(cfg)
+	types, imports := domain.BuildTypes(cfg)
 
 	for _, model := range models {
 		b, _ := json.MarshalIndent(model, "", "  ")
 		fmt.Println(string(b))
 
 		if err := GenerateGoFile(
-			//if err := GenerateFile(
-			t.Filename(model.Name),
+			TemplatePath(t.path, t.pkg, model.Name),
 			"domain.tmpl",
 			DomainTemplate{
 				Imports: model.Imports.AsSlice(),
@@ -39,9 +49,19 @@ func (t *DomainGenerator) Generate(cfg *config.Config) error {
 			return err
 		}
 	}
-	return nil
-}
 
-func (t *DomainGenerator) Filename(name string) string {
-	return TemplatePath(t.path, "domain", name)
+	if len(types) > 0 {
+		if err := GenerateGoFile(
+			TemplatePath(t.path, t.pkg, "types"),
+			"types.tmpl",
+			TypesTemplate{
+				Imports: imports.AsSlice(),
+				Types:   types,
+				Models:  models,
+			}); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

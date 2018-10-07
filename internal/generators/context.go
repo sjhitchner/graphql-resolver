@@ -14,10 +14,14 @@ type ContextTemplate struct {
 
 type ContextGenerator struct {
 	path string
+	pkg  string
 }
 
 func NewContextGenerator(path string) *ContextGenerator {
-	return &ContextGenerator{path}
+	return &ContextGenerator{
+		path: path,
+		pkg:  "interfaces/helpers",
+	}
 }
 
 func (t *ContextGenerator) Generate(cfg *config.Config) error {
@@ -26,8 +30,7 @@ func (t *ContextGenerator) Generate(cfg *config.Config) error {
 	}
 
 	if err := GenerateGoFile(
-		//if err := GenerateFile(
-		t.Filename("context"),
+		TemplatePath(t.path, t.pkg, "context"),
 		"context.tmpl",
 		ContextTemplate{
 			Imports: imports,
@@ -36,8 +39,4 @@ func (t *ContextGenerator) Generate(cfg *config.Config) error {
 	}
 
 	return nil
-}
-
-func (t *ContextGenerator) Filename(name string) string {
-	return TemplatePath(t.path, "interfaces/helpers", name)
 }

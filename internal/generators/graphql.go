@@ -1,9 +1,7 @@
 package generators
 
 import (
-	//"fmt"
 	"github.com/pkg/errors"
-	//"github.com/stoewer/go-strcase"
 
 	"github.com/sjhitchner/graphql-resolver/internal/config"
 	"github.com/sjhitchner/graphql-resolver/internal/domain"
@@ -31,7 +29,7 @@ func (t *GraphQLGenerator) Generate(cfg *config.Config) error {
 	models := domain.BuildModels(cfg)
 
 	if err := GenerateFile(
-		t.Filename("schema"),
+		SchemaPath(t.path, "", "schema"),
 		"schema.tmpl",
 		GraphQLTemplate{
 			Models: models,
@@ -40,8 +38,4 @@ func (t *GraphQLGenerator) Generate(cfg *config.Config) error {
 	}
 
 	return nil
-}
-
-func (t *GraphQLGenerator) Filename(name string) string {
-	return SchemaPath(t.path, "", name)
 }

@@ -46,14 +46,6 @@ func init() {
 				"find":         Find,
 				"return":       MethodReturn,
 				"many2many":    IsMany2Many,
-				/*
-					"allFields":    AllFields,
-					"typeName":     TypeName,
-					"isQuery":      IsQuery,
-					"isPageInfo":   IsPageInfo,
-					"isEdge":       IsEdge,
-					"isConnection": IsConnection,
-				*/
 			},
 		).ParseGlob("internal/templates/*.tmpl"),
 	)

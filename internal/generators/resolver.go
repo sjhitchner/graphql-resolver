@@ -20,10 +20,14 @@ type ResolverTemplate struct {
 
 type ResolverGenerator struct {
 	path string
+	pkg  string
 }
 
 func NewResolverGenerator(path string) *ResolverGenerator {
-	return &ResolverGenerator{path}
+	return &ResolverGenerator{
+		path: path,
+		pkg:  "interfaces/resolvers",
+	}
 }
 
 func (t *ResolverGenerator) Generate(cfg *config.Config) error {
@@ -46,7 +50,7 @@ func (t *ResolverGenerator) Generate(cfg *config.Config) error {
 		model.Imports.Add(globalImports...)
 
 		if err := GenerateGoFile(
-			t.Filename(model.Name),
+			TemplatePath(t.path, t.pkg, model.Name),
 			"resolver.tmpl",
 			ResolverTemplate{
 				Imports: model.Imports.AsSlice(),
@@ -56,7 +60,7 @@ func (t *ResolverGenerator) Generate(cfg *config.Config) error {
 		}
 
 		if err := GenerateGoFile(
-			t.Filename(model.Name+"_mutation"),
+			TemplatePath(t.path, t.pkg, model.Name+"_mutation"),
 			"mutation.tmpl",
 			ResolverTemplate{
 				Imports: model.Imports.AsSlice(),
@@ -79,7 +83,7 @@ func (t *ResolverGenerator) Generate(cfg *config.Config) error {
 	}
 
 	if err := GenerateGoFile(
-		t.Filename("common"),
+		TemplatePath(t.path, t.pkg, "common"),
 		"resolver_common.tmpl",
 		struct {
 			Id      domain.Type
@@ -92,7 +96,7 @@ func (t *ResolverGenerator) Generate(cfg *config.Config) error {
 	}
 
 	if err := GenerateGoFile(
-		t.Filename("resolver"),
+		TemplatePath(t.path, t.pkg, "resolver"),
 		"query.tmpl",
 		struct {
 			Imports []string
@@ -105,8 +109,4 @@ func (t *ResolverGenerator) Generate(cfg *config.Config) error {
 	}
 
 	return nil
-}
-
-func (t *ResolverGenerator) Filename(name string) string {
-	return TemplatePath(t.path, "interfaces/resolvers", name)
 }

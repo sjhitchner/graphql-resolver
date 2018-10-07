@@ -12,10 +12,14 @@ type AggregatorTemplate struct {
 
 type AggregatorGenerator struct {
 	path string
+	pkg  string
 }
 
 func NewAggregatorGenerator(path string) *AggregatorGenerator {
-	return &AggregatorGenerator{path}
+	return &AggregatorGenerator{
+		path: path,
+		pkg:  "usecases/aggregator",
+	}
 }
 
 func (t *AggregatorGenerator) Generate(cfg *config.Config) error {
@@ -26,8 +30,7 @@ func (t *AggregatorGenerator) Generate(cfg *config.Config) error {
 	}
 
 	if err := GenerateGoFile(
-		//	if err := GenerateFile(
-		t.Filename("aggregator"),
+		TemplatePath(t.path, t.pkg, "aggregator"),
 		"aggregator.tmpl",
 		AggregatorTemplate{
 			Imports: imports,
@@ -35,9 +38,6 @@ func (t *AggregatorGenerator) Generate(cfg *config.Config) error {
 		}); err != nil {
 		return err
 	}
-	return nil
-}
 
-func (t *AggregatorGenerator) Filename(name string) string {
-	return TemplatePath(t.path, "usecases/aggregator", name)
+	return nil
 }
