@@ -1,0 +1,60 @@
+{{ template "Header" }}
+package main
+
+{{ template "Imports" unique .Imports "flag" "io/ioutil" "net/http" "context" "log" "github.com/sjhitchner/graphql-resolver/example/interfaces/db" "github.com/sjhitchner/graphql-resolver/example/interfaces/helpers" "github.com/sjhitchner/graphql-resolver/example/interfaces/resolvers" "github.com/sjhitchner/graphql-resolver/example/usecases/aggregator" "github.com/sjhitchner/graphql-resolver/example/usecases/interactor" "libdb:github.com/sjhitchner/graphql-resolver/lib/db" "github.com/sjhitchner/graphql-resolver/lib/graphql" "libsql:github.com/sjhitchner/graphql-resolver/lib/db/sqlite" }}
+
+var (
+	sqlitePath string
+	schemaPath string
+)
+
+func init() {
+	flag.StringVar(&sqlitePath, "sqlite", ":memory:", "Path to sqlite db")
+	flag.StringVar(&schemaPath, "schema", "schema.gql", "Path to graphql schema")
+}
+
+// TODO: Sample Main
+func main() {
+	flag.Parse()
+
+	dbh, err := libsql.NewSQLiteDBHandler(sqlitePath)
+	CheckError(err)
+
+	schema, err := ioutil.ReadFile(schemaPath)
+	CheckError(err)
+
+	handler, err := SetupHandler(dbh, string(schema))
+	CheckError(err)
+
+	http.Handle("/graphql", handler)
+	http.Handle("/", graphql.NewGraphiQLHandler(string(schema)))
+
+	log.Fatal(http.ListenAndServe(":8080", nil))
+}
+
+func SetupHandler(dbh libdb.DBHandler, schema string) (http.Handler, error) {
+
+	agg := aggregator.NewAggregator(
+	{{- range $m := .Models }}
+		db.New{{ camel $m.Name }}DB(dbh),
+	{{- end }}
+	)
+	inter := interactor.NewInteractor(agg)
+
+	handler := graphql.NewHandler(string(schema), &resolvers.Resolver{})
+
+	ctx := context.Background()
+	ctx = helpers.SetAggregator(ctx, agg)
+	ctx = helpers.SetInteractor(ctx, inter)
+
+	return graphql.WrapContext(
+		ctx,
+		graphql.WrapAuth(handler),
+	), nil
+}
+
+func CheckError(err error) {
+	if err != nil {
+		panic(err)
+	}
+}

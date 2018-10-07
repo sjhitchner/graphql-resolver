@@ -471,6 +471,20 @@ func Now() (interface{}, error) {
 	return time.Now().UTC().Format(format), nil
 }
 
+func ImportSplit(str interface{}) (interface{}, error) {
+	impt, ok := str.(string)
+	if !ok {
+		return "", errors.Errorf("Invalid import argument %v", str)
+	}
+
+	split := strings.SplitN(impt, ":", 2)
+	if len(split) == 1 {
+		return fmt.Sprintf(`"%s"`, split[0]), nil
+	}
+
+	return fmt.Sprintf(`%s "%s"`, split[0], split[1]), nil
+}
+
 func Find(values ...interface{}) (interface{}, error) {
 	if len(values) != 2 {
 		return "", errors.Errorf("Invalid argument '%s'", values[0])

@@ -6,7 +6,7 @@ package aggregator
 
 type Aggregator struct {
 {{- range $m := .Models }}
-	{{ lcamel $m.Repo.Name }} domain.{{ camel $m.Repo.Name }}
+	domain.{{ camel $m.Repo.Name }}
 {{- end }}
 }
 
@@ -17,7 +17,7 @@ func NewAggregator(
 	) *Aggregator {
 	return &Aggregator{
 {{- range $m := .Models }}
-	{{ lcamel $m.Repo.Name }}: {{ lcamel $m.Repo.Name }},
+	{{ camel $m.Repo.Name }}: {{ lcamel $m.Repo.Name }},
 {{- end }}
 	}
 }

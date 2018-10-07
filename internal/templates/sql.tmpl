@@ -134,7 +134,7 @@ type {{ camel $m.Name }}DB struct {
 	db db.DBHandler
 }
 
-func New{{ camel $m.Name }}DB(dhb db.Handler) *{{ camel $m.Name }}DB {
+func New{{ camel $m.Name }}DB(dhb db.DBHandler) *{{ camel $m.Name }}DB {
 	return &{{ camel $m.Name }}DB{
 		db: dhb,
 	}

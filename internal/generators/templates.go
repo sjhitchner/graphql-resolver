@@ -39,6 +39,7 @@ func init() {
 				"mul":          Multiply,
 				"div":          Divide,
 				"now":          Now,
+				"import":       ImportSplit,
 				"gotype":       GoType,
 				"gqltype":      GraphQLType,
 				"gqlinputtype": GraphQLInputType,
