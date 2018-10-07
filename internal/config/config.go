@@ -75,6 +75,8 @@ type Config struct {
 	GraphQL   *GraphQLModule   `yaml:"graphql,omitempty"`
 	Resolvers *ResolversModule `yaml:"resolvers,omitempty"`
 	SQL       *SQLModule       `yaml:"sql,omitempty"`
+
+	BaseImport string
 }
 
 func validateConfig(c *Config) {

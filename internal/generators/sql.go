@@ -1,8 +1,7 @@
 package generators
 
 import (
-	"fmt"
-	//"github.com/pkg/errors"
+	"path/filepath"
 
 	"github.com/sjhitchner/graphql-resolver/internal/config"
 	"github.com/sjhitchner/graphql-resolver/internal/domain"
@@ -28,7 +27,7 @@ func NewSQLGenerator(path string) *SQLGenerator {
 func (t *SQLGenerator) Generate(cfg *config.Config) error {
 
 	imports := []string{
-		"github.com/sjhitchner/graphql-resolver/generated/domain",
+		filepath.Join(cfg.BaseImport, "domain"),
 	}
 
 	/* TODO
@@ -44,8 +43,6 @@ func (t *SQLGenerator) Generate(cfg *config.Config) error {
 	*/
 
 	models := domain.BuildModels(cfg)
-
-	fmt.Println(t.path)
 
 	for _, model := range models {
 		if err := GenerateGoFile(

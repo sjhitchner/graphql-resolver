@@ -1,9 +1,6 @@
 package generators
 
 import (
-	"encoding/json"
-	"fmt"
-
 	"github.com/sjhitchner/graphql-resolver/internal/config"
 	"github.com/sjhitchner/graphql-resolver/internal/domain"
 )
@@ -36,9 +33,6 @@ func (t *DomainGenerator) Generate(cfg *config.Config) error {
 	types, imports := domain.BuildTypes(cfg)
 
 	for _, model := range models {
-		b, _ := json.MarshalIndent(model, "", "  ")
-		fmt.Println(string(b))
-
 		if err := GenerateGoFile(
 			TemplatePath(t.path, t.pkg, model.Name),
 			"domain.tmpl",

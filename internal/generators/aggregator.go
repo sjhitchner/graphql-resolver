@@ -1,6 +1,8 @@
 package generators
 
 import (
+	"path/filepath"
+
 	"github.com/sjhitchner/graphql-resolver/internal/config"
 	"github.com/sjhitchner/graphql-resolver/internal/domain"
 )
@@ -26,7 +28,7 @@ func (t *AggregatorGenerator) Generate(cfg *config.Config) error {
 	models := domain.BuildModels(cfg)
 
 	imports := []string{
-		"github.com/sjhitchner/graphql-resolver/generated/domain",
+		filepath.Join(cfg.BaseImport, "domain"),
 	}
 
 	if err := GenerateGoFile(

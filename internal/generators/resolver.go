@@ -1,9 +1,7 @@
 package generators
 
-// "encoding/base64"
-
 import (
-	//"fmt"
+	"path/filepath"
 
 	"github.com/pkg/errors"
 
@@ -38,8 +36,8 @@ func (t *ResolverGenerator) Generate(cfg *config.Config) error {
 
 	models := domain.BuildModels(cfg)
 	globalImports := []string{
-		"github.com/sjhitchner/graphql-resolver/generated/domain",
-		"github.com/sjhitchner/graphql-resolver/generated/interfaces/helpers",
+		filepath.Join(cfg.BaseImport, "domain"),
+		filepath.Join(cfg.BaseImport, "interfaces/helpers"),
 	}
 
 	for _, model := range models {

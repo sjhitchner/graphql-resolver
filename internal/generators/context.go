@@ -1,6 +1,8 @@
 package generators
 
 import (
+	"path/filepath"
+
 	"github.com/pkg/errors"
 
 	"github.com/sjhitchner/graphql-resolver/internal/config"
@@ -26,7 +28,7 @@ func NewContextGenerator(path string) *ContextGenerator {
 
 func (t *ContextGenerator) Generate(cfg *config.Config) error {
 	imports := []string{
-		"github.com/sjhitchner/graphql-resolver/generated/domain",
+		filepath.Join(cfg.BaseImport, "domain"),
 	}
 
 	if err := GenerateGoFile(

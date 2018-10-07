@@ -2,22 +2,25 @@ package main
 
 import (
 	"flag"
-	//"fmt"
-	//"os"
+	"os"
+	"path/filepath"
+	"strings"
 
-	//"github.com/graph-gophers/graphql-go"
+	"github.com/pkg/errors"
 
 	"github.com/sjhitchner/graphql-resolver/internal/config"
-	//"github.com/sjhitchner/graphql-resolver/internal/domain"
 	"github.com/sjhitchner/graphql-resolver/internal/generators"
 )
 
 var (
+	goPath     string
 	configPath string
 	outputPath string
 )
 
 func init() {
+	goPath = os.Getenv("GOPATH")
+
 	flag.StringVar(&configPath, "config", "", "Path to config")
 	flag.StringVar(&outputPath, "path", "generated", "Path to output directory")
 }
@@ -28,8 +31,10 @@ func main() {
 	config, err := config.LoadConfigFile(configPath)
 	CheckError(err)
 
-	//b, err := schema.ToJSON()
-	//fmt.Println(config)
+	pkgPath, err := packagePath(goPath, outputPath)
+	CheckError(err)
+
+	config.BaseImport = pkgPath
 
 	generators := []generators.Generator{
 		generators.NewDomainGenerator(outputPath),
@@ -45,6 +50,23 @@ func main() {
 		err = generator.Generate(config)
 		CheckError(err)
 	}
+}
+
+func packagePath(goPath, path string) (string, error) {
+	//fullPath, err := filepath.Abs(filepath.Dir(outputPath))
+	fullPath, err := filepath.Abs(outputPath)
+	if err != nil {
+		return "", err
+	}
+
+	goPath = filepath.Clean(goPath + "/src")
+	fullPath = filepath.Clean(fullPath)
+
+	if !strings.HasPrefix(fullPath, goPath) {
+		return "", errors.Errorf("Generation path '%s' not in GOPATH '%s'", fullPath, goPath)
+	}
+
+	return filepath.Rel(goPath, fullPath)
 }
 
 func CheckError(err error) {
