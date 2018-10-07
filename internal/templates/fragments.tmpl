@@ -1,0 +1,113 @@
+{{ define "Imports" }}
+{{ if . }}
+import (
+{{- range $import := . }}
+	"{{ $import }}"
+{{- end }}
+){{ end }}
+{{ end }}
+
+
+{{ define "Interface" }}
+type {{ camel .Name }} interface {
+{{- range $method := .Methods }}
+	{{ camel $method.Name }}(ctx context.Context
+{{- range $arg := $method.Args -}}
+, {{ lcamel $arg.Name }} {{ gotype $arg.Type }}
+{{- end -}}
+) ({{ return $method.Return }}, error)
+{{- end }}
+}
+{{ end }}
+
+
+{{ define "Struct" }}
+type {{ camel .Name }} struct {
+{{- range $field := .Fields }}
+	{{- if ne $field.Type "manytomany" }}
+	{{ camel $field.Internal }} {{ gotype $field.Type }} `db:"{{ $field.Internal }}" json:"{{ $field.Internal }}"`
+    {{- end }}
+{{- end }}
+}
+{{ end }}
+
+
+{{ define "RepoSignature" }} 
+func (t *{{ .Struct }}) Get{{ .Model }}By
+{{- range $i, $f := .Index.Fields -}}
+  {{- if gt $i 0 }}And{{ end -}}
+  {{- camel $f.Name -}}
+{{- end -}}(ctx context.Context
+{{- range $f := .Index.Fields }}, {{ $f.Name }} {{ $f.Type }}{{ end }})(*{{ .Model }}, error)
+{{- end }}
+
+
+{{ define "Header" }}
+// Generated file DO NOT EDIT {{ now }}
+{{- end }}
+
+
+{{- define "ModelMutationCreate" }}
+type {{ camel .Mutation.Name }}Input {
+{{- range $f := .Mutation.Fields }}
+	{{ lcamel $f.Internal }}: {{ gqltype $f false }}!
+{{- end }}
+}
+
+type {{ camel .Mutation.Name }}Output {
+	ok: Boolean!
+	{{ lcamel .Model.Name }}: {{ camel .Model.Name }}!
+	errors: [Error!]
+}
+{{- end -}}
+
+
+{{- define "ModelMutationDelete" }}
+type {{ camel .Mutation.Name }}Input {
+{{- range $f := .Mutation.Fields }}
+	{{ lcamel $f.Internal }}: {{ gqltype $f false }}!
+{{- end }}
+}
+
+type {{ camel .Mutation.Name }}Output {
+	ok: Boolean!
+	errors: [Error!]
+}
+{{- end -}}
+
+
+{{- define "ModelMutationUpdate" }}
+type {{ camel .Mutation.Name }}Input {
+	{{ lcamel .Mutation.Key }}: ID!
+{{- range $f := .Mutation.Fields }}
+	{{ lcamel $f.Internal }}: {{ gqltype $f false }}!
+{{- end }}
+}
+
+type {{ camel .Mutation.Name }}Output {
+	ok: Boolean!
+	errors: [Error!]
+}
+{{- end -}}
+
+
+{{- define "ModelMutations" -}}
+{{- with $model := . -}}
+{{- range $m := $model.Mutations -}}
+{{- if eq $m.Type "insert" }} 
+{{ template "ModelMutationCreate" args "Model" $model "Mutation" $m }}
+{{- else if eq $m.Type "delete" }} 
+{{ template "ModelMutationDelete" args "Model" $model "Mutation" $m }}
+{{- else if eq $m.Type "update" }}
+{{ template "ModelMutationUpdate" args "Model" $model "Mutation" $m }}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+
+{{- define "ModelMutationDefinitions" -}}
+{{- range $m := .Mutations }}
+	{{ lcamel $m.Name }}(input: {{ camel $m.Name }}Input!): {{ camel $m.Name }}Output!  
+{{- end -}}
+{{- end -}}

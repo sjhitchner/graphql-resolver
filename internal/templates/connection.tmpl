@@ -1,0 +1,88 @@
+package resolver
+
+{{ template "imports" .Imports "encoding/base64" "github.com/graph-gophers/graphql-go" }}
+
+{{ with $c := .Connection }}
+
+type {{ $c.Name }}ConnectionResolver struct {
+	ids  []graphql.ID
+	from int
+	to   int
+}
+
+func New{{ $c.Name }}ConnectionResolver(
+	ids []graphql.ID, 
+	args {{ $c.Name }}ConnectionArgs) (*{{ $c.Name }}ConnectionResolver, error) {
+	from := 0
+	if args.After != nil {
+		b, err := base64.StdEncoding.DecodeString(string(*args.After))
+		if err != nil {
+			return nil, err
+		}
+		i, err := strconv.Atoi(strings.TrimPrefix(string(b), "cursor"))
+		if err != nil {
+			return nil, err
+		}
+		from = i
+	}
+
+	to := len(ids)
+	if args.First != nil {
+		to = from + int(*args.First)
+		if to > len(ids) {
+			to = len(ids)
+		}
+	}
+
+	return &{{ $c.Name }}ConnectionResolver{
+		ids:  ids,
+		from: from,
+		to:   to,
+	}, nil
+}
+
+func (t *{{ $c.Name }}ConnectionResolver) TotalCount() int32 {
+	return int32(len(r.ids))
+}
+
+func (t *{{ $c.Name }}ConnectionResolver) Edges() *[]*{{ $c.Name }}friendsEdgeResolver {
+	l := make([]*friendsEdgeResolver, r.to-r.from)
+	for i := range l {
+		l[i] = &{{ $c.Name }}EdgeResolver{
+			cursor: encodeCursor(r.from + i),
+			id:     r.ids[r.from+i],
+		}
+	}
+	return &l
+}
+
+func (r *{{ $c.Name }}ConnectionResolver) {{ $c.Link }}() *[]*{{ $c.Link }}Resolver {
+	return Resolve{{ $c.Name }}s(r.ids[r.from:r.to])
+}
+
+func (r *{{ $c.Name }}ConnectionResolver) PageInfo() *pageInfoResolver {
+	return &PageInfoResolver{
+		startCursor: encodeCursor(r.from),
+		endCursor:   encodeCursor(r.to - 1),
+		hasNextPage: r.to < len(r.ids),
+	}
+}
+
+func encodeCursor(i int) graphql.ID {
+	return graphql.ID(base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("cursor%d", i+1))))
+}
+
+type {{ $c.Name }}EdgeResolver struct {
+	cursor graphql.ID
+	id     graphql.ID
+}
+
+func (r *{{ $c.Name }}EdgeResolver) Cursor() graphql.ID {
+	return r.cursor
+}
+
+func (r *{{ $c.Name }}EdgeResolver) Node() *{{ $c.Link }}Resolver {
+    return resolve{{ $c.Link }}(r.id)
+}
+
+{{ end }}

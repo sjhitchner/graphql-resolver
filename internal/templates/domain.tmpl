@@ -1,0 +1,67 @@
+{{ template "Header" }}
+package domain
+
+{{ template "Imports" unique .Imports "context" "encoding/json" }}
+
+
+{{- define "RepoMethod" -}}
+{{ camel .Name }}(ctx context.Context
+{{- range $arg := .Args -}}
+, {{ lcamel $arg.Name }} {{ gotype $arg.Type }}
+{{- end -}}
+{{- if eq .Type "list" -}}, first int32, after Id{{- end -}}
+) ({{ return .Return }}, error)
+{{- end -}}
+
+
+{{ define "RepoInterface" }}
+{{ with $m := . }}
+type {{ camel $m.Repo.Name }} interface {
+{{- range $method := $m.Repo.Methods }}
+	{{ template "RepoMethod" $method }}
+{{- end }}
+
+{{ range $mutation := $m.Mutations }}
+{{- if eq $mutation.Type "insert" }}
+{{ camel $mutation.Name }}(ctx context.Context, obj *{{ camel $m.Name }}) (*{{ camel $m.Name }}, error)
+{{- else }}
+{{ camel $mutation.Name }}(ctx context.Context, obj *{{ camel $m.Name }}) error
+{{- end }}
+{{- end }}
+}
+{{ end }}
+{{ end }}
+
+
+{{ define "ModelStruct" }}
+type {{ camel .Name }} struct {
+{{- range $field := .Fields }}
+    {{- if $field.Relationship -}}
+    {{- if eq $field.Relationship.Type "one2one" -}}
+    {{ template "ModelField" args "Internal" $field.Internal "Type" $field.Type }}
+	{{- end -}}
+	{{- else -}}
+    {{ template "ModelField" args "Internal" $field.Internal "Type" $field.Type }}
+	{{- end -}}
+{{- end }}
+}
+
+func (t *{{ camel .Name }}) String() string {
+	b, err := json.MarshalIndent(t, "", "  ")
+	if err != nil {
+		return err.Error()
+	}
+	return string(b)
+}
+{{- end -}}
+
+{{ define "ModelField" }}
+	{{ camel .Internal }} {{ gotype .Type }} `db:"{{ .Internal }}" json:"{{ .Internal }}"`
+{{- end }}
+
+{{ with $m := .Model }}
+{{ template "RepoInterface" $m }}
+
+{{ template "ModelStruct" $m }}
+
+{{ end }}

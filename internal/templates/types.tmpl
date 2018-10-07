@@ -1,0 +1,33 @@
+{{ template "Header" }}
+package domain
+
+{{ template "Imports" unique .Imports "fmt" }}
+
+{{ range $type := .Types }}
+//go:generate sqltype -type={{ $type.Name }} -primative={{ $type.Type }}
+type {{ camel $type.Name }} {{ $type.Type }}
+{{ end }}
+
+
+type Aggregator interface {
+{{- range $m := .Models }}
+	{{ camel $m.Repo.Name }}
+{{- end }}
+}
+
+type Interactor interface {
+	Aggregator
+}
+
+type ValidationError struct {
+	Field string
+	Message string
+}
+
+func (t ValidationError) Error() string {
+	return fmt.Sprintf("%s: %s", t.Message, t.Field)
+}
+
+type Validator interface {
+	Validate() error
+}

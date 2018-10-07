@@ -1,0 +1,177 @@
+{{ template "Header" }}
+package db
+
+{{ template "Imports" unique .Imports "context" "github.com/pkg/errors" "github.com/sjhitchner/graphql-resolver/lib/db" }}
+
+//"github.com/sjhitchner/graphql-resolver/generated/domain"
+
+{{ define "Select" }}
+SELECT {{ range $i, $f := .Fields }}
+{{- if not (many2many $f.Relationship) }}
+	{{- if gt $i 0 }}, {{ end -}}{{ $.Name }}.{{ $f.Internal }} {{ $f.Internal }}
+{{ end }}
+{{- end -}}
+FROM {{ .Name -}}
+{{ end }}
+
+
+{{ define "InsertQuery" }}
+const {{ camel .Mutation.Name }}Query = `
+INSERT INTO {{ .Model.Internal }} (
+{{- range $i, $f := .Mutation.Fields }}
+	{{- if gt $i 0 }}, {{ end -}}{{ $f.Internal }}
+{{- end }}) VALUES (
+{{- range $i, $f := .Mutation.Fields }}
+	{{- if gt $i 0 }}, {{ end -}}${{ add $i 1 }}
+{{- end -}}
+)
+`
+{{ end }}
+
+
+{{ define "UpdateQuery" }}
+const {{ camel .Mutation.Name }}Query = `
+UPDATE {{ .Model.Internal }} SET
+{{ range $i, $f := .Mutation.Fields }}
+	{{- if gt $i 0 }}, {{ end -}}{{ $f.Internal }} = ${{ add $i 2 }}
+{{- end }}
+WHERE id = $1 
+`
+{{ end }}
+
+
+{{ define "DeleteQuery" }}
+const {{ camel .Mutation.Name }}Query = `
+DELETE FROM {{ .Model.Internal }} WHERE {{ range $i, $f := .Mutation.Fields -}}
+	{{- if gt $i 0 }} AND {{ end -}}{{ $f.Internal }} = ${{ add $i 1 }}
+{{- end }}
+`
+{{ end }}
+
+
+{{- define "QueryError" -}}
+errors.Wrapf(err, "Error Getting {{ .Model.Name }} {{ range $arg := .Method.Args -}} {{ lcamel $arg.Name }}='%v'{{- end -}}" 
+{{- range $arg := .Method.Args -}}, {{ lcamel $arg.Name }}{{- end -}})
+{{- end -}}
+
+
+{{- define "GetMethod" -}}
+func (t *{{ camel .Model.Name }}DB) {{ camel .Method.Name }}(ctx context.Context
+{{- range $arg := .Method.Args -}}
+, {{ lcamel $arg.Name }} {{ if $arg.Deref -}}*{{- end -}}{{ gotype $arg.Type "domain" }}
+{{- end -}}) ({{ return .Method.Return "domain" }}, error) {
+var obj domain.{{ camel .Model.Name }}
+err := t.db.GetById(ctx, &obj, Select{{ camel .Method.Name }}
+{{- range $arg := .Method.Args -}}
+	, {{ lcamel $arg.Name }}
+{{- end -}})
+return &obj, {{- template "QueryError" args "Model" .Model "Method" .Method }}
+}
+{{- end -}}
+
+
+{{- define "ListMethod" -}}
+func (t *{{ camel .Model.Name }}DB) {{ camel .Method.Name }}(ctx context.Context
+{{- range $arg := .Method.Args -}}
+, {{ lcamel $arg.Name }} {{ if $arg.Deref -}}*{{- end -}}{{ gotype $arg.Type "domain" }}
+{{- end -}}, first int32, after domain.Id) ({{ return .Method.Return "domain" }}, error) {
+var list []*domain.{{ camel .Model.Name }}
+err := t.db.Select(ctx, &list, Select{{ camel .Method.Name }}
+{{- range $arg := .Method.Args -}}
+	, {{ lcamel $arg.Name }}
+{{- end -}}, after, first)
+return list, {{- template "QueryError" args "Model" .Model "Method" .Method }}
+}
+{{- end -}}
+
+
+{{- define "InsertMutation" -}}
+func (t *{{ camel .Model.Name }}DB) {{ camel .Mutation.Name }}(ctx context.Context, obj *domain.{{ camel .Model.Name }})(*domain.{{ camel .Model.Name }}, error) {
+id, err := t.db.InsertWithId(
+		ctx,
+		{{ camel .Mutation.Name }}Query,
+		{{- range $f := .Mutation.Fields }} 
+		obj.{{ camel $f.Internal }},
+	    {{- end }}
+		)
+	obj.Id = domain.Id(id)
+	return obj, errors.Wrapf(err, "Unable to {{ camel .Mutation.Name }} {{ .Model.Name }}")
+}
+{{- end -}}
+
+
+{{- define "UpdateMutation" -}}
+func (t *{{ camel .Model.Name }}DB) {{ camel .Mutation.Name }}(ctx context.Context, obj *domain.{{ camel .Model.Name }}) error {
+_, err := t.db.Update(
+		ctx,
+		{{ camel .Mutation.Name }}Query,
+		obj.{{ camel .Mutation.Key }},
+		{{- range $f := .Mutation.Fields }} 
+		obj.{{ camel $f.Internal }},
+	    {{- end }}
+		)
+	return errors.Wrapf(err, "Unable to {{ camel .Mutation.Name }} {{ .Model.Name }}")
+}
+{{- end -}}
+
+
+{{- define "DeleteMutation" -}}
+func (t *{{ camel .Model.Name }}DB) {{ camel .Mutation.Name }}(ctx context.Context, obj *domain.{{ camel .Model.Name }}) error {
+_, err := t.db.Delete(
+		ctx,
+		{{ camel .Mutation.Name }}Query,
+		{{- range $f := .Mutation.Fields }} 
+		obj.{{ camel $f.Internal }},
+	    {{- end }}
+		)
+	return errors.Wrapf(err, "Unable to {{ camel .Mutation.Name }} {{ .Model.Name }}")
+}
+{{- end -}}
+
+
+{{ with $m := .Model }}
+type {{ camel $m.Name }}DB struct {
+	db db.DBHandler
+}
+
+{{ range $method := $m.Repo.Methods }}
+
+const Select{{ camel $method.Name }} = `
+{{- template "Select" $m }}
+{{- if many2many $method.Relationship }}
+JOIN {{ $method.Relationship.Through }} ON {{ $method.Relationship.To }}.id = {{ $method.Relationship.Through }}.{{ $method.Relationship.Field }}
+{{- end }}
+WHERE {{ range $i, $arg := $method.Args -}}
+{{- if gt $i 0 }} AND {{ end -}}
+{{ $arg.Parent}}.{{ $arg.Name }} = ${{ add $i 1 }}
+{{- end -}}
+{{- if eq $method.Type "list" }}
+{{- if gt (len $method.Args) 0 }} AND {{ end -}}
+{{ $m.Internal }}.id >= ${{ add (len $method.Args) 1}}
+LIMIT ${{ add (len $method.Args) 2 }} ORDER BY {{ $m.Internal }}.id ASC
+{{- end }}
+`
+
+{{- if eq $method.Type "list" }}
+	{{ template "ListMethod" args "Model" $m "Method" $method }}
+{{- else if eq $method.Type "get" }}
+	{{ template "GetMethod" args "Model" $m "Method" $method }}
+{{- end }}
+{{ end }}
+
+{{ range $mutation := $m.Mutations }}
+{{- if eq $mutation.Type "insert" }}
+	{{- template "InsertQuery" args "Model" $m "Mutation" $mutation }}
+	{{- template "InsertMutation" args "Model" $m "Mutation" $mutation }}
+{{- else if eq $mutation.Type "update" }}
+	{{- template "UpdateQuery" args "Model" $m "Mutation" $mutation }}
+	{{- template "UpdateMutation" args "Model" $m "Mutation" $mutation }}
+{{- else if eq $mutation.Type "delete" }}
+	{{- template "DeleteQuery" args "Model" $m "Mutation" $mutation }}
+	{{- template "DeleteMutation" args "Model" $m "Mutation" $mutation }}
+{{- end }}
+{{ end }}
+
+{{ end }}
+
+

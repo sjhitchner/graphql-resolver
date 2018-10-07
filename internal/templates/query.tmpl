@@ -1,0 +1,23 @@
+{{ template "Header" }}
+package resolvers
+
+{{ template "Imports" unique .Imports "context" }}
+
+type Resolver struct {
+// Query Resolvers
+{{- range $m := .Models }}
+{{- if ne $m.Type "link" }}
+	*{{ camel $m.Name }}QueryResolver
+{{- end }}
+{{- end }}
+
+	*Mutation
+}
+
+type Mutation struct {
+}
+
+func (t *Resolver) Ping(ctx context.Context) string {
+	return "Pong"
+}
+

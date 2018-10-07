@@ -1,0 +1,329 @@
+---
+generate: 
+  - sql
+  - graphql
+  - resolvers
+
+graphql:
+  package: "resolvers"
+
+sql:
+  package: "db"
+  dialect: "postgres"
+
+resolvers:
+  package: "resolvers"
+
+custom_types:
+  - name: id
+    primative: integer
+  - name: username
+    primative: string
+  - name: email
+    primative: string
+  - name: password
+    primative: string
+
+models:
+  - name: "user"
+    description: "A Slack User"
+    fields: 
+      - name: "id"
+        description: "The ID of the User"
+        expose: true
+        deprecated: false
+        type: id 
+        indexes: 
+          - primary
+
+      - name: "username"
+        description: "The Username of the User"
+        expose: true
+        type: username
+        indexes:
+         - username_unique
+
+      - name: "email"
+        description: "Email of the User"
+        expose: true
+        type: email
+        indexes:
+          - email_unique
+
+      - name: "password"
+        description: "Password of the User"
+        type: password
+
+      - name: "team_list"
+        description: "Teams users"
+        expose: true
+        relationship:
+          to: "team"
+          through: "team_member"
+          field: "user_id"
+          type: "many2many"
+
+    mutations:
+      - name: create
+        type: insert
+        fields:
+          - username
+          - email
+          - password
+      - name: update
+        type: update
+        fields: 
+          - username
+          - email
+          - password
+        key: id
+      - name: delete
+        type: delete
+        fields:
+          - id
+
+
+  - name: "team"
+    description: "A Slack Team"
+    fields:
+      - name: "id"
+        description: "The ID of the Team"
+        expose: true
+        type: id 
+        indexes: 
+          - primary
+
+      - name: "owner"
+        description: "Owner of the Team"
+        expose: true
+        relationship:
+          to: "user" 
+          type: one2one
+        indexes: 
+          - owner_index
+
+      - name: "name"
+        description: "Name of the Team"
+        expose: true
+        type: string 
+        indexes: 
+          - name_unique
+
+      - name: "member_list"
+        description: "Members of the team"
+        expose: true
+        relationship:
+          to: "user"
+          through: "team_member"
+          field: "team_id"
+          type: "many2many"
+
+      - name: "channel_list"
+        description: "Channel of the team"
+        expose: true
+        relationship:
+          to: "channel"
+          field: "team_id"
+          type: "one2many"
+
+    mutations:
+      - name: create
+        type: insert
+        fields:
+          - name
+          - owner
+      - name: update
+        type: update
+        fields: 
+          - name
+          - owner
+        key: id
+      - name: delete
+        type: delete
+        fields:
+          - id
+ 
+  
+  - name: "team_member"
+    description: "A Team Member"
+    type: link
+    fields:
+      - name: "id"
+        type: id
+        indexes:
+          - primary
+
+      - name: "team"
+        type: id
+        indexes:
+          - team_user_index
+          - team_index
+
+      - name: "user"
+        type: id
+        indexes:
+          - team_user_index
+          - user_index  
+
+    mutations:
+      - name: add
+        type: insert
+        fields:
+          - team
+          - user
+      - name: remove
+        type: delete
+        fields:
+          - id
+
+
+  - name: "channel"
+    description: "A Slack Channel"
+    fields:
+      - name: "id"
+        description: "id of the channel"
+        expose: true
+        type: id 
+        indexes: 
+          - primary
+
+      - name: "owner"
+        description: "Owner of the channel"
+        expose: true
+        relationship:
+          to: "user"
+          type: one2one
+        indexes: 
+          - owner_index
+
+      - name: "team"
+        description: "Team of the channel"
+        expose: true
+        relationship: 
+          to: "team"
+          type: one2one
+        indexes: 
+          - team_index
+
+      - name: "name"
+        internal: "name"
+        description: "name of the channel"
+        expose: true
+        type: string 
+
+      - name: "is_public"
+        description: "whether the channel is public"
+        type: boolean 
+
+      - name: "member_list"
+        description: "Members of the channel"
+        expose: true
+        relationship:
+          to: "user"
+          through: "channel_member"
+          field: "channel_id"
+          type: "many2many"
+
+      - name: "message_list"
+        description: "Messages of the channel"
+        expose: true
+        relationship:
+          to: "message"
+          field: "channel_id"
+          type: "one2many"
+
+    mutations:
+      - name: create
+        type: insert
+        fields:
+          - name
+          - is_public
+          - owner
+          - team
+      - name: update
+        type: update
+        fields: 
+          - name
+          - is_public
+          - owner
+          - team
+        key: id
+      - name: delete
+        type: delete
+        fields:
+          - id
+
+
+  - name: "channel_member"
+    description: "A Channel Member"
+    type: link
+    fields:
+      - name: "id"
+        type: id
+        indexes:
+          - primary
+      - name: "channel"
+        type: id
+        indexes:
+          - channel_user_index
+      - name: "user"
+        type: id
+        indexes:
+          - channel_user_index
+
+    mutations:
+      - name: add
+        type: insert
+        fields:
+          - channel
+          - user
+      - name: remove 
+        type: delete
+        fields:
+          - channel
+          - user
+  
+
+  - name: "message"
+    description: "A Slack Message"
+    fields:
+      - name: "id"
+        description: "the id of the channel"
+        expose: true
+        type: id 
+        indexes: 
+          - primary
+
+      - name: "user"
+        description: "Owner of the channel"
+        relationship:
+          to: "user"
+          type: one2one
+        indexes: 
+          - owner_index
+
+      - name: "channel"
+        description: "Channel of Message"
+        relationship:
+            to: "channel"
+            type: one2one
+        indexes: 
+          - channel_index
+
+      - name: "text"
+        description: "Text of Message"
+        expose: true
+        type: string 
+
+      - name: "timestamp"
+        description: "Timestamp of Message"
+        expose: true
+        type: timestamp
+
+    mutations:
+      - name: send
+        type: insert
+        fields:
+          - user
+          - channel
+          - text

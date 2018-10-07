@@ -1,0 +1,135 @@
+{{ template "Header" }}
+package resolvers
+
+{{ template "Imports" unique .Imports "context" "github.com/graph-gophers/graphql-go" "github.com/pkg/errors" }}
+
+
+{{ define "MethodID" }}(ctx context.Context) graphql.ID {
+	return ToID(t.obj.{{ camel .Field.Name }})
+}
+{{ end }}
+
+
+{{ define "MethodTimestamp" }}(ctx context.Context) string {
+	return t.obj.{{ camel .Field.Name }}.Format(time.RFC3339)
+}
+{{ end }}
+
+
+{{ define "MethodPrimative" }}(ctx context.Context) {{ .Field.Primative }} {
+	{{ if eq .Field.Type .Field.Primative -}}
+	return t.obj.{{ camel .Field.Name }}
+	{{- else -}}
+	return {{ .Field.Primative }}(t.obj.{{ camel .Field.Name }})
+	{{- end }}
+}
+{{ end }}
+
+
+{{ define "MethodOne2One" -}} 
+(ctx context.Context) (*{{ camel .Field.Relationship.To }}Resolver, error) {
+	obj, err := helpers.Interactor(ctx).Get{{ camel .Field.Relationship.To }}ById(ctx, t.obj.{{ camel .Field.Internal }})
+	return &{{ camel .Field.Relationship.To }}Resolver{obj}, errors.Wrapf(err, "Failed Getting {{ camel .Field.Name }} '%v'", t.obj.{{ camel .Field.Internal }})
+}
+{{ end }}
+
+
+{{ define "MethodOne2Many" -}} 
+(ctx context.Context, first int32, after domain.Id)	([]*{{ camel .Field.Relationship.To }}Resolver, error) {
+	list, err := helpers.Interactor(ctx).List{{ camel .Field.Relationship.To }}sBy{{ camel .Field.Relationship.Field }}(ctx, t.obj.Id, first, after)
+	resolvers := make([]*{{ camel .Field.Relationship.To }}Resolver, len(list))
+	for i := range resolvers {
+		resolvers[i] = &{{ camel .Field.Relationship.To }}Resolver{list[i]}
+	}
+	return resolvers, errors.Wrapf(err, "Failed Getting {{ camel .Field.Name }} By '%v'", t.obj.Id)
+}
+{{ end }}
+
+
+{{ define "MethodMany2Many" -}}
+(ctx context.Context, first int32, after domain.Id) ([]*{{ camel .Field.Relationship.To }}Resolver, error) {
+	list, err := helpers.Interactor(ctx).List{{ camel .Field.Relationship.To }}sBy{{ camel .Field.Relationship.Field }}(ctx, t.obj.Id, first, after)
+	resolvers := make([]*{{ camel .Field.Relationship.To }}Resolver, len(list))
+	for i := range resolvers {
+		resolvers[i] = &{{ camel .Field.Relationship.To }}Resolver{list[i]}
+	}
+	return resolvers, errors.Wrapf(err, "Failed Getting {{ camel .Field.Name }} By '%v'", t.obj.Id)
+}
+{{ end }}
+
+
+
+{{ with $m := .Model }}
+{{ comment $m.Description }}
+type {{ camel $m.Name }}Resolver struct {
+	obj *domain.{{ camel $m.Name }}
+}
+
+func New{{ camel $m.Name }}Resolver(obj *domain.{{ camel $m.Name }}) *{{ camel $m.Name }}Resolver {
+	if obj == nil {
+		return nil
+	}
+	return &{{ camel $m.Name }}Resolver{obj}
+}
+
+{{ range $f := $m.Fields }}
+{{- if $f.ShouldExpose }}
+func (t *{{ camel $m.Name }}Resolver) {{ camel $f.Name -}}
+{{- if $f.Relationship -}}
+	{{- if eq $f.Relationship.Type "many2many" -}}
+		{{ template "MethodMany2Many" args "Model" $m "Field" $f }}
+	{{- else if eq $f.Relationship.Type "one2many" -}}
+		{{ template "MethodOne2Many" args "Model" $m "Field" $f }}
+	{{- else -}}
+		{{ template "MethodOne2One" args "Model" $m "Field" $f }}
+	{{- end -}}
+{{- else if eq $f.Type "id" -}}
+	{{ template "MethodID" args "Model" $m "Field" $f }}
+{{- else if eq $f.Type "timestamp" -}}
+	{{ template "MethodTimestamp" args "Model" $m "Field" $f }}
+{{- else -}}
+	{{ template "MethodPrimative" args "Model" $m "Field" $f }}
+{{- end -}}
+{{- end }}
+{{ end }}
+{{ end }}
+
+
+type {{ camel .Model.Name }}QueryResolver struct {
+}
+
+func (t *{{ camel .Model.Name }}QueryResolver) {{ camel .Model.Name }}(ctx context.Context, args struct {
+Id graphql.ID
+}) (*{{ camel .Model.Name }}Resolver, error) {
+
+	id, err := FromID(args.Id)
+	if err != nil {
+		return nil, errors.Wrapf(err, "invalid id")
+	}
+
+	obj, err := helpers.Interactor(ctx).Get{{ camel .Model.Name }}ById(ctx, id)
+	return &{{ camel .Model.Name }}Resolver{obj}, errors.Wrapf(err, "error getting {{ .Model.Name }} '%v'", args.Id)
+}
+
+func (t *{{ camel .Model.Name }}QueryResolver) {{ camel .Model.Name }}List(ctx context.Context, args struct {
+First int32
+After graphql.ID
+}) ([]*{{ camel .Model.Name }}Resolver, error) {
+
+	id, err := FromID(args.After)
+	if err != nil {
+		return nil, errors.Wrapf(err, "invalid id")
+	}
+
+	list, err := helpers.Interactor(ctx).List{{ camel .Model.Plural }}(ctx, args.First, id)
+
+	resolvers := make([]*{{ camel .Model.Name }}Resolver, len(list))
+	for i:= range resolvers {
+		resolvers[i] = &{{ camel .Model.Name }}Resolver{list[i]}
+	}
+
+	return resolvers, errors.Wrapf(err, "error getting {{ camel .Model.Plural }}")
+}
+
+
+

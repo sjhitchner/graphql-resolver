@@ -2,55 +2,71 @@ package main
 
 import (
 	"flag"
-	"fmt"
-	"io/ioutil"
+	"os"
+	"path/filepath"
+	"strings"
 
-	"github.com/graph-gophers/graphql-go"
+	"github.com/pkg/errors"
 
-	"github.com/sjhitchner/graphql-resolver/generate"
-	//"io"
+	"github.com/sjhitchner/graphql-resolver/internal/config"
+	"github.com/sjhitchner/graphql-resolver/internal/generators"
 )
 
 var (
-	schemaPath string
+	goPath     string
+	configPath string
 	outputPath string
 )
 
 func init() {
-	flag.StringVar(&schemaPath, "schema", "", "Path to schema")
-	flag.StringVar(&outputPath, "path", "", "Path to output directory")
+	goPath = os.Getenv("GOPATH")
+
+	flag.StringVar(&configPath, "config", "", "Path to config")
+	flag.StringVar(&outputPath, "path", "generated", "Path to output directory")
 }
 
 func main() {
 	flag.Parse()
 
-	schema, err := LoadSchema(schemaPath)
+	config, err := config.LoadConfigFile(configPath)
 	CheckError(err)
 
-	b, err := schema.ToJSON()
-	fmt.Println(string(b))
-
-	resolver := generate.NewResolverGenerator()
-
-	// Generate Aggregator
-	// Generate Resolvers
-	// Library for various functions
-	err = resolver.Generate(schema.Inspect())
+	pkgPath, err := packagePath(goPath, outputPath)
 	CheckError(err)
+
+	config.BaseImport = pkgPath
+
+	generators := []generators.Generator{
+		generators.NewDomainGenerator(outputPath),
+		generators.NewResolverGenerator(outputPath),
+		generators.NewSQLGenerator(outputPath),
+		generators.NewInteractorGenerator(outputPath),
+		generators.NewAggregatorGenerator(outputPath),
+		generators.NewGraphQLGenerator(outputPath),
+		generators.NewContextGenerator(outputPath),
+	}
+
+	for _, generator := range generators {
+		err = generator.Generate(config)
+		CheckError(err)
+	}
 }
 
-func LoadSchema(schemaPath string) (*graphql.Schema, error) {
-	b, err := ioutil.ReadFile(schemaPath)
+func packagePath(goPath, path string) (string, error) {
+	//fullPath, err := filepath.Abs(filepath.Dir(outputPath))
+	fullPath, err := filepath.Abs(outputPath)
 	if err != nil {
-		return nil, err
+		return "", err
 	}
 
-	schema, err := graphql.ParseSchema(string(b), nil)
-	if err != nil {
-		return nil, err
+	goPath = filepath.Clean(goPath + "/src")
+	fullPath = filepath.Clean(fullPath)
+
+	if !strings.HasPrefix(fullPath, goPath) {
+		return "", errors.Errorf("Generation path '%s' not in GOPATH '%s'", fullPath, goPath)
 	}
 
-	return schema, nil
+	return filepath.Rel(goPath, fullPath)
 }
 
 func CheckError(err error) {
@@ -60,7 +76,6 @@ func CheckError(err error) {
 }
 
 /*
-
 func (s *GraphQLSuite) Test_GraphQL(c *C) {
 	schema, err := graphql.ParseSchema(Schema, nil)
 	c.Assert(err, IsNil)

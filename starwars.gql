@@ -1,3 +1,7 @@
+directive @method(
+	name: String
+) on FIELD_DEFINITION
+
 schema {
 	query: Query
 	mutation: Mutation
@@ -123,6 +127,6 @@ type Starship {
 	# The name of the starship
 	name: String!
 	# Length of the starship, along the longest axis
-	length(unit: LengthUnit = METER): Float!
+	length(unit: LengthUnit = METER): Float! @method()
 }
 union SearchResult = Human | Droid | Starship

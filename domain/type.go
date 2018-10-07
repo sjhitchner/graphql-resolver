@@ -1,5 +1,6 @@
 package domain
 
+/*
 import (
 	"github.com/graph-gophers/graphql-go/introspection"
 )
@@ -74,7 +75,8 @@ func nameRecurse(t *introspection.Type) string {
 		}
 
 	case "NON_NULL":
-		return "*" + nameRecurse(t.OfType())
+		//return "*" + nameRecurse(t.OfType())
+		return nameRecurse(t.OfType())
 	}
 
 	panic("Invalid Type " + t.Kind())
@@ -146,3 +148,4 @@ func (t Type) String() string {
 		panic("Invalid GRAPHQL Type")
 	}
 }
+*/

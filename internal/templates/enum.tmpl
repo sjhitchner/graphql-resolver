@@ -1,0 +1,25 @@
+package resolver
+
+{{ range $enum := .Enums }}
+{{ comment $enum.Description }}
+type {{ $enum.Name }} int
+
+const (
+{{ range $i, $v := $enum.Values -}}
+	{{ comment $v.Description }}
+	{{ $v.Name }} {{ if eq $i 0 }}{{ $enum.Name }} = iota{{ end }}
+{{ end }})
+
+
+func (t {{ $enum.Name }}) String() string {
+	switch t {
+	{{ range $i, $v := $enum.Values -}}
+	case {{ $v.Name }}:
+		return "{{ $v.Name }}"
+	{{ end -}}
+	default:
+		panic("Invalid {{ $enum.Name }} Value")
+	}
+}
+{{ end }}
+

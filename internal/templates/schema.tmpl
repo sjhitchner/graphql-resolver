@@ -1,0 +1,50 @@
+{{ range $m := .Models }}
+{{- if ne $m.Type "link" -}}
+type {{ camel $m.Name }} {
+{{- range $f := $m.Fields }}
+{{- if $f.ShouldExpose }}
+{{- if $f.Relationship }}
+	{{- if ne $f.Relationship.Type "one2one" }}
+	{{ lcamel $f.Name }}(first Integer!, after ID!): {{ gqltype $f }}!
+	{{- else }}
+	{{ lcamel $f.Name }}: {{ gqltype $f }}!
+	{{- end }}
+{{- else }}
+	{{ lcamel $f.Name }}: {{ gqltype $f }}!
+{{- end }}
+{{- end }}
+{{- end }}
+}
+{{ end }}
+{{ end }}
+
+type Query {
+	ping: String!
+{{ range $m := .Models }}
+{{- if ne $m.Type "link" }}
+	{{ lcamel $m.Name }}(id: ID!): User!
+	{{ lcamel $m.Plural }}List(first Integer!, after ID!): [User!]!
+{{ end -}}
+{{ end -}}
+}
+
+{{- range $m := .Models -}}
+{{ template "ModelMutations" $m }}
+{{- end }}
+
+type Error {
+	type: String!
+	field: String!
+	message: String!
+}
+
+type Mutation {
+{{- range $m := .Models }}
+	{{ template "ModelMutationDefinitions" $m }}
+{{- end }}
+}
+
+schema {
+	query: Query
+	mutation: Mutation
+}

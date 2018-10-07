@@ -1,0 +1,94 @@
+{{ template "Header" }}
+package resolvers
+
+{{ template "Imports" unique .Imports "context" "github.com/graph-gophers/graphql-go" }}
+
+{{ with $m := .Model }}
+{{ range $mutation := $m.Mutations }}
+
+type {{ camel $mutation.Name }}Input struct {
+{{- range $f := $mutation.Fields }}
+	{{ camel $f.Internal }} {{ gqlinputtype $f.Type "domain" }}
+{{- end }}
+}
+
+type {{ camel $mutation.Name }}Resolver struct {
+	{{- if eq $mutation.Type "insert" }}
+	obj    *domain.{{ camel $m.Name }}
+	{{- end }}
+	errors []error
+}
+
+{{- if eq $mutation.Type "insert" }}
+func New{{ camel $mutation.Name }}Resolver(obj *domain.{{ camel $m.Name }}, err ...error) *{{ camel $mutation.Name }}Resolver {
+return &{{ camel $mutation.Name }}Resolver{
+		obj,
+		err,
+	}
+}
+{{- else }}
+func New{{ camel $mutation.Name }}Resolver(err ...error) *{{ camel $mutation.Name }}Resolver {
+return &{{ camel $mutation.Name }}Resolver{
+		err,
+	}
+}
+{{- end }}
+
+func (t *{{ camel $mutation.Name }}Resolver) Ok() bool {
+	return len(t.errors) == 0
+}
+
+
+{{- if eq $mutation.Type "insert" }}
+func (t *{{ camel $mutation.Name }}Resolver) {{ camel $m.Name }}(ctx context.Context) (*{{ camel $m.Name }}Resolver, error) {
+return New{{ camel $m.Name }}Resolver(t.obj), nil
+}
+{{- end }}
+
+func (t *{{ camel $mutation.Name }}Resolver) Errors() *[]*ErrorResolver {
+	return Errors(t.errors...)
+}
+
+func (t *Mutation) {{ camel $mutation.Name }}(ctx context.Context, args struct {
+Input {{ camel $mutation.Name }}Input
+}) (*{{ camel $mutation.Name }}Resolver, error) {
+
+	{{ range $f := $mutation.Fields }}
+	{{- if eq $f.Type "id" }}
+	{{ lcamel $f.Internal }}, err := FromID(args.Input.{{ camel $f.Internal }})
+	if err != nil {
+		{{- if eq $mutation.Type "insert" -}}
+		return New{{ camel $mutation.Name }}Resolver(nil, err), nil
+		{{- else -}}
+		return New{{ camel $mutation.Name }}Resolver(err), nil
+		{{- end -}}
+	}
+	{{- end }}
+	{{ end }}
+
+
+	obj := &domain.{{ camel $m.Name }}{
+	{{- range $f := $mutation.Fields }}
+		{{ camel $f.Internal }}: {{ gql2gotype $f }},
+	{{- end }}
+	}
+
+	switch validator := interface{}(obj).(type) {
+	case domain.Validator:
+		if err := validator.Validate(); err != nil {
+			return New{{ camel $mutation.Name }}Resolver(nil, err), nil
+		}
+	}
+
+	var errr error
+	{{ if eq $mutation.Type "insert" -}}
+	obj, errr = helpers.Interactor(ctx).{{ camel $mutation.Name }}(ctx, obj)
+	return New{{ camel $mutation.Name }}Resolver(obj, errr), nil
+	{{- else -}}
+	errr = helpers.Interactor(ctx).{{ camel $mutation.Name }}(ctx, obj)
+	return New{{ camel $mutation.Name }}Resolver(errr), nil
+	{{- end -}}
+}
+
+{{ end }}
+{{ end }}
