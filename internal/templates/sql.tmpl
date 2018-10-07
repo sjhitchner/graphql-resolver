@@ -5,22 +5,13 @@ package db
 
 //"github.com/sjhitchner/graphql-resolver/generated/domain"
 
-{{- define "DBMethod" -}}
-{{ camel .Name }}(ctx context.Context
-{{- range $arg := .Args -}}
-, {{ lcamel $arg.Name }} {{ if $arg.Deref -}}*{{- end -}}{{ gotype $arg.Type "domain" }}
-{{- end -}}
-) ({{ return .Return "domain" }}, error)
-{{- end -}}
-
-
 {{ define "Select" }}
 SELECT {{ range $i, $f := .Fields }}
 {{- if not (many2many $f.Relationship) }}
 	{{- if gt $i 0 }}, {{ end -}}{{ $.Name }}.{{ $f.Internal }} {{ $f.Internal }}
 {{ end }}
 {{- end -}}
-FROM {{ .Name }}
+FROM {{ .Name -}}
 {{ end }}
 
 
@@ -65,22 +56,32 @@ errors.Wrapf(err, "Error Getting {{ .Model.Name }} {{ range $arg := .Method.Args
 
 
 {{- define "GetMethod" -}}
+func (t *{{ camel .Model.Name }}DB) {{ camel .Method.Name }}(ctx context.Context
+{{- range $arg := .Method.Args -}}
+, {{ lcamel $arg.Name }} {{ if $arg.Deref -}}*{{- end -}}{{ gotype $arg.Type "domain" }}
+{{- end -}}) ({{ return .Method.Return "domain" }}, error) {
 var obj domain.{{ camel .Model.Name }}
 err := t.db.GetById(ctx, &obj, Select{{ camel .Method.Name }}
 {{- range $arg := .Method.Args -}}
 	, {{ lcamel $arg.Name }}
 {{- end -}})
 return &obj, {{- template "QueryError" args "Model" .Model "Method" .Method }}
+}
 {{- end -}}
 
 
 {{- define "ListMethod" -}}
+func (t *{{ camel .Model.Name }}DB) {{ camel .Method.Name }}(ctx context.Context
+{{- range $arg := .Method.Args -}}
+, {{ lcamel $arg.Name }} {{ if $arg.Deref -}}*{{- end -}}{{ gotype $arg.Type "domain" }}
+{{- end -}}, first int32, after domain.Id) ({{ return .Method.Return "domain" }}, error) {
 var list []*domain.{{ camel .Model.Name }}
 err := t.db.Select(ctx, &list, Select{{ camel .Method.Name }}
 {{- range $arg := .Method.Args -}}
 	, {{ lcamel $arg.Name }}
-{{- end -}})
+{{- end -}}, after, first)
 return list, {{- template "QueryError" args "Model" .Model "Method" .Method }}
+}
 {{- end -}}
 
 
@@ -137,21 +138,25 @@ type {{ camel $m.Name }}DB struct {
 
 const Select{{ camel $method.Name }} = `
 {{- template "Select" $m }}
-{{- if many2many $method.Relationship -}}
+{{- if many2many $method.Relationship }}
 JOIN {{ $method.Relationship.Through }} ON {{ $method.Relationship.To }}.id = {{ $method.Relationship.Through }}.{{ $method.Relationship.Field }}
-{{- end -}} WHERE {{ range $i, $arg := $method.Args -}}
+{{- end }}
+WHERE {{ range $i, $arg := $method.Args -}}
 {{- if gt $i 0 }} AND {{ end -}}
 {{ $arg.Parent}}.{{ $arg.Name }} = ${{ add $i 1 }}
+{{- end -}}
+{{- if eq $method.Type "list" }}
+{{- if gt (len $method.Args) 0 }} AND {{ end -}}
+{{ $m.Internal }}.id >= ${{ add (len $method.Args) 1}}
+LIMIT ${{ add (len $method.Args) 2 }} ORDER BY {{ $m.Internal }}.id ASC
 {{- end }}
 `
 
-func (t *{{ camel $m.Name}}DB) {{ template "DBMethod" $method }} {
 {{- if eq $method.Type "list" }}
 	{{ template "ListMethod" args "Model" $m "Method" $method }}
 {{- else if eq $method.Type "get" }}
 	{{ template "GetMethod" args "Model" $m "Method" $method }}
 {{- end }}
-}
 {{ end }}
 
 {{ range $mutation := $m.Mutations }}

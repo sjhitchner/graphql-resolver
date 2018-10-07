@@ -9,67 +9,6 @@ import (
 	//"github.com/stoewer/go-strcase"
 )
 
-/*
-func Parse(cfg *config.Config) ([]*Model, []Type, error) {
-	models, err := ParseModels(cfg)
-
-	return models, nil, err
-}
-
-func ParseModels(cfg *config.Config) ([]*Model, error) {
-	modelMap := make(map[string]*Model)
-
-	for _, m := range cfg.Models {
-		model, found := modelMap[m.Name]
-		if !found {
-			model = BuildModel(cfg, m)
-		}
-
-		for _, f := range m.Fields {
-			if f.Relationship != nil && f.Relationship.Type == config.Many2Many {
-				fmt.Println("here", f.Relationship.Type, f.Relationship.Through)
-
-				mmodel, found := modelMap[f.Relationship.Through]
-				if !found {
-					mmodel = &Model{
-						Name:   f.Relationship.Through,
-						Plural: f.Relationship.Through,
-					}
-				}
-				mmodel.Fields = append(mmodel.Fields, Field{
-					Name:         f.Relationship.Field,
-					Type:         config.ID,
-					Primative:    config.ID,
-					ShouldExpose: true,
-				})
-				modelMap[f.Relationship.Through] = mmodel
-			}
-		}
-
-		modelMap[m.Name] = model
-	}
-
-	fmt.Println(modelMap)
-
-	for _, m := range cfg.Models {
-		fields, imports := BuildFields(cfg, m)
-
-		model, found := modelMap[m.Name]
-		if !found {
-			return nil, errors.Errorf("Model not found during fields %s", m.Name)
-		}
-		model.Fields = fields
-		model.Imports = imports
-	}
-
-	models := make([]*Model, 0, len(modelMap))
-	for _, m := range modelMap {
-		models = append(models, m)
-	}
-	return models, nil
-}
-*/
-
 func BuildModels(cfg *config.Config) []Model {
 	repoMap := BuildRepoMethods(cfg)
 
@@ -275,18 +214,6 @@ func buildRepoMethods(cfg *config.Config, model config.Model, methodMap map[stri
 						Multi: true,
 					},
 				},
-				/*
-					Method{
-						Name: fmt.Sprintf("add_%s_to_%s", to.Name, model.Name),
-						Args: []Arg{
-							Arg{
-								Name:   f.Relationship.Field,
-								Parent: f.Relationship.Through,
-								Type:   config.ID,
-							},
-						},
-					},
-				*/
 			)
 		}
 	}
@@ -296,16 +223,7 @@ func buildRepoMethods(cfg *config.Config, model config.Model, methodMap map[stri
 		Method{
 			Type: "list",
 			Name: "list_" + model.Plural,
-			Args: []Arg{
-				Arg{
-					Name: "first",
-					Type: config.Integer,
-				},
-				Arg{
-					Name: "after",
-					Type: config.ID,
-				},
-			},
+			Args: []Arg{},
 			Return: Return{
 				Type:  model.Name,
 				Multi: true,

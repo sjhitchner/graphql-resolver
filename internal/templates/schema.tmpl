@@ -3,7 +3,15 @@
 type {{ camel $m.Name }} {
 {{- range $f := $m.Fields }}
 {{- if $f.ShouldExpose }}
+{{- if $f.Relationship }}
+	{{- if ne $f.Relationship.Type "one2one" }}
+	{{ lcamel $f.Name }}(first Integer!, after ID!): {{ gqltype $f }}!
+	{{- else }}
 	{{ lcamel $f.Name }}: {{ gqltype $f }}!
+	{{- end }}
+{{- else }}
+	{{ lcamel $f.Name }}: {{ gqltype $f }}!
+{{- end }}
 {{- end }}
 {{- end }}
 }

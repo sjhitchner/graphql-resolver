@@ -9,6 +9,7 @@ package domain
 {{- range $arg := .Args -}}
 , {{ lcamel $arg.Name }} {{ gotype $arg.Type }}
 {{- end -}}
+{{- if eq .Type "list" -}}, first int32, after Id{{- end -}}
 ) ({{ return .Return }}, error)
 {{- end -}}
 
