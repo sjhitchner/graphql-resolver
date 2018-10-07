@@ -134,6 +134,12 @@ type {{ camel $m.Name }}DB struct {
 	db db.DBHandler
 }
 
+func New{{ camel $m.Name }}DB(dhb db.Handler) *{{ camel $m.Name }}DB {
+	return &{{ camel $m.Name }}DB{
+		db: dhb,
+	}
+}
+
 {{ range $method := $m.Repo.Methods }}
 
 const Select{{ camel $method.Name }} = `
