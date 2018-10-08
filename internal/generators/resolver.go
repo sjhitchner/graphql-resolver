@@ -41,9 +41,9 @@ func (t *ResolverGenerator) Generate(cfg *config.Config) error {
 	}
 
 	for _, model := range models {
-		if model.Type == "link" {
-			continue
-		}
+		//if model.Type == "link" {
+		//	continue
+		//}
 
 		model.Imports.Add(globalImports...)
 

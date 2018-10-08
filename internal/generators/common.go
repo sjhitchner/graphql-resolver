@@ -159,7 +159,7 @@ func GraphQL2GoType(values ...interface{}) (string, error) {
 	case "boolean":
 		return fmt.Sprintf("args.Input.%s", s), nil
 	case "timestamp":
-		return "time.Time", nil
+		return strcase.LowerCamelCase(f.Internal), nil
 	case "id":
 		return strcase.LowerCamelCase(f.Internal), nil
 	default:
@@ -186,7 +186,7 @@ func GraphQLInputType(values ...interface{}) (string, error) {
 	case "boolean":
 		return "bool", nil
 	case "timestamp":
-		return "time.Time", nil
+		return "string", nil
 	case "id":
 		return "graphql.ID", nil
 	default:

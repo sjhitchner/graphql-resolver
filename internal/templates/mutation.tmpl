@@ -63,6 +63,15 @@ Input {{ camel $mutation.Name }}Input
 		return New{{ camel $mutation.Name }}Resolver(err), nil
 		{{- end -}}
 	}
+    {{- else if eq $f.Type "timestamp" }}
+	{{ lcamel $f.Internal }}, err := time.Parse(time.RFC3339, args.Input.{{ camel $f.Internal }})
+	if err != nil {
+		{{- if eq $mutation.Type "insert" -}}
+		return New{{ camel $mutation.Name }}Resolver(nil, err), nil
+		{{- else -}}
+		return New{{ camel $mutation.Name }}Resolver(err), nil
+		{{- end -}}
+	}
 	{{- end }}
 	{{ end }}
 

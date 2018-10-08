@@ -2,15 +2,15 @@ type User {
 	id: ID!
 	username: String!
 	email: String!
-	teamList(first Integer!, after ID!): [Team!]!
+	teamList(first: Int!, after: ID!): [Team!]!
 }
 
 type Team {
 	id: ID!
 	owner: User!
 	name: String!
-	memberList(first Integer!, after ID!): [User!]!
-	channelList(first Integer!, after ID!): [Channel!]!
+	memberList(first: Int!, after: ID!): [User!]!
+	channelList(first: Int!, after: ID!): [Channel!]!
 }
 
 
@@ -19,8 +19,8 @@ type Channel {
 	owner: User!
 	team: Team!
 	name: String!
-	memberList(first Integer!, after ID!): [User!]!
-	messageList(first Integer!, after ID!): [Message!]!
+	memberList(first: Int!, after: ID!): [User!]!
+	messageList(first: Int!, after: ID!): [Message!]!
 }
 
 
@@ -36,19 +36,19 @@ type Query {
 	ping: String!
 
 	user(id: ID!): User!
-	usersList(first Integer!, after ID!): [User!]!
+	userList(first: Int!, after: ID!): [User!]!
 
-	team(id: ID!): User!
-	teamsList(first Integer!, after ID!): [User!]!
+	team(id: ID!): Team!
+	teamList(first: Int!, after: ID!): [Team!]!
 
-	channel(id: ID!): User!
-	channelsList(first Integer!, after ID!): [User!]!
+	channel(id: ID!): Channel!
+	channelList(first: Int!, after: ID!): [Channel!]!
 
-	message(id: ID!): User!
-	messagesList(first Integer!, after ID!): [User!]!
+	message(id: ID!): Message!
+	messageList(first: Int!, after: ID!): [Message!]!
 } 
 
-type CreateUserInput {
+input CreateUserInput {
 	username: String!
 	email: String!
 	password: String!
@@ -60,7 +60,7 @@ type CreateUserOutput {
 	errors: [Error!]
 }
 
-type UpdateUserInput {
+input UpdateUserInput {
 	id: ID!
 	username: String!
 	email: String!
@@ -72,7 +72,7 @@ type UpdateUserOutput {
 	errors: [Error!]
 } 
 
-type DeleteUserInput {
+input DeleteUserInput {
 	id: ID!
 }
 
@@ -81,7 +81,7 @@ type DeleteUserOutput {
 	errors: [Error!]
 } 
 
-type CreateTeamInput {
+input CreateTeamInput {
 	name: String!
 	ownerId: ID!
 }
@@ -92,7 +92,7 @@ type CreateTeamOutput {
 	errors: [Error!]
 }
 
-type UpdateTeamInput {
+input UpdateTeamInput {
 	id: ID!
 	name: String!
 	ownerId: ID!
@@ -103,7 +103,7 @@ type UpdateTeamOutput {
 	errors: [Error!]
 } 
 
-type DeleteTeamInput {
+input DeleteTeamInput {
 	id: ID!
 }
 
@@ -112,18 +112,17 @@ type DeleteTeamOutput {
 	errors: [Error!]
 } 
 
-type AddTeamMemberInput {
+input AddTeamMemberInput {
 	teamId: ID!
 	userId: ID!
 }
 
 type AddTeamMemberOutput {
 	ok: Boolean!
-	teamMember: TeamMember!
 	errors: [Error!]
 } 
 
-type RemoveTeamMemberInput {
+input RemoveTeamMemberInput {
 	id: ID!
 }
 
@@ -132,7 +131,7 @@ type RemoveTeamMemberOutput {
 	errors: [Error!]
 } 
 
-type CreateChannelInput {
+input CreateChannelInput {
 	name: String!
 	isPublic: Boolean!
 	ownerId: ID!
@@ -145,7 +144,7 @@ type CreateChannelOutput {
 	errors: [Error!]
 }
 
-type UpdateChannelInput {
+input UpdateChannelInput {
 	id: ID!
 	name: String!
 	isPublic: Boolean!
@@ -158,7 +157,7 @@ type UpdateChannelOutput {
 	errors: [Error!]
 } 
 
-type DeleteChannelInput {
+input DeleteChannelInput {
 	id: ID!
 }
 
@@ -167,18 +166,17 @@ type DeleteChannelOutput {
 	errors: [Error!]
 } 
 
-type AddChannelMemberInput {
+input AddChannelMemberInput {
 	channelId: ID!
 	userId: ID!
 }
 
 type AddChannelMemberOutput {
 	ok: Boolean!
-	channelMember: ChannelMember!
 	errors: [Error!]
 } 
 
-type RemoveChannelMemberInput {
+input RemoveChannelMemberInput {
 	channelId: ID!
 	userId: ID!
 }
@@ -188,10 +186,11 @@ type RemoveChannelMemberOutput {
 	errors: [Error!]
 } 
 
-type SendMessageInput {
+input SendMessageInput {
 	userId: ID!
 	channelId: ID!
 	text: String!
+	timestamp: String!
 }
 
 type SendMessageOutput {
