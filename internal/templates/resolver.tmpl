@@ -35,8 +35,11 @@ package resolvers
 
 
 {{ define "MethodOne2Many" -}} 
-(ctx context.Context, first int32, after domain.Id)	([]*{{ camel .Field.Relationship.To }}Resolver, error) {
-	list, err := helpers.Interactor(ctx).List{{ camel .Field.Relationship.To }}sBy{{ camel .Field.Relationship.Field }}(ctx, t.obj.Id, first, after)
+(ctx context.Context, args struct{
+	First int32 
+	After domain.Id
+})	([]*{{ camel .Field.Relationship.To }}Resolver, error) {
+	list, err := helpers.Interactor(ctx).List{{ camel .Field.Relationship.To }}sBy{{ camel .Field.Relationship.Field }}(ctx, t.obj.Id, args.First, args.After)
 	resolvers := make([]*{{ camel .Field.Relationship.To }}Resolver, len(list))
 	for i := range resolvers {
 		resolvers[i] = &{{ camel .Field.Relationship.To }}Resolver{list[i]}
@@ -47,8 +50,11 @@ package resolvers
 
 
 {{ define "MethodMany2Many" -}}
-(ctx context.Context, first int32, after domain.Id) ([]*{{ camel .Field.Relationship.To }}Resolver, error) {
-	list, err := helpers.Interactor(ctx).List{{ camel .Field.Relationship.To }}sBy{{ camel .Field.Relationship.Field }}(ctx, t.obj.Id, first, after)
+(ctx context.Context, args struct {
+	First int32 
+	After domain.Id
+}) ([]*{{ camel .Field.Relationship.To }}Resolver, error) {
+	list, err := helpers.Interactor(ctx).List{{ camel .Field.Relationship.To }}sBy{{ camel .Field.Relationship.Field }}(ctx, t.obj.Id, args.First, args.After)
 	resolvers := make([]*{{ camel .Field.Relationship.To }}Resolver, len(list))
 	for i := range resolvers {
 		resolvers[i] = &{{ camel .Field.Relationship.To }}Resolver{list[i]}

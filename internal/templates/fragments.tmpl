@@ -2,7 +2,7 @@
 {{ if . }}
 import (
 {{- range $import := . }}
-	"{{ $import }}"
+	{{ import $import }}
 {{- end }}
 ){{ end }}
 {{ end }}
@@ -48,7 +48,7 @@ func (t *{{ .Struct }}) Get{{ .Model }}By
 
 
 {{- define "ModelMutationCreate" }}
-type {{ camel .Mutation.Name }}Input {
+input {{ camel .Mutation.Name }}Input {
 {{- range $f := .Mutation.Fields }}
 	{{ lcamel $f.Internal }}: {{ gqltype $f false }}!
 {{- end }}
@@ -56,14 +56,16 @@ type {{ camel .Mutation.Name }}Input {
 
 type {{ camel .Mutation.Name }}Output {
 	ok: Boolean!
+	{{- if ne .Model.Type "link" }}
 	{{ lcamel .Model.Name }}: {{ camel .Model.Name }}!
+	{{- end }}
 	errors: [Error!]
 }
 {{- end -}}
 
 
 {{- define "ModelMutationDelete" }}
-type {{ camel .Mutation.Name }}Input {
+input {{ camel .Mutation.Name }}Input {
 {{- range $f := .Mutation.Fields }}
 	{{ lcamel $f.Internal }}: {{ gqltype $f false }}!
 {{- end }}
@@ -77,8 +79,7 @@ type {{ camel .Mutation.Name }}Output {
 
 
 {{- define "ModelMutationUpdate" }}
-type {{ camel .Mutation.Name }}Input {
-	{{ lcamel .Mutation.Key }}: ID!
+input {{ camel .Mutation.Name }}Input {
 {{- range $f := .Mutation.Fields }}
 	{{ lcamel $f.Internal }}: {{ gqltype $f false }}!
 {{- end }}

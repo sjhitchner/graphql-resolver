@@ -11,3 +11,6 @@ type Interactor struct {
 func NewInteractor(a domain.Aggregator) *Interactor {
 	return &Interactor{a}
 }
+
+// TODO: Update Interactor to specialize aggregator methods
+// to implement specific business logic

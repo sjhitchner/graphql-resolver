@@ -5,7 +5,7 @@ type {{ camel $m.Name }} {
 {{- if $f.ShouldExpose }}
 {{- if $f.Relationship }}
 	{{- if ne $f.Relationship.Type "one2one" }}
-	{{ lcamel $f.Name }}(first Integer!, after ID!): {{ gqltype $f }}!
+	{{ lcamel $f.Name }}(first: Int!, after: ID!): {{ gqltype $f }}!
 	{{- else }}
 	{{ lcamel $f.Name }}: {{ gqltype $f }}!
 	{{- end }}
@@ -22,8 +22,8 @@ type Query {
 	ping: String!
 {{ range $m := .Models }}
 {{- if ne $m.Type "link" }}
-	{{ lcamel $m.Name }}(id: ID!): User!
-	{{ lcamel $m.Plural }}List(first Integer!, after ID!): [User!]!
+	{{ lcamel $m.Name }}(id: ID!): {{ camel $m.Name }}!
+	{{ lcamel $m.Name }}List(first: Int!, after: ID!): [{{ camel $m.Name }}!]!
 {{ end -}}
 {{ end -}}
 }

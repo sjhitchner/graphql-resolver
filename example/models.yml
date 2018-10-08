@@ -73,6 +73,7 @@ models:
       - name: update
         type: update
         fields: 
+          - id
           - username
           - email
           - password
@@ -134,7 +135,8 @@ models:
           - owner
       - name: update
         type: update
-        fields: 
+        fields:
+          - id
           - name
           - owner
         key: id
@@ -243,6 +245,7 @@ models:
       - name: update
         type: update
         fields: 
+          - id
           - name
           - is_public
           - owner
@@ -327,3 +330,4 @@ models:
           - user
           - channel
           - text
+          - timestamp

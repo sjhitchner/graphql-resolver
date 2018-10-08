@@ -159,7 +159,7 @@ func GraphQL2GoType(values ...interface{}) (string, error) {
 	case "boolean":
 		return fmt.Sprintf("args.Input.%s", s), nil
 	case "timestamp":
-		return "time.Time", nil
+		return strcase.LowerCamelCase(f.Internal), nil
 	case "id":
 		return strcase.LowerCamelCase(f.Internal), nil
 	default:
@@ -186,7 +186,7 @@ func GraphQLInputType(values ...interface{}) (string, error) {
 	case "boolean":
 		return "bool", nil
 	case "timestamp":
-		return "time.Time", nil
+		return "string", nil
 	case "id":
 		return "graphql.ID", nil
 	default:
@@ -469,6 +469,20 @@ func Divide(b, a interface{}) (interface{}, error) {
 func Now() (interface{}, error) {
 	format := time.RFC3339
 	return time.Now().UTC().Format(format), nil
+}
+
+func ImportSplit(str interface{}) (interface{}, error) {
+	impt, ok := str.(string)
+	if !ok {
+		return "", errors.Errorf("Invalid import argument %v", str)
+	}
+
+	split := strings.SplitN(impt, ":", 2)
+	if len(split) == 1 {
+		return fmt.Sprintf(`"%s"`, split[0]), nil
+	}
+
+	return fmt.Sprintf(`%s "%s"`, split[0], split[1]), nil
 }
 
 func Find(values ...interface{}) (interface{}, error) {
