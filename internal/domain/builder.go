@@ -89,7 +89,7 @@ func BuildField(cfg *config.Config, f config.Field) (Field, string) {
 		Type:         f.Type,
 		Primative:    primative,
 		Internal:     internal,
-		ShouldExpose: f.Expose,
+		ShouldExpose: *f.Expose,
 	}
 
 	if f.Relationship != nil {
