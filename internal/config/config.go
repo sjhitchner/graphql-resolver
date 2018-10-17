@@ -131,7 +131,7 @@ func (t Config) ShouldGenerate(str string) bool {
 type Model struct {
 	Name        string     `yaml:"name"`
 	Plural      string     `yaml:"plural"`
-	Type        string     `yaml:"type"`
+	Type        string     `yaml:"type,omitempty"`
 	Internal    string     `yaml:"internal,omitempty"`
 	Description string     `yaml:"description,omitempty"`
 	Fields      []Field    `yaml:"fields"`

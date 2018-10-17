@@ -16,6 +16,8 @@ var (
 	goPath     string
 	configPath string
 	outputPath string
+
+	djangoJSON string
 )
 
 func init() {
@@ -23,10 +25,17 @@ func init() {
 
 	flag.StringVar(&configPath, "config", "", "Path to config")
 	flag.StringVar(&outputPath, "path", "generated", "Path to output directory")
+
+	flag.StringVar(&djangoJSON, "django", "", "Django JSON Model to convert to config")
 }
 
 func main() {
 	flag.Parse()
+
+	if djangoJSON != "" {
+		CheckError(ConvertDjangoJSONToYAML(djangoJSON))
+		os.Exit(0)
+	}
 
 	config, err := config.LoadConfigFile(configPath)
 	CheckError(err)
