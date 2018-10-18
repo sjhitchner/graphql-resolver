@@ -104,6 +104,23 @@ func (t *PSQLHandler) GetById(ctx context.Context, result interface{}, query str
 	return Commit(ctx, tx, err)
 }
 
+func (t *PSQLHandler) Get(ctx context.Context, result interface{}, query string, params ...interface{}) error {
+
+	tx, err := t.conn.Beginx()
+	if err != nil {
+		return err
+	}
+
+	if err := tx.Get(result, query, params...); err != nil {
+		if sql.ErrNoRows == err {
+			return Commit(ctx, tx, nil)
+		}
+		return Rollback(ctx, tx, err)
+	}
+
+	return Commit(ctx, tx, err)
+}
+
 func (t *PSQLHandler) Select(ctx context.Context, results interface{}, query string, params ...interface{}) error {
 
 	tx, err := t.conn.Beginx()

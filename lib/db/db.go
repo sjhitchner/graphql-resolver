@@ -18,6 +18,7 @@ type DBHandler interface {
 	Close()
 
 	GetById(ctx context.Context, result interface{}, query string, id interface{}) error
+	Get(ctx context.Context, results interface{}, query string, params ...interface{}) error
 	Select(ctx context.Context, results interface{}, query string, params ...interface{}) error
 	InsertWithId(ctx context.Context, query string, params ...interface{}) (int64, error)
 	Insert(ctx context.Context, query string, params ...interface{}) error
