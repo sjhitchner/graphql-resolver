@@ -61,7 +61,7 @@ func (t *{{ camel .Model.Name }}DB) {{ camel .Method.Name }}(ctx context.Context
 , {{ lcamel $arg.Name }} {{ if $arg.Deref -}}*{{- end -}}{{ gotype $arg.Type "domain" }}
 {{- end -}}) ({{ return .Method.Return "domain" }}, error) {
 var obj domain.{{ camel .Model.Name }}
-err := t.db.GetById(ctx, &obj, Select{{ camel .Method.Name }}
+err := t.db.Get(ctx, &obj, Select{{ camel .Method.Name }}
 {{- range $arg := .Method.Args -}}
 	, {{ lcamel $arg.Name }}
 {{- end -}})
