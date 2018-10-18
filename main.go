@@ -16,6 +16,12 @@ var (
 	goPath     string
 	configPath string
 	outputPath string
+
+	dbGenerate string
+	dbHost     string
+	dbPort     int
+	dbName     string
+	dbPassword string
 )
 
 func init() {
@@ -23,10 +29,25 @@ func init() {
 
 	flag.StringVar(&configPath, "config", "", "Path to config")
 	flag.StringVar(&outputPath, "path", "generated", "Path to output directory")
+
+	flag.StringVar(&dbGenerate, "db-generate", "", "Generate config file from SQL db")
+
+	flag.StringVar(&dbHost, "db-host", "localhost", "DB Host")
+	flag.IntVar(&dbPort, "db-port", 5432, "DB Port")
+	flag.StringVar(&dbName, "db-name", "", "DB Name")
+	flag.StringVar(&dbUser, "db-user", "", "DB User")
+	flag.StringVar(&dbPass, "db-pass", "", "DB Password")
 }
 
 func main() {
 	flag.Parse()
+
+	if dbGenerate != "" {
+		if err := GenerateConfigFromDb(); err != nil {
+			CheckError(err)
+		}
+		os.Exit(0)
+	}
 
 	config, err := config.LoadConfigFile(configPath)
 	CheckError(err)
