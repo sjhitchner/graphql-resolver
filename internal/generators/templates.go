@@ -56,11 +56,11 @@ func init() {
 }
 
 func TemplatePath(path, module, name string) string {
-	return templatePath(path, module, name, ".go")
+	return templatePath(path, module, name, ".gen.go")
 }
 
 func SchemaPath(path, module, name string) string {
-	return templatePath(path, module, name, ".gql")
+	return templatePath(path, module, name, ".gen.gql")
 }
 
 func templatePath(path, module, name, suffix string) string {

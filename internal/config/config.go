@@ -22,7 +22,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-func LoadConfigFile(str string) (*Config, error) {
+func LoadConfigAtPath(str string) (*Config, error) {
 	files, err := filepath.Glob(filepath.Join(str, "*.yml"))
 	if err != nil {
 		return nil, errors.Wrapf(err, "Unable to find *.yml config file in '%s'", str)

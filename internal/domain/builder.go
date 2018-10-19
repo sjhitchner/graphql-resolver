@@ -121,7 +121,6 @@ func BuildRepoMethods(cfg *config.Config) map[string][]Method {
 }
 
 func buildRepoMethods(cfg *config.Config, model config.Model, methodMap map[string][]Method) {
-	//methods := make([]Method, 0, len(model.Fields))
 	for _, idx := range model.Indexes() {
 		methodMap[model.Name] = append(
 			methodMap[model.Name],

@@ -1,7 +1,7 @@
 {{ template "Header" }}
 package main
 
-{{ template "Imports" unique .Imports "flag" "io/ioutil" "net/http" "context" "log" "github.com/sjhitchner/graphql-resolver/example/interfaces/db" "github.com/sjhitchner/graphql-resolver/example/interfaces/helpers" "github.com/sjhitchner/graphql-resolver/example/interfaces/resolvers" "github.com/sjhitchner/graphql-resolver/example/usecases/aggregator" "github.com/sjhitchner/graphql-resolver/example/usecases/interactor" "libdb:github.com/sjhitchner/graphql-resolver/lib/db" "github.com/sjhitchner/graphql-resolver/lib/graphql" "libsql:github.com/sjhitchner/graphql-resolver/lib/db/sqlite" }}
+{{ template "Imports" unique .Imports "flag" "io/ioutil" "net/http" "context" "log" "libdb:github.com/sjhitchner/graphql-resolver/lib/db" "github.com/sjhitchner/graphql-resolver/lib/graphql" "libsql:github.com/sjhitchner/graphql-resolver/lib/db/sqlite" }}
 
 var (
 	sqlitePath string
