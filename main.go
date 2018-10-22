@@ -28,7 +28,7 @@ func init() {
 func main() {
 	flag.Parse()
 
-	config, err := config.LoadConfigFile(configPath)
+	config, err := config.LoadConfigAtPath(configPath)
 	CheckError(err)
 
 	pkgPath, err := packagePath(goPath, outputPath)

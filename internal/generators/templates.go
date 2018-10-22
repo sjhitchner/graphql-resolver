@@ -2,6 +2,7 @@ package generators
 
 import (
 	"bytes"
+	"fmt"
 	"go/format"
 	"go/parser"
 	"go/token"
@@ -23,6 +24,8 @@ type Generator interface {
 }
 
 func init() {
+	templatePath := fmt.Sprintf("%s/src/github.com/sjhitchner/graphql-resolver/internal/templates/*.tmpl", os.Getenv("GOPATH"))
+
 	tmpl = template.Must(
 		template.New("").Funcs(
 			template.FuncMap{
@@ -48,16 +51,16 @@ func init() {
 				"return":       MethodReturn,
 				"many2many":    IsMany2Many,
 			},
-		).ParseGlob("internal/templates/*.tmpl"),
+		).ParseGlob(templatePath),
 	)
 }
 
 func TemplatePath(path, module, name string) string {
-	return templatePath(path, module, name, ".go")
+	return templatePath(path, module, name, ".gen.go")
 }
 
 func SchemaPath(path, module, name string) string {
-	return templatePath(path, module, name, ".gql")
+	return templatePath(path, module, name, ".gen.gql")
 }
 
 func templatePath(path, module, name, suffix string) string {

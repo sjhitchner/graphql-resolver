@@ -89,7 +89,7 @@ func BuildField(cfg *config.Config, f config.Field) (Field, string) {
 		Type:         f.Type,
 		Primative:    primative,
 		Internal:     internal,
-		ShouldExpose: f.Expose,
+		ShouldExpose: *f.Expose,
 	}
 
 	if f.Relationship != nil {
@@ -121,7 +121,6 @@ func BuildRepoMethods(cfg *config.Config) map[string][]Method {
 }
 
 func buildRepoMethods(cfg *config.Config, model config.Model, methodMap map[string][]Method) {
-	//methods := make([]Method, 0, len(model.Fields))
 	for _, idx := range model.Indexes() {
 		methodMap[model.Name] = append(
 			methodMap[model.Name],

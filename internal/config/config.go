@@ -14,21 +14,30 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"os"
+	"io/ioutil"
+	"path/filepath"
 	"strings"
 
 	"github.com/pkg/errors"
 	"gopkg.in/yaml.v2"
 )
 
-func LoadConfigFile(str string) (*Config, error) {
-	f, err := os.Open(str)
+func LoadConfigAtPath(str string) (*Config, error) {
+	files, err := filepath.Glob(filepath.Join(str, "*.yml"))
 	if err != nil {
-		return nil, errors.Wrapf(err, "Unable to read config '%s'", str)
+		return nil, errors.Wrapf(err, "Unable to find *.yml config file in '%s'", str)
 	}
-	defer f.Close()
 
-	return LoadConfig(f)
+	buf := &bytes.Buffer{}
+	for _, f := range files {
+		b, err := ioutil.ReadFile(f)
+		if err != nil {
+			return nil, errors.Wrapf(err, "Unable to read config '%s'", f)
+		}
+		buf.Write(b)
+	}
+
+	return LoadConfig(buf)
 }
 
 func LoadConfig(r io.Reader) (*Config, error) {
@@ -165,7 +174,7 @@ type Field struct {
 	Name         string        `yaml:"name"`
 	Internal     string        `yaml:"internal,omitempty"`
 	Description  string        `yaml:"description,omitempty"`
-	Expose       bool          `yaml:"expose,omitempty"`
+	Expose       *bool         `yaml:"expose,omitempty"`
 	Type         string        `yaml:"type"`
 	Indexes      []string      `yaml:"indexes,omitempty"`
 	Deprecated   string        `yaml:"deprecated,omitempty"`
@@ -184,6 +193,13 @@ func validateField(f *Field) {
 				f.Internal = f.Name + "_id"
 			}
 		}
+	}
+
+	if f.Expose == nil {
+		f.Expose = func() *bool {
+			b := true
+			return &b
+		}()
 	}
 
 	if f.Relationship != nil {
