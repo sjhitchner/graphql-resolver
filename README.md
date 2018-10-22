@@ -12,7 +12,7 @@ Example command:
 To start a new service you need to define a schema file that define all models, 
 relationships, custom Go types and mutations your service needs to support
 
-An [https://github.com/sjhitchner/graphql-resolver/blob/master/example/models.yml|example schema file] is included in the examples directory of this project.  Running the below command with generate the code necessary to start the service
+An [example schema file](https://github.com/sjhitchner/graphql-resolver/blob/master/example/models.yml) is included in the examples directory of this project.  Running the below command with generate the code necessary to start the service
 
 	./graphql-resolver --config example/models.yml --path ./example
 
@@ -82,16 +82,16 @@ Fields contain name, optional internal name, description, expose, deprecated, ty
 * expose: whether the field is exposed publically
 * deprecated: optional flag to indicate whether field is deprecated, strictly informational
 * type: field type valid options
-** id
-** integer
-** float
-** string
-** custom type definted above
-** no type if relationship
+* * id
+* * integer
+* * float
+* * string
+* * custom type definted above
+* * no type if relationship
 * indexes: How this field is exposed in SQL.  To define an index use either `primary` or the field name and append either `_unique` or `_index`, for multi field append fieldname together with underscore.  
-** <field_name>_unique: defines a unique index where only one possible value is returned when queried
-** <field_name>_index: defines an index where multiple possible values are returned when queried
-** primary: defines a primary index
+* * <field_name>_unique: defines a unique index where only one possible value is returned when queried
+* * <field_name>_index: defines an index where multiple possible values are returned when queried
+* * primary: defines a primary index
 * relationship
 
 	
@@ -127,6 +127,8 @@ Defines a one to one relations
       through: <intermediary/linking table>
       type: "many2many"
 
+
+##### Example
 
     fields:
       - name: "id"
@@ -190,257 +192,6 @@ insert, update, delete.  The field list are the fields that will be modified by 
 	    fields:
 	      - id
 	
-
-
-	
-  - name: "team"
-    description: "A Slack Team"
-    fields:
-      - name: "id"
-        description: "The ID of the Team"
-        expose: true
-        type: id 
-        indexes: 
-          - primary
-
-      - name: "owner"
-        description: "Owner of the Team"
-        expose: true
-        relationship:
-          to: "user" 
-          type: one2one
-        indexes: 
-          - owner_index
-
-      - name: "name"
-        description: "Name of the Team"
-        expose: true
-        type: string 
-        indexes: 
-          - name_unique
-
-      - name: "member_list"
-        description: "Members of the team"
-        expose: true
-        relationship:
-          to: "user"
-          through: "team_member"
-          field: "team_id"
-          type: "many2many"
-
-      - name: "channel_list"
-        description: "Channel of the team"
-        expose: true
-        relationship:
-          to: "channel"
-          field: "team_id"
-          type: "one2many"
-
-    mutations:
-      - name: create
-        type: insert
-        fields:
-          - name
-          - owner
-      - name: update
-        type: update
-        fields:
-          - id
-          - name
-          - owner
-        key: id
-      - name: delete
-        type: delete
-        fields:
-          - id
- 
-  
-  - name: "team_member"
-    description: "A Team Member"
-    type: link
-    fields:
-      - name: "id"
-        type: id
-        indexes:
-          - primary
-
-      - name: "team"
-        type: id
-        indexes:
-          - team_user_index
-          - team_index
-
-      - name: "user"
-        type: id
-        indexes:
-          - team_user_index
-          - user_index  
-
-    mutations:
-      - name: add
-        type: insert
-        fields:
-          - team
-          - user
-      - name: remove
-        type: delete
-        fields:
-          - id
-
-
-  - name: "channel"
-    description: "A Slack Channel"
-    fields:
-      - name: "id"
-        description: "id of the channel"
-        expose: true
-        type: id 
-        indexes: 
-          - primary
-
-      - name: "owner"
-        description: "Owner of the channel"
-        expose: true
-        relationship:
-          to: "user"
-          type: one2one
-        indexes: 
-          - owner_index
-
-      - name: "team"
-        description: "Team of the channel"
-        expose: true
-        relationship: 
-          to: "team"
-          type: one2one
-        indexes: 
-          - team_index
-
-      - name: "name"
-        internal: "name"
-        description: "name of the channel"
-        expose: true
-        type: string 
-
-      - name: "is_public"
-        description: "whether the channel is public"
-        type: boolean 
-
-      - name: "member_list"
-        description: "Members of the channel"
-        expose: true
-        relationship:
-          to: "user"
-          through: "channel_member"
-          field: "channel_id"
-          type: "many2many"
-
-      - name: "message_list"
-        description: "Messages of the channel"
-        expose: true
-        relationship:
-          to: "message"
-          field: "channel_id"
-          type: "one2many"
-
-    mutations:
-      - name: create
-        type: insert
-        fields:
-          - name
-          - is_public
-          - owner
-          - team
-      - name: update
-        type: update
-        fields: 
-          - id
-          - name
-          - is_public
-          - owner
-          - team
-        key: id
-      - name: delete
-        type: delete
-        fields:
-          - id
-
-
-  - name: "channel_member"
-    description: "A Channel Member"
-    type: link
-    fields:
-      - name: "id"
-        type: id
-        indexes:
-          - primary
-      - name: "channel"
-        type: id
-        indexes:
-          - channel_user_index
-      - name: "user"
-        type: id
-        indexes:
-          - channel_user_index
-
-    mutations:
-      - name: add
-        type: insert
-        fields:
-          - channel
-          - user
-      - name: remove 
-        type: delete
-        fields:
-          - channel
-          - user
-  
-
-  - name: "message"
-    description: "A Slack Message"
-    fields:
-      - name: "id"
-        description: "the id of the channel"
-        expose: true
-        type: id 
-        indexes: 
-          - primary
-
-      - name: "user"
-        description: "Owner of the channel"
-        relationship:
-          to: "user"
-          type: one2one
-        indexes: 
-          - owner_index
-
-      - name: "channel"
-        description: "Channel of Message"
-        relationship:
-            to: "channel"
-            type: one2one
-        indexes: 
-          - channel_index
-
-      - name: "text"
-        description: "Text of Message"
-        expose: true
-        type: string 
-
-      - name: "timestamp"
-        description: "Timestamp of Message"
-        expose: true
-        type: timestamp
-
-    mutations:
-      - name: send
-        type: insert
-        fields:
-          - user
-          - channel
-          - text
-          - timestamp
-
 # Customization
 
 All files are generated with a `.gen.go` extension.  Currently, there is not logic in place generate 
@@ -455,9 +206,9 @@ When developing there is a large amount of boilerplate code needed to get everyt
 to automatically generate the basic framework necessary to get a working service and making it easy to extend as you 
 see fit.  
 
-The service is generated using a [https://manuel.kiessling.net/2012/09/28/applying-the-clean-architecture-to-go-applications/|Go Clean Code] structure. It uses the [https://github.com/graph-gophers| Graph Gophers] graphql library which is easy to use and seems to be fully featured.  
+The service is generated using a [Go Clean Code](https://manuel.kiessling.net/2012/09/28/applying-the-clean-architecture-to-go-applications/) structure. It uses the [Graph Gophers](https://github.com/graph-gophers) graphql library which is easy to use and seems to be fully featured.  
 
-Some of the components were constructed using architecture ideas taken from [http://github.com/OscarYuen/go-graphql-starter|Oscar Yuen Go Graphql Starter Example].
+Some of the components were constructed using architecture ideas taken from [Oscar Yuen Go Graphql Starter Example](http://github.com/OscarYuen/go-graphql-starter).
 
 # Features
 
