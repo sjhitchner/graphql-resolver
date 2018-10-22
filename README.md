@@ -82,18 +82,17 @@ Fields contain name, optional internal name, description, expose, deprecated, ty
 * expose: whether the field is exposed publically
 * deprecated: optional flag to indicate whether field is deprecated, strictly informational
 * type: field type valid options
-* * id
-* * integer
-* * float
-* * string
-* * custom type definted above
-* * no type if relationship
+  * id
+  * integer
+  * float
+  * string
+  * custom type definted above
+  * no type if relationship
 * indexes: How this field is exposed in SQL.  To define an index use either `primary` or the field name and append either `_unique` or `_index`, for multi field append fieldname together with underscore.  
-* * <field_name>_unique: defines a unique index where only one possible value is returned when queried
-* * <field_name>_index: defines an index where multiple possible values are returned when queried
-* * primary: defines a primary index
-* relationship
-
+  * <field_name>_unique: defines a unique index where only one possible value is returned when queried
+  * <field_name>_index: defines an index where multiple possible values are returned when queried
+  * primary: defines a primary index
+* relationship: see below
 	
 ##### Relationship
 
@@ -125,7 +124,7 @@ Defines a one to one relations
       to: <to model>
       field: <to field>
       through: <intermediary/linking table>
-      type: "many2many"
+      type: many2many
 
 
 ##### Example
@@ -215,16 +214,13 @@ Some of the components were constructed using architecture ideas taken from [Osc
 Not all Graphql constructs are supported.  The schema definition does not support adding custom GraphQL types nor does it 
 support ENUMs or Object Inheritance.
 
-
-
-
 # Future Work
 
 * Generate Unit Tests for 100% code coverage
 * Allow integration for other backends (only SQL based/Postgres is currently supported)
 * Support additional graphql constructs
-** ENUMS
-** Object Inheritance
+  * ENUMS
+  * Object Inheritance
 * Additional tools to automatically generate schema file from additional sources
 * Logic to only generate delta/changes
 * More thorough validation
