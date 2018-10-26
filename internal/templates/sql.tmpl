@@ -8,10 +8,10 @@ package db
 {{ define "Select" }}
 SELECT {{ range $i, $f := .Fields }}
 {{- if not (many2many $f.Relationship) }}
-	{{- if gt $i 0 }}, {{ end -}}{{ $.Name }}.{{ $f.Internal }} {{ $f.Internal }}
+	{{- if gt $i 0 }}, {{ end -}}{{ $.Internal }}.{{ $f.Internal }} {{ $f.Internal }}
 {{ end }}
 {{- end -}}
-FROM {{ .Name -}}
+FROM public.{{ .Internal -}}
 {{ end }}
 
 
@@ -154,7 +154,8 @@ WHERE {{ range $i, $arg := $method.Args -}}
 {{- if eq $method.Type "list" }}
 {{- if gt (len $method.Args) 0 }} AND {{ end -}}
 {{ $m.Internal }}.id >= ${{ add (len $method.Args) 1}}
-LIMIT ${{ add (len $method.Args) 2 }} ORDER BY {{ $m.Internal }}.id ASC
+ORDER BY {{ $m.Internal }}.id ASC
+LIMIT ${{ add (len $method.Args) 2 }}
 {{- end }}
 `
 
