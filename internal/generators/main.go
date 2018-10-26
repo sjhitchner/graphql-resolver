@@ -33,7 +33,7 @@ func (t *MainGenerator) Generate(cfg *config.Config) error {
 		filepath.Join(cfg.BaseImport, "usecases/interactor"),
 		"libdb:github.com/sjhitchner/graphql-resolver/lib/db",
 		"github.com/sjhitchner/graphql-resolver/lib/graphql",
-		"libsql:github.com/sjhitchner/graphql-resolver/lib/db/sqlite",
+		"libsql:github.com/sjhitchner/graphql-resolver/lib/db/psql",
 	}
 
 	if err := GenerateGoFile(

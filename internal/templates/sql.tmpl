@@ -11,7 +11,7 @@ SELECT {{ range $i, $f := .Fields }}
 	{{- if gt $i 0 }}, {{ end -}}{{ $.Internal }}.{{ $f.Internal }} {{ $f.Internal }}
 {{ end }}
 {{- end -}}
-FROM public.{{ .Internal -}}
+FROM {{ .Internal -}}
 {{ end }}
 
 
