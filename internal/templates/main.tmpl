@@ -1,7 +1,7 @@
 {{ template "Header" }}
 package main
 
-{{ template "Imports" unique .Imports "io/ioutil" "net/http" "context" "log" "libdb:github.com/sjhitchner/toolbox/db" "graphql:github.com/sjhitchner/toolbox/http" "libsql:github.com/sjhitchner/toolbox/db/psql" "github.com/sjhitchner/toolbox/flag"}}
+{{ template "Imports" unique .Imports "io/ioutil" "net/http" "context" "libdb:github.com/sjhitchner/toolbox/db" "graphql:github.com/sjhitchner/toolbox/http" "libsql:github.com/sjhitchner/toolbox/db/psql" "github.com/sjhitchner/toolbox/flag" "log:github.com/sirupsen/logrus"}}
 
 var (
 	sqlitePath string
@@ -29,6 +29,8 @@ func init() {
 // TODO: Sample Main
 func main() {
 	flag.Parse()
+
+	log.SetLevel(log.TraceLevel)
 
 	dbh, err := libsql.NewPSQLDBHandler( dbHost, dbName, dbUser, dbPassword, dbPort, libsql.SSLModeDisable)
 	CheckError(err)
