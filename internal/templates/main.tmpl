@@ -1,7 +1,7 @@
 {{ template "Header" }}
 package main
 
-{{ template "Imports" unique .Imports "strconv" "os" "io/ioutil" "net/http" "context" "log" "libdb:github.com/sjhitchner/graphql-resolver/lib/db" "github.com/sjhitchner/graphql-resolver/lib/graphql" "libsql:github.com/sjhitchner/toolbox/db/psql" "github.com/sjhitchner/toolbox/flag"}}
+{{ template "Imports" unique .Imports "io/ioutil" "net/http" "context" "log" "libdb:github.com/sjhitchner/toolbox/db" "graphql:github.com/sjhitchner/toolbox/http" "libsql:github.com/sjhitchner/toolbox/db/psql" "github.com/sjhitchner/toolbox/flag"}}
 
 var (
 	sqlitePath string
@@ -21,7 +21,7 @@ func init() {
 
 	flag.StringVar(&dbHost, "database-host", "", "Database Host")
 	flag.StringVar(&dbUser, "database-user", "", "Database User")
-	flag.StringVar(&dbPassword, "database-pass", "", "Database Password")
+	flag.StringVar(&dbPassword, "database-password", "", "Database Password")
 	flag.StringVar(&dbName, "database-name", "", "Database Name")
 	flag.IntVar(&dbPort, "database-port", 5432, "Database Port")
 }

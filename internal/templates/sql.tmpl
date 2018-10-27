@@ -1,12 +1,10 @@
 {{ template "Header" }}
 package db
 
-{{ template "Imports" unique .Imports "context" "github.com/pkg/errors" "github.com/sjhitchner/graphql-resolver/lib/db" }}
-
-//"github.com/sjhitchner/graphql-resolver/generated/domain"
+{{ template "Imports" unique .Imports "context" "github.com/pkg/errors" "github.com/sjhitchner/toolbox/db" }}
 
 {{ define "Select" }}
-{{ $first := false }}
+{{- $first := false -}}
 SELECT {{ range $f := .Fields }}
 {{- if $f.Relationship }}
 {{- if eq $f.Relationship.Type  "one2one" }}
