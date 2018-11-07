@@ -1,23 +1,37 @@
 {{ template "Header" }}
 package main
 
-{{ template "Imports" unique .Imports "flag" "io/ioutil" "net/http" "context" "log" "libdb:github.com/sjhitchner/graphql-resolver/lib/db" "github.com/sjhitchner/graphql-resolver/lib/graphql" "libsql:github.com/sjhitchner/graphql-resolver/lib/db/sqlite" }}
+{{ template "Imports" unique .Imports "strconv" "os" "flag" "io/ioutil" "net/http" "context" "log" "libdb:github.com/sjhitchner/graphql-resolver/lib/db" "github.com/sjhitchner/graphql-resolver/lib/graphql" "libsql:github.com/sjhitchner/graphql-resolver/lib/db/psql" }}
 
 var (
 	sqlitePath string
 	schemaPath string
+
+	dbHost string
+	dbUser string
+	dbPassword string
+	dbName string
+	dbPort int
 )
 
 func init() {
 	flag.StringVar(&sqlitePath, "sqlite", ":memory:", "Path to sqlite db")
 	flag.StringVar(&schemaPath, "schema", "schema.gql", "Path to graphql schema")
+
+
+	flag.StringVar(&dbHost, "db-host", os.Getenv("DATABASE_HOST"), "Database Host")
+	flag.StringVar(&dbUser, "db-user", os.Getenv("DATABASE_USER"), "Database User")
+	flag.StringVar(&dbPassword, "db-pass", os.Getenv("DATABASE_PASSWORD"), "Database Password")
+	flag.StringVar(&dbName, "db-name", os.Getenv("DATABASE_NAME"), "Database Name")
+	dbPort, _ = strconv.Atoi(os.Getenv("DATABASE_PORT"))
+	flag.IntVar(&dbPort, "db-port", dbPort, "Database Port")
 }
 
 // TODO: Sample Main
 func main() {
 	flag.Parse()
 
-	dbh, err := libsql.NewSQLiteDBHandler(sqlitePath)
+	dbh, err := libsql.NewPSQLDBHandler( dbHost, dbName, dbUser, dbPassword, dbPort, libsql.SSLModeDisable)
 	CheckError(err)
 
 	schema, err := ioutil.ReadFile(schemaPath)

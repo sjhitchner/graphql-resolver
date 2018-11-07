@@ -6,12 +6,17 @@ package db
 //"github.com/sjhitchner/graphql-resolver/generated/domain"
 
 {{ define "Select" }}
-SELECT {{ range $i, $f := .Fields }}
-{{- if not (many2many $f.Relationship) }}
-	{{- if gt $i 0 }}, {{ end -}}{{ $.Name }}.{{ $f.Internal }} {{ $f.Internal }}
+{{ $first := false }}
+SELECT {{ range $f := .Fields }}
+{{- if $f.Relationship }}
+{{- if eq $f.Relationship.Type  "one2one" }}
+	{{- if $first }}, {{ end -}}{{ $.Internal }}.{{ $f.Internal }} as {{ $f.Internal }}{{ $first = true }}
+{{ end }}
+{{- else }}
+	{{- if $first }}, {{ end -}}{{ $.Internal }}.{{ $f.Internal }} as {{ $f.Internal }}{{ $first = true }}
 {{ end }}
 {{- end -}}
-FROM {{ .Name -}}
+FROM {{ .Internal -}}
 {{ end }}
 
 
@@ -154,7 +159,8 @@ WHERE {{ range $i, $arg := $method.Args -}}
 {{- if eq $method.Type "list" }}
 {{- if gt (len $method.Args) 0 }} AND {{ end -}}
 {{ $m.Internal }}.id >= ${{ add (len $method.Args) 1}}
-LIMIT ${{ add (len $method.Args) 2 }} ORDER BY {{ $m.Internal }}.id ASC
+ORDER BY {{ $m.Internal }}.id ASC
+LIMIT ${{ add (len $method.Args) 2 }}
 {{- end }}
 `
 
