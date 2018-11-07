@@ -1,12 +1,10 @@
 {{ template "Header" }}
 package db
 
-{{ template "Imports" unique .Imports "context" "github.com/pkg/errors" "github.com/sjhitchner/graphql-resolver/lib/db" }}
-
-//"github.com/sjhitchner/graphql-resolver/generated/domain"
+{{ template "Imports" unique .Imports "context" "github.com/pkg/errors" "github.com/sjhitchner/toolbox/db" }}
 
 {{ define "Select" }}
-{{ $first := false }}
+{{- $first := false -}}
 SELECT {{ range $f := .Fields }}
 {{- if $f.Relationship }}
 {{- if eq $f.Relationship.Type  "one2one" }}
@@ -55,7 +53,7 @@ DELETE FROM {{ .Model.Internal }} WHERE {{ range $i, $f := .Mutation.Fields -}}
 
 
 {{- define "QueryError" -}}
-errors.Wrapf(err, "Error Getting {{ .Model.Name }} {{ range $arg := .Method.Args -}} {{ lcamel $arg.Name }}='%v'{{- end -}}" 
+errors.Wrapf(err, "Error {{ .Model.Name }}:Select{{ camel .Method.Name }} {{ range $arg := .Method.Args -}} {{ lcamel $arg.Name }}='%v'{{- end -}}" 
 {{- range $arg := .Method.Args -}}, {{ lcamel $arg.Name }}{{- end -}})
 {{- end -}}
 
@@ -150,11 +148,11 @@ func New{{ camel $m.Name }}DB(dhb db.DBHandler) *{{ camel $m.Name }}DB {
 const Select{{ camel $method.Name }} = `
 {{- template "Select" $m }}
 {{- if many2many $method.Relationship }}
-JOIN {{ $method.Relationship.Through }} ON {{ $method.Relationship.To }}.id = {{ $method.Relationship.Through }}.{{ $method.Relationship.Field }}
+JOIN {{ $method.Relationship.Through.Internal }} ON {{ $m.Internal }}.id = {{ $method.Relationship.Through.Internal }}.{{ $m.Name }}_id
 {{- end }}
 WHERE {{ range $i, $arg := $method.Args -}}
 {{- if gt $i 0 }} AND {{ end -}}
-{{ $arg.Parent}}.{{ $arg.Name }} = ${{ add $i 1 }}
+{{ $arg.Parent.Internal }}.{{ $arg.Name }} = ${{ add $i 1 }}
 {{- end -}}
 {{- if eq $method.Type "list" }}
 {{- if gt (len $method.Args) 0 }} AND {{ end -}}

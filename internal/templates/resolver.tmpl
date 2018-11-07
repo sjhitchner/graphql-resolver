@@ -1,10 +1,11 @@
 {{ template "Header" }}
 package resolvers
 
-{{ template "Imports" unique .Imports "context" "github.com/graph-gophers/graphql-go" "github.com/pkg/errors" }}
+{{ template "Imports" unique .Imports "context" "github.com/graph-gophers/graphql-go" "github.com/pkg/errors" "log:github.com/sirupsen/logrus"}}
 
 
 {{ define "MethodID" }}(ctx context.Context) graphql.ID {
+	log.Tracef("{{ .Model.Name }}:{{ .Field.Name }} => %v", t.obj.{{ camel .Field.Name }}) 
 	return ToID(t.obj.{{ camel .Field.Name }})
 }
 {{ end }}
@@ -17,6 +18,7 @@ package resolvers
 
 
 {{ define "MethodPrimative" }}(ctx context.Context) {{ .Field.Primative }} {
+	log.Tracef("{{ .Model.Name }}:{{ .Field.Name }} => %v", t.obj.{{ camel .Field.Name }}) 
 	{{ if eq .Field.Type .Field.Primative -}}
 	return t.obj.{{ camel .Field.Name }}
 	{{- else -}}
@@ -27,9 +29,9 @@ package resolvers
 
 
 {{ define "MethodOne2One" -}} 
-(ctx context.Context) (*{{ camel .Field.Relationship.To }}Resolver, error) {
-	obj, err := helpers.Interactor(ctx).Get{{ camel .Field.Relationship.To }}ById(ctx, t.obj.{{ camel .Field.Internal }})
-	return &{{ camel .Field.Relationship.To }}Resolver{obj}, errors.Wrapf(err, "Failed Getting {{ camel .Field.Name }} '%v'", t.obj.{{ camel .Field.Internal }})
+(ctx context.Context) (*{{ camel .Field.Relationship.To.Name }}Resolver, error) {
+	obj, err := helpers.Interactor(ctx).Get{{ camel .Field.Relationship.To.Name }}ById(ctx, t.obj.{{ camel .Field.Internal }})
+	return &{{ camel .Field.Relationship.To.Name }}Resolver{obj}, errors.Wrapf(err, "Failed Getting {{ camel .Field.Name }} '%v'", t.obj.{{ camel .Field.Internal }})
 }
 {{ end }}
 
@@ -37,12 +39,17 @@ package resolvers
 {{ define "MethodOne2Many" -}} 
 (ctx context.Context, args struct{
 	First int32 
-	After domain.Id
-})	([]*{{ camel .Field.Relationship.To }}Resolver, error) {
-	list, err := helpers.Interactor(ctx).List{{ camel .Field.Relationship.To }}sBy{{ camel .Field.Relationship.Field }}(ctx, t.obj.Id, args.First, args.After)
-	resolvers := make([]*{{ camel .Field.Relationship.To }}Resolver, len(list))
+	After graphql.ID
+})	([]*{{ camel .Field.Relationship.To.Name }}Resolver, error) {
+	after, err := FromID(args.After)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Unable to decode After '%s'", args.After)
+	}
+
+	list, err := helpers.Interactor(ctx).List{{ camel .Field.Relationship.To.Name }}sBy{{ camel .Field.Relationship.Field }}(ctx, t.obj.Id, args.First, after)
+	resolvers := make([]*{{ camel .Field.Relationship.To.Name }}Resolver, len(list))
 	for i := range resolvers {
-		resolvers[i] = &{{ camel .Field.Relationship.To }}Resolver{list[i]}
+		resolvers[i] = &{{ camel .Field.Relationship.To.Name }}Resolver{list[i]}
 	}
 	return resolvers, errors.Wrapf(err, "Failed Getting {{ camel .Field.Name }} By '%v'", t.obj.Id)
 }
@@ -52,12 +59,17 @@ package resolvers
 {{ define "MethodMany2Many" -}}
 (ctx context.Context, args struct {
 	First int32 
-	After domain.Id
-}) ([]*{{ camel .Field.Relationship.To }}Resolver, error) {
-	list, err := helpers.Interactor(ctx).List{{ camel .Field.Relationship.To }}sBy{{ camel .Field.Relationship.Field }}(ctx, t.obj.Id, args.First, args.After)
-	resolvers := make([]*{{ camel .Field.Relationship.To }}Resolver, len(list))
+	After graphql.ID
+}) ([]*{{ camel .Field.Relationship.To.Name }}Resolver, error) {
+	after, err := FromID(args.After)
+	if err != nil {
+		return nil, errors.Wrapf(err, "Unable to decode After '%s'", args.After)
+	}
+
+list, err := helpers.Interactor(ctx).List{{ camel .Field.Relationship.To.Name }}sBy{{ camel .Field.Relationship.Field }}(ctx, t.obj.Id, args.First, after)
+	resolvers := make([]*{{ camel .Field.Relationship.To.Name }}Resolver, len(list))
 	for i := range resolvers {
-		resolvers[i] = &{{ camel .Field.Relationship.To }}Resolver{list[i]}
+		resolvers[i] = &{{ camel .Field.Relationship.To.Name }}Resolver{list[i]}
 	}
 	return resolvers, errors.Wrapf(err, "Failed Getting {{ camel .Field.Name }} By '%v'", t.obj.Id)
 }

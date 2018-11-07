@@ -96,13 +96,19 @@ func BuildField(cfg *config.Config, f config.Field) (Field, string) {
 		to := cfg.FindModelByName(f.Relationship.To)
 
 		field.Relationship = &Relationship{
-			To: to.Name,
-			Through: func() string {
+			To: NameInternal{
+				Name:     to.Name,
+				Internal: to.Internal,
+			},
+			Through: func() NameInternal {
 				if f.Relationship.Through == "" {
-					return ""
+					return NameInternal{}
 				}
 				through := cfg.FindModelByName(f.Relationship.Through)
-				return through.Plural
+				return NameInternal{
+					Name:     through.Plural,
+					Internal: through.Internal,
+				}
 			}(),
 			Field: f.Relationship.Field,
 			Type:  f.Relationship.Type,
@@ -142,9 +148,12 @@ func buildRepoMethods(cfg *config.Config, model config.Model, methodMap map[stri
 					for _, fieldName := range idx.Fields {
 						field := model.FindFieldByInternal(fieldName)
 						args = append(args, Arg{
-							Parent: model.Internal,
-							Name:   fieldName,
-							Type:   field.Type,
+							Parent: NameInternal{
+								Name:     model.Name,
+								Internal: model.Internal,
+							},
+							Name: fieldName,
+							Type: field.Type,
 						})
 					}
 					return args
@@ -171,13 +180,19 @@ func buildRepoMethods(cfg *config.Config, model config.Model, methodMap map[stri
 					Name: fmt.Sprintf("list_%s_by_%s", to.Plural, f.Relationship.Field),
 					Args: []Arg{
 						Arg{
-							Name:   f.Relationship.Field,
-							Parent: f.Relationship.To,
-							Type:   config.ID,
+							Name: f.Relationship.Field,
+							Parent: NameInternal{
+								Name:     to.Name,
+								Internal: to.Internal,
+							},
+							Type: config.ID,
 						},
 					},
 					Relationship: &Relationship{
-						To:    model.Name,
+						To: NameInternal{
+							Name:     model.Name,
+							Internal: model.Internal,
+						},
 						Field: f.Relationship.Field,
 						Type:  f.Relationship.Type,
 					},
@@ -190,6 +205,8 @@ func buildRepoMethods(cfg *config.Config, model config.Model, methodMap map[stri
 
 		case config.Many2Many:
 			to := cfg.FindModelByName(f.Relationship.To)
+			through := cfg.FindModelByName(f.Relationship.Through)
+
 			methodMap[f.Relationship.To] = append(
 				methodMap[f.Relationship.To],
 				Method{
@@ -197,16 +214,25 @@ func buildRepoMethods(cfg *config.Config, model config.Model, methodMap map[stri
 					Name: fmt.Sprintf("list_%s_by_%s", to.Plural, f.Relationship.Field),
 					Args: []Arg{
 						Arg{
-							Name:   f.Relationship.Field,
-							Parent: f.Relationship.Through,
-							Type:   config.ID,
+							Name: f.Relationship.Field,
+							Parent: NameInternal{
+								Name:     through.Name,
+								Internal: through.Internal,
+							},
+							Type: config.ID,
 						},
 					},
 					Relationship: &Relationship{
-						To:      model.Name,
-						Through: f.Relationship.Through,
-						Field:   f.Relationship.Field,
-						Type:    f.Relationship.Type,
+						To: NameInternal{
+							Name:     model.Name,
+							Internal: model.Internal,
+						},
+						Through: NameInternal{
+							Name:     through.Name,
+							Internal: through.Internal,
+						},
+						Field: f.Relationship.Field,
+						Type:  f.Relationship.Type,
 					},
 					Return: Return{
 						Type:  f.Relationship.To,
