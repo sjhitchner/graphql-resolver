@@ -7,7 +7,7 @@ package db
 {{- $first := false -}}
 SELECT {{ range $f := .Fields }}
 {{- if $f.Relationship }}
-{{- if eq $f.Relationship.Type  "one2one" }}
+{{- if eq $f.Relationship.Type "one2one" }}
 	{{- if $first }}, {{ end -}}{{ $.Internal }}.{{ $f.Internal }} as {{ $f.Internal }}{{ $first = true }}
 {{ end }}
 {{- else }}

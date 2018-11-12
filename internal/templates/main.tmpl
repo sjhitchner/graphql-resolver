@@ -56,7 +56,7 @@ func SetupHandler(dbh libdb.DBHandler, schema string) (http.Handler, error) {
 	)
 	inter := interactor.NewInteractor(agg)
 
-	handler := graphql.NewHandler(string(schema), &resolvers.Resolver{})
+	handler := graphql.NewHandler(string(schema), &resolvers.Resolver{inter})
 
 	ctx := context.Background()
 	ctx = helpers.SetAggregator(ctx, agg)
