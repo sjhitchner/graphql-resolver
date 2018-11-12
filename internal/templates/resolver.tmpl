@@ -29,14 +29,9 @@ package resolvers
 
 
 {{ define "MethodOne2One" -}} 
-<<<<<<< HEAD
 (ctx context.Context) (*{{ camel .Field.Relationship.To.Name }}Resolver, error) {
-	obj, err := helpers.Interactor(ctx).Get{{ camel .Field.Relationship.To.Name }}ById(ctx, t.obj.{{ camel .Field.Internal }})
-	return &{{ camel .Field.Relationship.To.Name }}Resolver{obj}, errors.Wrapf(err, "Failed Getting {{ camel .Field.Name }} '%v'", t.obj.{{ camel .Field.Internal }})
-=======
-(ctx context.Context) (*{{ camel .Field.Relationship.To }}Resolver, error) {
-	obj, err := t.interactor.Get{{ camel .Field.Relationship.To }}ById(ctx, t.obj.{{ camel .Field.Internal }})
-	return &{{ camel .Field.Relationship.To }}Resolver{t.interactor, obj}, errors.Wrapf(err, "Failed Getting {{ camel .Field.Name }} '%v'", t.obj.{{ camel .Field.Internal }})
+	obj, err := t.interactor.Get{{ camel .Field.Relationship.To.Name }}ById(ctx, t.obj.{{ camel .Field.Internal }})
+	return &{{ camel .Field.Relationship.To.Name }}Resolver{t.interactor, obj}, errors.Wrapf(err, "Failed Getting {{ camel .Field.Name }} '%v'", t.obj.{{ camel .Field.Internal }})
 >>>>>>> removing interactor from context
 }
 {{ end }}
@@ -52,10 +47,10 @@ package resolvers
 		return nil, errors.Wrapf(err, "Unable to decode After '%s'", args.After)
 	}
 
-	list, err := t.interactor.List{{ camel .Field.Relationship.To }}sBy{{ camel .Field.Relationship.Field }}(ctx, t.obj.Id, args.First, args.After)
-	resolvers := make([]*{{ camel .Field.Relationship.To }}Resolver, len(list))
+	list, err := t.interactor.List{{ camel .Field.Relationship.To.Name }}sBy{{ camel .Field.Relationship.Field }}(ctx, t.obj.Id, args.First, args.After)
+	resolvers := make([]*{{ camel .Field.Relationship.To.Name }}Resolver, len(list))
 	for i := range resolvers {
-		resolvers[i] = &{{ camel .Field.Relationship.To }}Resolver{t.interactor, list[i]}
+		resolvers[i] = &{{ camel .Field.Relationship.To.Name }}Resolver{t.interactor, list[i]}
 	}
 	return resolvers, errors.Wrapf(err, "Failed Getting {{ camel .Field.Name }} By '%v'", t.obj.Id)
 }
@@ -72,10 +67,10 @@ package resolvers
 		return nil, errors.Wrapf(err, "Unable to decode After '%s'", args.After)
 	}
 
-	list, err := t.interactor.List{{ camel .Field.Relationship.To }}sBy{{ camel .Field.Relationship.Field }}(ctx, t.obj.Id, args.First, args.After)
-	resolvers := make([]*{{ camel .Field.Relationship.To }}Resolver, len(list))
+	list, err := t.interactor.List{{ camel .Field.Relationship.To.Name }}sBy{{ camel .Field.Relationship.Field }}(ctx, t.obj.Id, args.First, args.After)
+	resolvers := make([]*{{ camel .Field.Relationship.To.Name }}Resolver, len(list))
 	for i := range resolvers {
-		resolvers[i] = &{{ camel .Field.Relationship.To }}Resolver{t.interactor, list[i]}
+		resolvers[i] = &{{ camel .Field.Relationship.To.Name }}Resolver{t.interactor, list[i]}
 	}
 	return resolvers, errors.Wrapf(err, "Failed Getting {{ camel .Field.Name }} By '%v'", t.obj.Id)
 }
