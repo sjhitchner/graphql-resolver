@@ -32,7 +32,6 @@ package resolvers
 (ctx context.Context) (*{{ camel .Field.Relationship.To.Name }}Resolver, error) {
 	obj, err := t.interactor.Get{{ camel .Field.Relationship.To.Name }}ById(ctx, t.obj.{{ camel .Field.Internal }})
 	return &{{ camel .Field.Relationship.To.Name }}Resolver{t.interactor, obj}, errors.Wrapf(err, "Failed Getting {{ camel .Field.Name }} '%v'", t.obj.{{ camel .Field.Internal }})
->>>>>>> removing interactor from context
 }
 {{ end }}
 
