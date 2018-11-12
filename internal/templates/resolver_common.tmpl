@@ -21,11 +21,11 @@ func FromID(id graphql.ID) (domain.{{ camel .Id.Name }}, error) {
 }
 
 func toIntegerID(id domain.{{ camel .Id.Name }}) graphql.ID {
-	return graphql.ID(id)
+	return graphql.ID(fmt.Sprintf("%d", id))
 }
 
 func toStringID(id domain.{{ camel .Id.Name }}) graphql.ID {
-	return graphql.ID(fmt.Sprintf("%d", id))
+	return graphql.ID(id)
 }
 
 func fromIntegerID(id graphql.ID) (domain.{{ camel .Id.Name }}, error) {

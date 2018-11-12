@@ -27,7 +27,7 @@ type Method struct {
 
 type Arg struct {
 	Name   string
-	Parent string
+	Parent NameInternal
 	Type   string
 	Deref  bool
 }
@@ -57,10 +57,15 @@ type Mutation struct {
 }
 
 type Relationship struct {
-	To      string
-	Through string
+	To      NameInternal
+	Through NameInternal
 	Field   string
 	Type    string
+}
+
+type NameInternal struct {
+	Name     string
+	Internal string
 }
 
 type Field struct {
