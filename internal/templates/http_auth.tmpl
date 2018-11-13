@@ -1,21 +1,13 @@
 package graphql
 
-import (
-	"context"
-	//"encoding/base64"
-	//"encoding/json"
-	"log"
-	//"net"
-	"net/http"
-	"strings"
+{{ template "Imports" unique .Imports "context" "log" "net/http" "strings" "github.com/pkg/errors" }}
 
+/*
 	//jwt "github.com/dgrijalva/jwt-go"
-	"github.com/pkg/errors"
-	ggg "github.com/sjhitchner/slack-clone/backend/interfaces/context"
 	//gcontext "github.com/OscarYuen/go-graphql-starter/context"
 	//"github.com/OscarYuen/go-graphql-starter/model"
 	//"github.com/OscarYuen/go-graphql-starter/service"
-)
+*/
 
 // https://github.com/OscarYuen/go-graphql-starter/blob/master/handler/auth.go
 // TODO constants
@@ -40,8 +32,8 @@ func WrapAuth(h http.Handler) http.Handler {
 			w.WriteHeader(http.StatusUnauthorized)
 		}
 
-		ctx = ggg.SetCurrentUserId(ctx, userId)
-		//ctx = ggg.SetIsAuthorized(ctx, isAuthorized)
+		ctx = helpers.SetCurrentUserId(ctx, userId)
+		//ctx = helpers.SetIsAuthorized(ctx, isAuthorized)
 		h.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
@@ -94,9 +86,7 @@ func ParseAuthorizationHeader(r *http.Request) (string, error) {
 		h.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
-*/
 
-/*
 func writeResponse(w http.ResponseWriter, response interface{}, code int) {
 	jsonResponse, _ := json.Marshal(response)
 	w.WriteHeader(code)
