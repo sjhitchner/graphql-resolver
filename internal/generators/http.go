@@ -8,8 +8,6 @@ import (
 	"github.com/sjhitchner/graphql-resolver/internal/config"
 )
 
-//const HttpModule = "resolvers"
-
 type HttpTemplate struct {
 	Imports []string
 }
