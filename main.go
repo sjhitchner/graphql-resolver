@@ -44,6 +44,7 @@ func main() {
 		generators.NewAggregatorGenerator(outputPath),
 		generators.NewGraphQLGenerator(outputPath),
 		generators.NewContextGenerator(outputPath),
+		generators.NewHttpGenerator(outputPath),
 		generators.NewMainGenerator(outputPath),
 	}
 

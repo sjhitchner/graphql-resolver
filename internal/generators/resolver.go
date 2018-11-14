@@ -37,14 +37,9 @@ func (t *ResolverGenerator) Generate(cfg *config.Config) error {
 	models := domain.BuildModels(cfg)
 	globalImports := []string{
 		filepath.Join(cfg.BaseImport, "domain"),
-		filepath.Join(cfg.BaseImport, "interfaces/helpers"),
 	}
 
 	for _, model := range models {
-		//if model.Type == "link" {
-		//	continue
-		//}
-
 		model.Imports.Add(globalImports...)
 
 		if err := GenerateGoFile(
@@ -100,7 +95,7 @@ func (t *ResolverGenerator) Generate(cfg *config.Config) error {
 			Imports []string
 			Models  []domain.Model
 		}{
-			Imports: []string{}, //imports.AsSlice(),
+			Imports: imports.AsSlice(),
 			Models:  models,
 		}); err != nil {
 		return errors.Wrapf(err, "Error generating query resolver functions")

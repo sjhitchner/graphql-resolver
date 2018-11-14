@@ -30,8 +30,8 @@ package resolvers
 
 {{ define "MethodOne2One" -}} 
 (ctx context.Context) (*{{ camel .Field.Relationship.To.Name }}Resolver, error) {
-	obj, err := helpers.Interactor(ctx).Get{{ camel .Field.Relationship.To.Name }}ById(ctx, t.obj.{{ camel .Field.Internal }})
-	return &{{ camel .Field.Relationship.To.Name }}Resolver{obj}, errors.Wrapf(err, "Failed Getting {{ camel .Field.Name }} '%v'", t.obj.{{ camel .Field.Internal }})
+	obj, err := t.interactor.Get{{ camel .Field.Relationship.To.Name }}ById(ctx, t.obj.{{ camel .Field.Internal }})
+	return &{{ camel .Field.Relationship.To.Name }}Resolver{t.interactor, obj}, errors.Wrapf(err, "Failed Getting {{ camel .Field.Name }} '%v'", t.obj.{{ camel .Field.Internal }})
 }
 {{ end }}
 
@@ -46,10 +46,10 @@ package resolvers
 		return nil, errors.Wrapf(err, "Unable to decode After '%s'", args.After)
 	}
 
-	list, err := helpers.Interactor(ctx).List{{ camel .Field.Relationship.To.Name }}sBy{{ camel .Field.Relationship.Field }}(ctx, t.obj.Id, args.First, after)
+	list, err := t.interactor.List{{ camel .Field.Relationship.To.Name }}sBy{{ camel .Field.Relationship.Field }}(ctx, t.obj.Id, args.First, after)
 	resolvers := make([]*{{ camel .Field.Relationship.To.Name }}Resolver, len(list))
 	for i := range resolvers {
-		resolvers[i] = &{{ camel .Field.Relationship.To.Name }}Resolver{list[i]}
+		resolvers[i] = &{{ camel .Field.Relationship.To.Name }}Resolver{t.interactor, list[i]}
 	}
 	return resolvers, errors.Wrapf(err, "Failed Getting {{ camel .Field.Name }} By '%v'", t.obj.Id)
 }
@@ -66,10 +66,10 @@ package resolvers
 		return nil, errors.Wrapf(err, "Unable to decode After '%s'", args.After)
 	}
 
-list, err := helpers.Interactor(ctx).List{{ camel .Field.Relationship.To.Name }}sBy{{ camel .Field.Relationship.Field }}(ctx, t.obj.Id, args.First, after)
+	list, err := t.interactor.List{{ camel .Field.Relationship.To.Name }}sBy{{ camel .Field.Relationship.Field }}(ctx, t.obj.Id, args.First, after)
 	resolvers := make([]*{{ camel .Field.Relationship.To.Name }}Resolver, len(list))
 	for i := range resolvers {
-		resolvers[i] = &{{ camel .Field.Relationship.To.Name }}Resolver{list[i]}
+		resolvers[i] = &{{ camel .Field.Relationship.To.Name }}Resolver{t.interactor, list[i]}
 	}
 	return resolvers, errors.Wrapf(err, "Failed Getting {{ camel .Field.Name }} By '%v'", t.obj.Id)
 }
@@ -80,14 +80,15 @@ list, err := helpers.Interactor(ctx).List{{ camel .Field.Relationship.To.Name }}
 {{ with $m := .Model }}
 {{ comment $m.Description }}
 type {{ camel $m.Name }}Resolver struct {
+	interactor domain.Interactor
 	obj *domain.{{ camel $m.Name }}
 }
 
-func New{{ camel $m.Name }}Resolver(obj *domain.{{ camel $m.Name }}) *{{ camel $m.Name }}Resolver {
+func New{{ camel $m.Name }}Resolver(inter domain.Interactor, obj *domain.{{ camel $m.Name }}) *{{ camel $m.Name }}Resolver {
 	if obj == nil {
 		return nil
 	}
-	return &{{ camel $m.Name }}Resolver{obj}
+	return &{{ camel $m.Name }}Resolver{inter, obj}
 }
 
 {{ range $f := $m.Fields }}
@@ -114,6 +115,7 @@ func (t *{{ camel $m.Name }}Resolver) {{ camel $f.Name -}}
 
 
 type {{ camel .Model.Name }}QueryResolver struct {
+	interactor domain.Interactor
 }
 
 func (t *{{ camel .Model.Name }}QueryResolver) {{ camel .Model.Name }}(ctx context.Context, args struct {
@@ -125,8 +127,8 @@ Id graphql.ID
 		return nil, errors.Wrapf(err, "invalid id")
 	}
 
-	obj, err := helpers.Interactor(ctx).Get{{ camel .Model.Name }}ById(ctx, id)
-	return &{{ camel .Model.Name }}Resolver{obj}, errors.Wrapf(err, "error getting {{ .Model.Name }} '%v'", args.Id)
+	obj, err := t.interactor.Get{{ camel .Model.Name }}ById(ctx, id)
+	return &{{ camel .Model.Name }}Resolver{t.interactor, obj}, errors.Wrapf(err, "error getting {{ .Model.Name }} '%v'", args.Id)
 }
 
 func (t *{{ camel .Model.Name }}QueryResolver) {{ camel .Model.Name }}List(ctx context.Context, args struct {
@@ -139,15 +141,12 @@ After graphql.ID
 		return nil, errors.Wrapf(err, "invalid id")
 	}
 
-	list, err := helpers.Interactor(ctx).List{{ camel .Model.Plural }}(ctx, args.First, id)
+	list, err := t.interactor.List{{ camel .Model.Plural }}(ctx, args.First, id)
 
 	resolvers := make([]*{{ camel .Model.Name }}Resolver, len(list))
 	for i:= range resolvers {
-		resolvers[i] = &{{ camel .Model.Name }}Resolver{list[i]}
+		resolvers[i] = &{{ camel .Model.Name }}Resolver{t.interactor, list[i]}
 	}
 
 	return resolvers, errors.Wrapf(err, "error getting {{ camel .Model.Plural }}")
 }
-
-
-
