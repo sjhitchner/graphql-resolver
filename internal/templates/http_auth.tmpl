@@ -1,4 +1,4 @@
-package graphql
+package helpers
 
 {{ template "Imports" unique .Imports "context" "log" "net/http" "strings" "github.com/pkg/errors" }}
 
@@ -32,13 +32,13 @@ func WrapAuth(h http.Handler) http.Handler {
 			w.WriteHeader(http.StatusUnauthorized)
 		}
 
-		ctx = helpers.SetCurrentUserId(ctx, userId)
-		//ctx = helpers.SetIsAuthorized(ctx, isAuthorized)
+		ctx = SetCurrentUserId(ctx, userId)
+		//ctx = SetIsAuthorized(ctx, isAuthorized)
 		h.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
-func ValidateAuthorizationHeader(ctx context.Context, r *http.Request) (int64, bool, error) {
+func ValidateAuthorizationHeader(ctx context.Context, r *http.Request) (domain.Id, bool, error) {
 	token, _ := ParseAuthorizationHeader(r)
 	//if err != nil {
 	//	return 0, false, err

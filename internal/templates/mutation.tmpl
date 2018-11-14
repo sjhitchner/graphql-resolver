@@ -13,6 +13,7 @@ type {{ camel $mutation.Name }}Input struct {
 }
 
 type {{ camel $mutation.Name }}Resolver struct {
+	interactor domain.Interactor
 	{{- if eq $mutation.Type "insert" }}
 	obj    *domain.{{ camel $m.Name }}
 	{{- end }}
@@ -20,15 +21,18 @@ type {{ camel $mutation.Name }}Resolver struct {
 }
 
 {{- if eq $mutation.Type "insert" }}
-func New{{ camel $mutation.Name }}Resolver(obj *domain.{{ camel $m.Name }}, err ...error) *{{ camel $mutation.Name }}Resolver {
+func New{{ camel $mutation.Name }}Resolver(inter domain.Interactor, obj *domain.{{ camel $m.Name }}, err ...error) *{{ camel $mutation.Name }}Resolver {
 return &{{ camel $mutation.Name }}Resolver{
+		inter,
 		obj,
 		err,
 	}
 }
 {{- else }}
-func New{{ camel $mutation.Name }}Resolver(err ...error) *{{ camel $mutation.Name }}Resolver {
+
+func New{{ camel $mutation.Name }}Resolver(inter domain.Interactor, err ...error) *{{ camel $mutation.Name }}Resolver {
 return &{{ camel $mutation.Name }}Resolver{
+        inter,
 		err,
 	}
 }
@@ -40,8 +44,9 @@ func (t *{{ camel $mutation.Name }}Resolver) Ok() bool {
 
 
 {{- if eq $mutation.Type "insert" }}
+
 func (t *{{ camel $mutation.Name }}Resolver) {{ camel $m.Name }}(ctx context.Context) (*{{ camel $m.Name }}Resolver, error) {
-return New{{ camel $m.Name }}Resolver(t.obj), nil
+return New{{ camel $m.Name }}Resolver(t.interactor, t.obj), nil
 }
 {{- end }}
 
@@ -58,18 +63,18 @@ Input {{ camel $mutation.Name }}Input
 	{{ lcamel $f.Internal }}, err := FromID(args.Input.{{ camel $f.Internal }})
 	if err != nil {
 		{{- if eq $mutation.Type "insert" -}}
-		return New{{ camel $mutation.Name }}Resolver(nil, err), nil
+		return New{{ camel $mutation.Name }}Resolver(t.interactor, nil, err), nil
 		{{- else -}}
-		return New{{ camel $mutation.Name }}Resolver(err), nil
+		return New{{ camel $mutation.Name }}Resolver(t.interactor, err), nil
 		{{- end -}}
 	}
     {{- else if eq $f.Type "timestamp" }}
 	{{ lcamel $f.Internal }}, err := time.Parse(time.RFC3339, args.Input.{{ camel $f.Internal }})
 	if err != nil {
 		{{- if eq $mutation.Type "insert" -}}
-		return New{{ camel $mutation.Name }}Resolver(nil, err), nil
+		return New{{ camel $mutation.Name }}Resolver(t.interactor, nil, err), nil
 		{{- else -}}
-		return New{{ camel $mutation.Name }}Resolver(err), nil
+		return New{{ camel $mutation.Name }}Resolver(t.interactor, err), nil
 		{{- end -}}
 	}
 	{{- end }}
@@ -85,17 +90,17 @@ Input {{ camel $mutation.Name }}Input
 	switch validator := interface{}(obj).(type) {
 	case domain.Validator:
 		if err := validator.Validate(); err != nil {
-			return New{{ camel $mutation.Name }}Resolver(nil, err), nil
+			return New{{ camel $mutation.Name }}Resolver(t.interactor, nil, err), nil
 		}
 	}
 
 	var errr error
 	{{ if eq $mutation.Type "insert" -}}
-	obj, errr = helpers.Interactor(ctx).{{ camel $mutation.Name }}(ctx, obj)
-	return New{{ camel $mutation.Name }}Resolver(obj, errr), nil
+	obj, errr = t.interactor.{{ camel $mutation.Name }}(ctx, obj)
+	return New{{ camel $mutation.Name }}Resolver(t.interactor, obj, errr), nil
 	{{- else -}}
-	errr = helpers.Interactor(ctx).{{ camel $mutation.Name }}(ctx, obj)
-	return New{{ camel $mutation.Name }}Resolver(errr), nil
+	errr = t.interactor.{{ camel $mutation.Name }}(ctx, obj)
+	return New{{ camel $mutation.Name }}Resolver(t.interactor, errr), nil
 	{{- end -}}
 }
 

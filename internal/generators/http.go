@@ -22,14 +22,13 @@ type HttpGenerator struct {
 func NewHttpGenerator(path string) *HttpGenerator {
 	return &HttpGenerator{
 		path: path,
-		pkg:  "interfaces/http",
+		pkg:  "interfaces/helpers",
 	}
 }
 
 func (t *HttpGenerator) Generate(cfg *config.Config) error {
 	imports := []string{
 		filepath.Join(cfg.BaseImport, "domain"),
-		filepath.Join(cfg.BaseImport, "interfaces/helpers"),
 	}
 
 	if err := GenerateGoFile(

@@ -156,13 +156,17 @@ models:
           - primary
 
       - name: "team"
-        type: id
+        relationship:
+          to: "team" 
+          type: one2one
         indexes:
           - team_user_index
           - team_index
 
       - name: "user"
-        type: id
+        relationship:
+          to: "user" 
+          type: one2one
         indexes:
           - team_user_index
           - user_index  
@@ -266,11 +270,15 @@ models:
         indexes:
           - primary
       - name: "channel"
-        type: id
+        relationship:
+          to: "channel" 
+          type: one2one
         indexes:
           - channel_user_index
       - name: "user"
-        type: id
+        relationship:
+          to: "user" 
+          type: one2one
         indexes:
           - channel_user_index
 

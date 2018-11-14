@@ -46,7 +46,7 @@ package resolvers
 		return nil, errors.Wrapf(err, "Unable to decode After '%s'", args.After)
 	}
 
-	list, err := t.interactor.List{{ camel .Field.Relationship.To.Name }}sBy{{ camel .Field.Relationship.Field }}(ctx, t.obj.Id, args.First, args.After)
+	list, err := t.interactor.List{{ camel .Field.Relationship.To.Name }}sBy{{ camel .Field.Relationship.Field }}(ctx, t.obj.Id, args.First, after)
 	resolvers := make([]*{{ camel .Field.Relationship.To.Name }}Resolver, len(list))
 	for i := range resolvers {
 		resolvers[i] = &{{ camel .Field.Relationship.To.Name }}Resolver{t.interactor, list[i]}
@@ -66,7 +66,7 @@ package resolvers
 		return nil, errors.Wrapf(err, "Unable to decode After '%s'", args.After)
 	}
 
-	list, err := t.interactor.List{{ camel .Field.Relationship.To.Name }}sBy{{ camel .Field.Relationship.Field }}(ctx, t.obj.Id, args.First, args.After)
+	list, err := t.interactor.List{{ camel .Field.Relationship.To.Name }}sBy{{ camel .Field.Relationship.Field }}(ctx, t.obj.Id, args.First, after)
 	resolvers := make([]*{{ camel .Field.Relationship.To.Name }}Resolver, len(list))
 	for i := range resolvers {
 		resolvers[i] = &{{ camel .Field.Relationship.To.Name }}Resolver{t.interactor, list[i]}
@@ -115,6 +115,7 @@ func (t *{{ camel $m.Name }}Resolver) {{ camel $f.Name -}}
 
 
 type {{ camel .Model.Name }}QueryResolver struct {
+	interactor domain.Interactor
 }
 
 func (t *{{ camel .Model.Name }}QueryResolver) {{ camel .Model.Name }}(ctx context.Context, args struct {
@@ -126,8 +127,8 @@ Id graphql.ID
 		return nil, errors.Wrapf(err, "invalid id")
 	}
 
-	obj, err := helpers.Interactor(ctx).Get{{ camel .Model.Name }}ById(ctx, id)
-	return &{{ camel .Model.Name }}Resolver{obj}, errors.Wrapf(err, "error getting {{ .Model.Name }} '%v'", args.Id)
+	obj, err := t.interactor.Get{{ camel .Model.Name }}ById(ctx, id)
+	return &{{ camel .Model.Name }}Resolver{t.interactor, obj}, errors.Wrapf(err, "error getting {{ .Model.Name }} '%v'", args.Id)
 }
 
 func (t *{{ camel .Model.Name }}QueryResolver) {{ camel .Model.Name }}List(ctx context.Context, args struct {
