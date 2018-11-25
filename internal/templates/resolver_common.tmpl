@@ -4,7 +4,7 @@ package resolvers
 {{ template "Imports" unique .Imports "fmt" "strconv" "github.com/graph-gophers/graphql-go" "github.com/pkg/errors" }}
 
 
-func ToID(id domain.{{ camel .Id.Name }}) graphql.ID {
+func ToID(id domainx.{{ camel .Id.Name }}) graphql.ID {
 {{- if eq .Id.Type "string" }}
 	return toStringID(id)
 {{- else -}}
@@ -12,7 +12,7 @@ func ToID(id domain.{{ camel .Id.Name }}) graphql.ID {
 {{- end }}
 }
 
-func FromID(id graphql.ID) (domain.{{ camel .Id.Name }}, error) {
+func FromID(id graphql.ID) (domainx.{{ camel .Id.Name }}, error) {
 {{- if eq .Id.Type "string" }}
 	return fromStringID(id)
 {{- else -}}
@@ -20,25 +20,25 @@ func FromID(id graphql.ID) (domain.{{ camel .Id.Name }}, error) {
 {{- end }}
 }
 
-func toIntegerID(id domain.{{ camel .Id.Name }}) graphql.ID {
+func toIntegerID(id domainx.{{ camel .Id.Name }}) graphql.ID {
 	return graphql.ID(fmt.Sprintf("%d", id))
 }
 
-func toStringID(id domain.{{ camel .Id.Name }}) graphql.ID {
+func toStringID(id domainx.{{ camel .Id.Name }}) graphql.ID {
 	return graphql.ID(id)
 }
 
-func fromIntegerID(id graphql.ID) (domain.{{ camel .Id.Name }}, error) {
+func fromIntegerID(id graphql.ID) (domainx.{{ camel .Id.Name }}, error) {
 	a, err := strconv.Atoi(string(id))
 	if err != nil {
 		return 0, errors.Wrapf(err, "Invalid Id '%v'", id)
 	}
-	return domain.{{ camel .Id.Name }}(a), nil
+	return domainx.{{ camel .Id.Name }}(a), nil
 }
 
-func fromStringID(id graphql.ID) (domain.{{ camel .Id.Name }}, error) {
+func fromStringID(id graphql.ID) (domainx.{{ camel .Id.Name }}, error) {
 {{- if eq .Id.Type "string" }}
-	return domain.{{ camel .Id.Name }}(id), nil
+	return domainx.{{ camel .Id.Name }}(id), nil
 {{- else -}}
 	return 0, nil
 {{- end }}
@@ -66,7 +66,7 @@ func Errors(errs ...error) *[]*ErrorResolver {
 	resolvers := make([]*ErrorResolver, 0, len(errs))
 	for _, ierr := range errs {
 		switch err := ierr.(type) {
-		case *domain.ValidationError:
+		case *domainx.ValidationError:
 			resolvers = append(resolvers, &ErrorResolver{
 				name:    "validation",
 				field:   err.Field,

@@ -36,7 +36,7 @@ func (t *ResolverGenerator) Generate(cfg *config.Config) error {
 
 	models := domain.BuildModels(cfg)
 	globalImports := []string{
-		filepath.Join(cfg.BaseImport, "domain"),
+		"domainx:" + filepath.Join(cfg.BaseImport, "domain"),
 	}
 
 	for _, model := range models {

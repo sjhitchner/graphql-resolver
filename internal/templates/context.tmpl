@@ -12,23 +12,23 @@ const (
 	IsAuthorizedKey
 )
 
-func SetAggregator(ctx context.Context, agg domain.Aggregator) context.Context {
+func SetAggregator(ctx context.Context, agg domainx.Aggregator) context.Context {
 	return context.WithValue(ctx, AggregatorKey, agg)
 }
 
-func Aggregator(ctx context.Context) domain.Aggregator {
-	return ctx.Value(AggregatorKey).(domain.Aggregator)
+func Aggregator(ctx context.Context) domainx.Aggregator {
+	return ctx.Value(AggregatorKey).(domainx.Aggregator)
 }
 
-func SetInteractor(ctx context.Context, inter domain.Interactor) context.Context {
+func SetInteractor(ctx context.Context, inter domainx.Interactor) context.Context {
 	return context.WithValue(ctx, InteractorKey, inter)
 }
 
-func Interactor(ctx context.Context) domain.Interactor {
-	return ctx.Value(InteractorKey).(domain.Interactor)
+func Interactor(ctx context.Context) domainx.Interactor {
+	return ctx.Value(InteractorKey).(domainx.Interactor)
 }
 
-func SetCurrentUserId(ctx context.Context, userId domain.Id) context.Context {
+func SetCurrentUserId(ctx context.Context, userId domainx.Id) context.Context {
 	return context.WithValue(ctx, UserIdKey, userId)
 }
 

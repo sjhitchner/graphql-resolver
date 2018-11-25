@@ -26,7 +26,7 @@ func NewHttpGenerator(path string) *HttpGenerator {
 
 func (t *HttpGenerator) Generate(cfg *config.Config) error {
 	imports := []string{
-		filepath.Join(cfg.BaseImport, "domain"),
+		"domainx:" + filepath.Join(cfg.BaseImport, "domain"),
 	}
 
 	if err := GenerateGoFile(

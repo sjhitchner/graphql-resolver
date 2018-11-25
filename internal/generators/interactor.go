@@ -28,7 +28,7 @@ func (t *InteractorGenerator) Generate(cfg *config.Config) error {
 	models := domain.BuildModels(cfg)
 
 	imports := []string{
-		filepath.Join(cfg.BaseImport, "domain"),
+		"domainx:" + filepath.Join(cfg.BaseImport, "domain"),
 	}
 
 	if err := GenerateGoFile(

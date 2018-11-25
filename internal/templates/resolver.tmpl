@@ -80,11 +80,11 @@ package resolvers
 {{ with $m := .Model }}
 {{ comment $m.Description }}
 type {{ camel $m.Name }}Resolver struct {
-	interactor domain.Interactor
-	obj *domain.{{ camel $m.Name }}
+	interactor domainx.Interactor
+	obj *domainx.{{ camel $m.Name }}
 }
 
-func New{{ camel $m.Name }}Resolver(inter domain.Interactor, obj *domain.{{ camel $m.Name }}) *{{ camel $m.Name }}Resolver {
+func New{{ camel $m.Name }}Resolver(inter domainx.Interactor, obj *domainx.{{ camel $m.Name }}) *{{ camel $m.Name }}Resolver {
 	if obj == nil {
 		return nil
 	}
@@ -115,7 +115,7 @@ func (t *{{ camel $m.Name }}Resolver) {{ camel $f.Name -}}
 
 
 type {{ camel .Model.Name }}QueryResolver struct {
-	interactor domain.Interactor
+	interactor domainx.Interactor
 }
 
 func (t *{{ camel .Model.Name }}QueryResolver) {{ camel .Model.Name }}(ctx context.Context, args struct {

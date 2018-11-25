@@ -8,20 +8,20 @@ package resolvers
 
 type {{ camel $mutation.Name }}Input struct {
 {{- range $f := $mutation.Fields }}
-	{{ camel $f.Internal }} {{ gqlinputtype $f.Type "domain" }}
+	{{ camel $f.Internal }} {{ gqlinputtype $f.Type "domainx" }}
 {{- end }}
 }
 
 type {{ camel $mutation.Name }}Resolver struct {
-	interactor domain.Interactor
+	interactor domainx.Interactor
 	{{- if eq $mutation.Type "insert" }}
-	obj    *domain.{{ camel $m.Name }}
+	obj    *domainx.{{ camel $m.Name }}
 	{{- end }}
 	errors []error
 }
 
 {{- if eq $mutation.Type "insert" }}
-func New{{ camel $mutation.Name }}Resolver(inter domain.Interactor, obj *domain.{{ camel $m.Name }}, err ...error) *{{ camel $mutation.Name }}Resolver {
+func New{{ camel $mutation.Name }}Resolver(inter domainx.Interactor, obj *domain.{{ camel $m.Name }}, err ...error) *{{ camel $mutation.Name }}Resolver {
 return &{{ camel $mutation.Name }}Resolver{
 		inter,
 		obj,
@@ -30,7 +30,7 @@ return &{{ camel $mutation.Name }}Resolver{
 }
 {{- else }}
 
-func New{{ camel $mutation.Name }}Resolver(inter domain.Interactor, err ...error) *{{ camel $mutation.Name }}Resolver {
+func New{{ camel $mutation.Name }}Resolver(inter domainx.Interactor, err ...error) *{{ camel $mutation.Name }}Resolver {
 return &{{ camel $mutation.Name }}Resolver{
         inter,
 		err,
@@ -81,14 +81,14 @@ Input {{ camel $mutation.Name }}Input
 	{{ end }}
 
 
-	obj := &domain.{{ camel $m.Name }}{
+	obj := &domainx.{{ camel $m.Name }}{
 	{{- range $f := $mutation.Fields }}
 		{{ camel $f.Internal }}: {{ gql2gotype $f }},
 	{{- end }}
 	}
 
 	switch validator := interface{}(obj).(type) {
-	case domain.Validator:
+	case domainx.Validator:
 		if err := validator.Validate(); err != nil {
 			return New{{ camel $mutation.Name }}Resolver(t.interactor, nil, err), nil
 		}

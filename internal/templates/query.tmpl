@@ -14,7 +14,7 @@ type Resolver struct {
 	*Mutation
 }
 
-func InitResolver(inter domain.Interactor) *Resolver {
+func InitResolver(inter domainx.Interactor) *Resolver {
 	return &Resolver{
 {{- range $m := .Models }}
 {{- if ne $m.Type "link" }}
@@ -26,7 +26,7 @@ func InitResolver(inter domain.Interactor) *Resolver {
 }
 
 type Mutation struct {
-	interactor domain.Interactor
+	interactor domainx.Interactor
 }
 
 func (t *Resolver) Ping(ctx context.Context) string {

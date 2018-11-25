@@ -5,10 +5,10 @@ package interactor
 
 
 type Interactor struct {
-	domain.Aggregator
+	domainx.Aggregator
 }
 
-func NewInteractor(a domain.Aggregator) *Interactor {
+func NewInteractor(a domainx.Aggregator) *Interactor {
 	return &Interactor{a}
 }
 
