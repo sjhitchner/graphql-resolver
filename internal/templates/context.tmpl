@@ -28,7 +28,7 @@ func Interactor(ctx context.Context) domainx.Interactor {
 	return ctx.Value(InteractorKey).(domainx.Interactor)
 }
 
-func SetCurrentUserId(ctx context.Context, userId domainx.Id) context.Context {
+func SetCurrentUserId(ctx context.Context, userId domainx.ID) context.Context {
 	return context.WithValue(ctx, UserIdKey, userId)
 }
 

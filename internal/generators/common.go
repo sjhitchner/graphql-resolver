@@ -111,6 +111,13 @@ func CamelCase(values ...interface{}) (string, error) {
 	if !ok {
 		return "", errors.Errorf("Invalud argument '%s'", values[0])
 	}
+
+	if s == "id" {
+		return "ID", nil
+	} else if s == "uuid" {
+		return "UUID", nil
+	}
+
 	return strcase.UpperCamelCase(strcase.SnakeCase(s)), nil
 }
 
@@ -132,6 +139,11 @@ func GoType(values ...interface{}) (string, error) {
 		return "time.Time", nil
 	default:
 		str := strcase.UpperCamelCase(s)
+		if s == "id" {
+			str = "ID"
+		} else if s == "uuid" {
+			str = "UUID"
+		}
 		if len(values) == 2 {
 			str = values[1].(string) + "." + str
 		}
@@ -178,6 +190,8 @@ func GraphQL2GoType(values ...interface{}) (string, error) {
 		return strcase.LowerCamelCase(f.Internal), nil
 	case "id":
 		return strcase.LowerCamelCase(f.Internal), nil
+	case "uuid":
+		return fmt.Sprintf("domainx.UUID(args.Input.%s)", s), nil
 	default:
 		return fmt.Sprintf(
 			"domainx.%s(args.Input.%s)",
@@ -205,6 +219,8 @@ func GraphQLInputType(values ...interface{}) (string, error) {
 		return "string", nil
 	case "id":
 		return "graphql.ID", nil
+	case "uuid":
+		return "domainx.UUID", nil
 	default:
 		str := strcase.UpperCamelCase(s)
 		if len(values) == 2 {

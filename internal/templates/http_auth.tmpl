@@ -38,7 +38,7 @@ func WrapAuth(h http.Handler) http.Handler {
 	})
 }
 
-func ValidateAuthorizationHeader(ctx context.Context, r *http.Request) (domainx.Id, bool, error) {
+func ValidateAuthorizationHeader(ctx context.Context, r *http.Request) (domainx.ID, bool, error) {
 	token, _ := ParseAuthorizationHeader(r)
 	//if err != nil {
 	//	return 0, false, err

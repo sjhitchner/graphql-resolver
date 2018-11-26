@@ -9,7 +9,7 @@ package domain
 {{- range $arg := .Args -}}
 , {{ lcamel $arg.Name }} {{ gotype $arg.Type }}
 {{- end -}}
-{{- if eq .Type "list" -}}, first int32, after Id{{- end -}}
+{{- if eq .Type "list" -}}, first int32, after ID{{- end -}}
 ) ({{ return .Return }}, error)
 {{- end -}}
 
@@ -56,8 +56,8 @@ func (t *{{ camel .Name }}) String() string {
 {{- end -}}
 
 {{ define "ModelField" }}
-	{{ camel .Internal }} {{ gotype .Type }} `db:"{{ .Internal }}" json:"{{ .Internal }}"`
-{{- end }}
+	{{- if eq .Internal "id" }}ID ID{{ else if eq .Internal "uuid" }}UUID UUID{{ else }}{{ camel .Internal }} {{ gotype .Type }}{{ end }} `db:"{{ .Internal }}" json:"{{ .Internal }}"`
+{{ end }}
 
 {{ with $m := .Model }}
 {{ template "RepoInterface" $m }}

@@ -21,7 +21,7 @@ type {{ camel $mutation.Name }}Resolver struct {
 }
 
 {{- if eq $mutation.Type "insert" }}
-func New{{ camel $mutation.Name }}Resolver(inter domainx.Interactor, obj *domain.{{ camel $m.Name }}, err ...error) *{{ camel $mutation.Name }}Resolver {
+func New{{ camel $mutation.Name }}Resolver(inter domainx.Interactor, obj *domainx.{{ camel $m.Name }}, err ...error) *{{ camel $mutation.Name }}Resolver {
 return &{{ camel $mutation.Name }}Resolver{
 		inter,
 		obj,

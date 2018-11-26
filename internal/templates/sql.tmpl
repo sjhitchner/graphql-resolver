@@ -77,7 +77,7 @@ return &obj, {{- template "QueryError" args "Model" .Model "Method" .Method }}
 func (t *{{ camel .Model.Name }}DB) {{ camel .Method.Name }}(ctx context.Context
 {{- range $arg := .Method.Args -}}
 , {{ lcamel $arg.Name }} {{ if $arg.Deref -}}*{{- end -}}{{ gotype $arg.Type "domainx" }}
-{{- end -}}, first int32, after domainx.Id) ({{ return .Method.Return "domainx" }}, error) {
+{{- end -}}, first int32, after domainx.ID) ({{ return .Method.Return "domainx" }}, error) {
 var list []*domainx.{{ camel .Model.Name }}
 err := t.db.Select(ctx, &list, Select{{ camel .Method.Name }}
 {{- range $arg := .Method.Args -}}
@@ -97,7 +97,7 @@ id, err := t.db.InsertWithId(
 		obj.{{ camel $f.Internal }},
 	    {{- end }}
 		)
-	obj.Id = domainx.Id(id)
+	obj.ID = domainx.ID(id)
 	return obj, errors.Wrapf(err, "Unable to {{ camel .Mutation.Name }} {{ .Model.Name }}")
 }
 {{- end -}}

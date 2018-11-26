@@ -5,7 +5,13 @@ package domain
 
 {{ range $type := .Types }}
 //go:generate sqltype -type={{ $type.Name }} -primative={{ $type.Type }}
-type {{ camel $type.Name }} {{ $type.Type }}
+{{- if eq $type.Name "id" }}
+	type ID {{ $type.Type }}
+{{- else if eq $type.Name "uuid" }}
+	type UUID {{ $type.Type }}
+{{- else }}
+	type {{ camel $type.Name }} {{ $type.Type }}
+{{- end }}
 {{ end }}
 
 
