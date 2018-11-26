@@ -47,6 +47,7 @@ func init() {
 				"gqltype":      GraphQLType,
 				"gqlinputtype": GraphQLInputType,
 				"gql2gotype":   GraphQL2GoType,
+				"go2gql":       Go2GraphQLType,
 				"find":         Find,
 				"return":       MethodReturn,
 				"many2many":    IsMany2Many,

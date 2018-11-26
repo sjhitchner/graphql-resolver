@@ -17,12 +17,12 @@ package resolvers
 {{ end }}
 
 
-{{ define "MethodPrimative" }}(ctx context.Context) {{ .Field.Primative }} {
+{{ define "MethodPrimative" }}(ctx context.Context) {{ go2gql .Field }} {
 	log.Tracef("{{ .Model.Name }}:{{ .Field.Name }} => %v", t.obj.{{ camel .Field.Name }}) 
 	{{ if eq .Field.Type .Field.Primative -}}
 	return t.obj.{{ camel .Field.Name }}
 	{{- else -}}
-	return {{ .Field.Primative }}(t.obj.{{ camel .Field.Name }})
+	return {{ go2gql .Field }}(t.obj.{{ camel .Field.Name }})
 	{{- end }}
 }
 {{ end }}

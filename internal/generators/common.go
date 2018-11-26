@@ -139,7 +139,23 @@ func GoType(values ...interface{}) (string, error) {
 	}
 }
 
-//{{ camel $f.Name }}: {{ gql2gotype $f.Name }}(args.Input.{{ camel $f.Name}}),
+func Go2GraphQLType(values ...interface{}) (string, error) {
+	f, ok := values[0].(domain.Field)
+	if !ok {
+		return "", errors.Errorf("Invalud argument '%s'", values[0])
+	}
+
+	switch f.Primative {
+	case "int64":
+		return "int32", nil
+	case "timestamp":
+		return "string", nil
+	case "id":
+		return "graphql.ID", nil
+	default:
+		return f.Primative, nil // fmt.Sprintf("domainx.%s", strcase.UpperCamelCase(f.Type)), nil
+	}
+}
 
 func GraphQL2GoType(values ...interface{}) (string, error) {
 	f, ok := values[0].(domain.Field)
@@ -164,7 +180,7 @@ func GraphQL2GoType(values ...interface{}) (string, error) {
 		return strcase.LowerCamelCase(f.Internal), nil
 	default:
 		return fmt.Sprintf(
-			"domain.%s(args.Input.%s)",
+			"domainx.%s(args.Input.%s)",
 			strcase.UpperCamelCase(f.Type),
 			s,
 		), nil
