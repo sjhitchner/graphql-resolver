@@ -77,12 +77,12 @@ return &obj, {{- template "QueryError" args "Model" .Model "Method" .Method }}
 func (t *{{ camel .Model.Name }}DB) {{ camel .Method.Name }}(ctx context.Context
 {{- range $arg := .Method.Args -}}
 , {{ lcamel $arg.Name }} {{ if $arg.Deref -}}*{{- end -}}{{ gotype $arg.Type "domainx" }}
-{{- end -}}, first int32, after domainx.ID) ({{ return .Method.Return "domainx" }}, error) {
+{{- end -}}, limit domainx.Limit, offset domainx.Offset) ({{ return .Method.Return "domainx" }}, error) {
 var list []*domainx.{{ camel .Model.Name }}
 err := t.db.Select(ctx, &list, Select{{ camel .Method.Name }}
 {{- range $arg := .Method.Args -}}
 	, {{ lcamel $arg.Name }}
-{{- end -}}, after, first)
+{{- end -}}, limit, offset)
 return list, {{- template "QueryError" args "Model" .Model "Method" .Method }}
 }
 {{- end -}}
@@ -150,15 +150,15 @@ const Select{{ camel $method.Name }} = `
 {{- if many2many $method.Relationship }}
 JOIN {{ $method.Relationship.Through.Internal }} ON {{ $m.Internal }}.id = {{ $method.Relationship.Through.Internal }}.{{ $m.Name }}_id
 {{- end }}
+{{- if gt (len $method.Args) 0 }}
 WHERE {{ range $i, $arg := $method.Args -}}
 {{- if gt $i 0 }} AND {{ end -}}
 {{ $arg.Parent.Internal }}.{{ $arg.Name }} = ${{ add $i 1 }}
 {{- end -}}
 {{- if eq $method.Type "list" }}
-{{- if gt (len $method.Args) 0 }} AND {{ end -}}
-{{ $m.Internal }}.id >= ${{ add (len $method.Args) 1}}
-ORDER BY {{ $m.Internal }}.id ASC
-LIMIT ${{ add (len $method.Args) 2 }}
+{{- if gt (len $method.Args) 0 }}{{ end }}{{ end }}
+ORDER BY {{ $m.Internal }}.created_at ASC
+LIMIT ${{ add (len $method.Args) 1 }} OFFSET ${{ add (len $method.Args) 2 }} 
 {{- end }}
 `
 

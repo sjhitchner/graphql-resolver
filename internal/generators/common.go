@@ -161,7 +161,7 @@ func Go2GraphQLType(values ...interface{}) (string, error) {
 	case "int64":
 		return "int32", nil
 	case "timestamp":
-		return "string", nil
+		return "graphql.Time", nil
 	case "id":
 		return "graphql.ID", nil
 	default:
@@ -216,7 +216,7 @@ func GraphQLInputType(values ...interface{}) (string, error) {
 	case "boolean":
 		return "bool", nil
 	case "timestamp":
-		return "string", nil
+		return "graphql.Time", nil
 	case "id":
 		return "graphql.ID", nil
 	case "uuid":
@@ -273,7 +273,7 @@ func GraphQLTypeInternal(typ, primative string) string {
 	case "boolean":
 		return "Boolean"
 	case "timestamp":
-		return "String"
+		return "Time"
 	default:
 		return strcase.UpperCamelCase(primative)
 	}

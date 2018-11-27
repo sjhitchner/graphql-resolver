@@ -1,3 +1,5 @@
+scalar Time
+
 {{ range $m := .Models }}
 {{- if ne $m.Type "link" -}}
 type {{ camel $m.Name }} {
@@ -5,7 +7,7 @@ type {{ camel $m.Name }} {
 {{- if $f.ShouldExpose }}
 {{- if $f.Relationship }}
 	{{- if ne $f.Relationship.Type "one2one" }}
-	{{ lcamel $f.Name }}(first: Int!, after: ID!): {{ gqltype $f }}!
+	{{ lcamel $f.Name }}(limit: Int!, offset: Int!): {{ gqltype $f }}!
 	{{- else }}
 	{{ lcamel $f.Name }}: {{ gqltype $f }}!
 	{{- end }}
@@ -23,7 +25,7 @@ type Query {
 {{ range $m := .Models }}
 {{- if ne $m.Type "link" }}
 	{{ lcamel $m.Name }}(id: ID!): {{ camel $m.Name }}!
-	{{ lcamel $m.Name }}List(first: Int!, after: ID!): [{{ camel $m.Name }}!]!
+	{{ lcamel $m.Name }}List(limit: Int!, offset: Int!): [{{ camel $m.Name }}!]!
 {{ end -}}
 {{ end -}}
 }

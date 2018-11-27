@@ -46,7 +46,7 @@ func (t *ResolverGenerator) Generate(cfg *config.Config) error {
 			TemplatePath(t.path, t.pkg, model.Name),
 			"resolver.tmpl",
 			ResolverTemplate{
-				Imports: model.Imports.AsSlice(),
+				Imports: removeTime(model.Imports.AsSlice()),
 				Model:   model,
 			}); err != nil {
 			return errors.Wrapf(err, "Error generating resolver %s", model.Name)
@@ -56,7 +56,7 @@ func (t *ResolverGenerator) Generate(cfg *config.Config) error {
 			TemplatePath(t.path, t.pkg, model.Name+"_mutation"),
 			"mutation.tmpl",
 			ResolverTemplate{
-				Imports: model.Imports.AsSlice(),
+				Imports: removeTime(model.Imports.AsSlice()),
 				Model:   model,
 			}); err != nil {
 			return errors.Wrapf(err, "Error generating mutation resolver %s", model.Name)
@@ -102,4 +102,14 @@ func (t *ResolverGenerator) Generate(cfg *config.Config) error {
 	}
 
 	return nil
+}
+
+func removeTime(list []string) []string {
+	nlist := make([]string, 0, len(list))
+	for _, l := range list {
+		if l != "time" {
+			nlist = append(nlist, l)
+		}
+	}
+	return nlist
 }

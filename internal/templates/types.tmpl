@@ -14,6 +14,8 @@ package domain
 {{- end }}
 {{ end }}
 
+type Limit int32
+type Offset int32
 
 type Aggregator interface {
 {{- range $m := .Models }}
