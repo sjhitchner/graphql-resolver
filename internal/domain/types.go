@@ -25,6 +25,20 @@ type Method struct {
 	Return       Return
 }
 
+type ByMethodName []Method
+
+func (t ByMethodName) Len() int {
+	return len(t)
+}
+
+func (t ByMethodName) Swap(i, j int) {
+	t[i], t[j] = t[j], t[i]
+}
+
+func (t ByMethodName) Less(i, j int) bool {
+	return t[i].Name < t[j].Name
+}
+
 type Arg struct {
 	Name   string
 	Parent NameInternal

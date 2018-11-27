@@ -1,7 +1,7 @@
 {{ template "Header" }}
 package main
 
-{{ template "Imports" unique .Imports "io/ioutil" "net/http" "context" "libdb:github.com/sjhitchner/toolbox/db" "graphql:github.com/sjhitchner/toolbox/http" "libsql:github.com/sjhitchner/toolbox/db/psql" "github.com/sjhitchner/toolbox/flag" "log:github.com/sirupsen/logrus"}}
+{{ template "Imports" unique .Imports "time" "fmt" "io/ioutil" "net/http" "context" "libdb:github.com/sjhitchner/toolbox/db" "graphql:github.com/sjhitchner/toolbox/http" "libsql:github.com/sjhitchner/toolbox/db/psql" "github.com/sjhitchner/toolbox/flag" "log:github.com/sirupsen/logrus"}}
 
 var (
 	sqlitePath string
@@ -12,12 +12,14 @@ var (
 	dbPassword string
 	dbName string
 	dbPort int
+
+	port int
 )
 
 func init() {
 	flag.StringVar(&sqlitePath, "sqlite", ":memory:", "Path to sqlite db")
 	flag.StringVar(&schemaPath, "schema", "schema.gql", "Path to graphql schema")
-
+	flag.IntVar(&port, "port", 8080, "Service Port")
 
 	flag.StringVar(&dbHost, "database-host", "", "Database Host")
 	flag.StringVar(&dbUser, "database-user", "", "Database User")
@@ -44,7 +46,15 @@ func main() {
 	http.Handle("/graphql", handler)
 	http.Handle("/", graphql.NewGraphiQLHandler(string(schema)))
 
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	server := &http.Server{
+		Handler:      nil,
+		Addr:         fmt.Sprintf(":%d", port),
+		ReadTimeout:  2 * time.Second,
+		WriteTimeout: 2 * time.Second,
+	}
+
+	log.Infof("Starting GraphQL on port %d", port)
+	log.Fatal(server.ListenAndServe())
 }
 
 func SetupHandler(dbh libdb.DBHandler, schema string) (http.Handler, error) {

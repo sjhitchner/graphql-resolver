@@ -2,6 +2,7 @@ package domain
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 
 	//"github.com/pkg/errors"
@@ -16,6 +17,9 @@ func BuildModels(cfg *config.Config) []Model {
 
 	for _, m := range cfg.Models {
 		model := BuildModel(cfg, m)
+
+		sort.Sort(ByMethodName(repoMap[model.Name]))
+
 		model.Repo = Repo{
 			Name:    fmt.Sprintf("%s_repo", model.Name),
 			Methods: repoMap[model.Name],
