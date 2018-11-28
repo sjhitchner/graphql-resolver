@@ -155,8 +155,8 @@ WHERE {{ range $i, $arg := $method.Args -}}
 {{- if gt $i 0 }} AND {{ end -}}
 {{ $arg.Parent.Internal }}.{{ $arg.Name }} = ${{ add $i 1 }}
 {{- end -}}
+{{- end -}}
 {{- if eq $method.Type "list" }}
-{{- if gt (len $method.Args) 0 }}{{ end }}{{ end }}
 ORDER BY {{ $m.Internal }}.created_at ASC
 LIMIT ${{ add (len $method.Args) 1 }} OFFSET ${{ add (len $method.Args) 2 }} 
 {{- end }}
