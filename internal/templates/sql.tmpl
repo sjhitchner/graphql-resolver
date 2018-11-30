@@ -27,7 +27,7 @@ INSERT INTO {{ .Model.Internal }} (
 {{- range $i, $f := .Mutation.Fields }}
 	{{- if gt $i 0 }}, {{ end -}}${{ add $i 1 }}
 {{- end -}}
-)
+) RETURNING id
 `
 {{ end }}
 
@@ -157,7 +157,7 @@ WHERE {{ range $i, $arg := $method.Args -}}
 {{- end -}}
 {{- end -}}
 {{- if eq $method.Type "list" }}
-ORDER BY {{ $m.Internal }}.created_at ASC
+ORDER BY {{ $m.Internal }}.date_created ASC
 LIMIT ${{ add (len $method.Args) 1 }} OFFSET ${{ add (len $method.Args) 2 }} 
 {{- end }}
 `

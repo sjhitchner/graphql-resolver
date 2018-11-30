@@ -37,5 +37,14 @@ func (t *GraphQLGenerator) Generate(cfg *config.Config) error {
 		return errors.Wrapf(err, "Error generating graphql schema")
 	}
 
+	if err := GenerateFile(
+		ReactPath(t.path, "react", "mutations"),
+		"react_mutations.tmpl",
+		GraphQLTemplate{
+			Models: models,
+		}); err != nil {
+		return errors.Wrapf(err, "Error generating react mutations")
+	}
+
 	return nil
 }

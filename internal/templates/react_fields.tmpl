@@ -1,0 +1,40 @@
+// collections of raw fields
+
+export const userFields = `
+  id
+  value:id
+  label:name
+  name
+  email
+  description
+  role {
+    id
+    name
+  }
+  phone
+`;
+
+//example of combining fields
+export const scanResultFields = `
+  dateCreated
+      cookieCount
+      ruleCount
+      suspectsCount
+`;
+
+export const scanRequestFields = `
+    dateCreated
+    dateModified
+    uuid
+    user {
+        ${userFields}
+        }
+    status
+    error
+    region
+    url
+    results{
+        ${scanResultFields}
+        }
+    items
+`;

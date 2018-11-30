@@ -64,6 +64,10 @@ func SchemaPath(path, module, name string) string {
 	return templatePath(path, module, name, ".gen.gql")
 }
 
+func ReactPath(path, module, name string) string {
+	return templatePath(path, module, name, ".gen.js")
+}
+
 func templatePath(path, module, name, suffix string) string {
 	if err := os.MkdirAll(filepath.Join(path, module), os.ModePerm); err != nil {
 		panic(err)
