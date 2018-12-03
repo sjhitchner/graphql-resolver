@@ -68,10 +68,6 @@ func SetupHandler(dbh libdb.DBHandler, schema string) (http.Handler, error) {
 
 	handler := graphql.NewHandler(string(schema), resolvers.InitResolver(inter))
 
-	ctx := context.Background()
-	ctx = helpers.SetAggregator(ctx, agg)
-	ctx = helpers.SetInteractor(ctx, inter)
-
 	return graphql.WrapContext(
 		ctx,
 		helpers.WrapAuth(handler),
