@@ -1,0 +1,56 @@
+import gql from 'graphql-tag';
+import {
+{{- range $m := .Models -}}
+	{{ lcamel $m.Name }}Fields, 
+{{- end -}}
+} from './graphqlFields';
+
+{{- define "ReactMutationCreate" }}
+export const {{ camel .Mutation.Name }}Mutation = gql`
+mutation {{ lcamel .Mutation.Name }}(
+{{- range $i, $f := .Mutation.Fields }}
+	{{- if gt $i 0 -}},{{- end -}}
+	${{ $f.Internal }}: {{ gqltype $f false }}	
+{{- end }}) {
+	{{ lcamel .Mutation.Name }}(
+{{- range $i, $f := .Mutation.Fields }}
+	{{- if gt $i 0 -}},{{- end -}}
+		{{ $f.Internal }}: ${{ $f.Internal }}
+{{- end }}
+	) {
+		ok
+		{{ lcamel .Mutation.Name }} {
+		{{- range $i, $f := .Model.Fields }}
+		{{- if gt $i 0 -}},{{- end -}}
+			{{ $f.Internal }}
+		{{- end }}
+		}
+	}
+}
+`;
+{{- end }}
+
+{{- define "ReactMutationDelete" }}
+{{- end }}
+
+{{- define "ReactMutationUpdate" }}
+{{- end }}
+
+{{- define "ReactMutations" -}}
+{{- with $model := . -}}
+{{- range $m := $model.Mutations -}}
+{{- if eq $m.Type "insert" }} 
+{{ template "ReactMutationCreate" args "Model" $model "Mutation" $m }}
+{{- else if eq $m.Type "delete" }} 
+{{ template "ReactMutationDelete" args "Model" $model "Mutation" $m }}
+{{- else if eq $m.Type "update" }}
+{{ template "ReactMutationUpdate" args "Model" $model "Mutation" $m }}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{- range $m := .Models }}
+{{ template "ReactMutations" $m }}
+{{- end }}
+
