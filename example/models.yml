@@ -17,6 +17,8 @@ resolvers:
 custom_types:
   - name: id
     primative: integer
+  - name: uuid
+    primative: integer
   - name: username
     primative: string
   - name: email
@@ -35,6 +37,14 @@ models:
         type: id 
         indexes: 
           - primary
+
+      - name: "uuid"
+        description: "The UUID of the User"
+        expose: true
+        deprecated: false
+        type: uuid 
+        indexes: 
+          - uuid_unique
 
       - name: "username"
         description: "The Username of the User"

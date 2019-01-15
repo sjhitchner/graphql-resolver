@@ -83,8 +83,7 @@ func BuildField(cfg *config.Config, f config.Field) (Field, string) {
 	primative, imprt := cfg.Primative(f.Type)
 
 	internal := f.Internal
-	if f.Type == config.ID &&
-		!strings.HasSuffix(f.Internal, "id") {
+	if f.Type == config.ID && !strings.HasSuffix(f.Internal, "id") {
 		internal = f.Internal + "_id"
 	}
 

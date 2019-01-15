@@ -112,13 +112,13 @@ func CamelCase(values ...interface{}) (string, error) {
 		return "", errors.Errorf("Invalud argument '%s'", values[0])
 	}
 
-	if s == "id" {
-		return "ID", nil
-	} else if s == "uuid" {
-		return "UUID", nil
+	str := strcase.UpperCamelCase(strcase.SnakeCase(s))
+	if strings.HasSuffix(s, "uuid") {
+		return str[:len(str)-4] + "UUID", nil
+	} else if strings.HasSuffix(s, "id") {
+		return str[:len(str)-2] + "ID", nil
 	}
-
-	return strcase.UpperCamelCase(strcase.SnakeCase(s)), nil
+	return str, nil
 }
 
 func GoType(values ...interface{}) (string, error) {
@@ -531,13 +531,6 @@ func Find(values ...interface{}) (interface{}, error) {
 				return m, nil
 			}
 		}
-
-	//case []domain.Relationship:
-	//	for _, m := range v {
-	//		if m.Name == name {
-	//			return m, nil
-	//		}
-	//	}
 
 	case []domain.Field:
 		for _, m := range v {
